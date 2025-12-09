@@ -1,6 +1,11 @@
-# Study Planner Pro
+# Study Planner Pro 🚀
 
-Aplicação completa de planejamento de estudos com frontend em React + Tailwind CSS e backend em Java + Spring Boot.
+[![Frontend](https://img.shields.io/badge/React-19.2-blue?logo=react)](https://reactjs.org/)
+[![Backend](https://img.shields.io/badge/Java-11-orange?logo=java)](https://www.java.com/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-2.7.18-green?logo=spring)](https://spring.io/projects/spring-boot)
+[![License](https://img.shields.io/badge/License-Apache%202-blue)](LICENSE)
+
+Aplicación completa de planificación de estudios con **frontend en React + Tailwind CSS** y **backend en Java + Spring Boot**.
 
 ## Estrutura do Projeto
 
@@ -23,7 +28,7 @@ study-planner/
 - Maven
 
 ### Frontend
-- React 19.2.0
+- React 19.2
 - Vite 7.2.4
 - Tailwind CSS 4.1.17
 - React Router DOM
