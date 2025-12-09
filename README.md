@@ -15,37 +15,36 @@ study-planner/
 └── frontend/         # Interface em React + Tailwind CSS
 ```
 
-## Tecnologias
+## 🛠 Tecnologías
 
 ### Backend
-- Java 11
-- Spring Boot 2.7.18
-- Spring Web
-- Spring Data JPA
-- Spring Security
-- H2 Database (em memória)
-- Lombok
-- Maven
+- **Java 11**
+- **Spring Boot 2.7**  
+- **Spring Web** (para crear la API REST)  
+- **Spring Data JPA** (para acceso a la base de datos)  
+- **Spring Security** (autenticación y autorización)  
+- **H2 Database** (en memoria para desarrollo)  
+- **Lombok** (reducción de boilerplate)  
+- **Maven** (gestión de dependencias y build)
 
 ### Frontend
-- React 19.2
-- Vite 7.2.4
-- Tailwind CSS 4.1.17
-- React Router DOM
-- Axios
-- Recharts
-- Lucide React
+- **React 19.2** (librería para la interfaz de usuario)  
+- **Vite 7.2** (bundler rápido para desarrollo)  
+- **Tailwind CSS 4.1** (framework CSS para diseño responsivo)  
+- **React Router DOM** (navegación entre páginas)  
+- **Axios** (peticiones HTTP a la API)  
+- **Recharts** (gráficos y estadísticas)  
+- **Lucide React** (iconos modernos)
 
-## Como Executar
+
+## ⚡ Instalación Rápida
 
 ### Backend
-
 ```bash
 cd backend
 ./mvnw spring-boot:run
+# Backend disponible en: http://localhost:8080
 ```
-
-O backend estará disponível em: `http://localhost:8080`
 
 ### Frontend
 
@@ -53,61 +52,77 @@ O backend estará disponível em: `http://localhost:8080`
 cd frontend
 pnpm install
 pnpm dev
+# Frontend disponible en: http://localhost:5173
 ```
 
 O frontend estará disponível em: `http://localhost:5173`
 
-## Funcionalidades
+## 🎯 Funcionalidades
 
-- ✅ Autenticação (Login/Registro)
-- ✅ Dashboard com estatísticas
-- ✅ Gráfico de horas de estudo
-- ✅ Sessões de estudo recentes
-- ✅ Metas ativas com progresso
-- ✅ Gerenciamento de matérias
-- ✅ API REST completa
-- ✅ Design responsivo e tema escuro
+- ✅ Autenticación (Login / Registro)  
+- ✅ Dashboard con estadísticas  
+- ✅ Gráficos de horas de estudio  
+- ✅ Sesiones de estudio recientes  
+- ✅ Metas activas con progreso  
+- ✅ Gestión de materias  
+- ✅ API REST completa  
+- ✅ Diseño responsivo y tema oscuro  
 
-## Endpoints da API
+![Dashboard Screenshot](./frontend/src/assets/dashboard.png)  
+*Ejemplo de Dashboard de Study Planner Pro*
 
-### Autenticação
-- `POST /api/auth/register` - Registrar usuário
-- `POST /api/auth/login` - Fazer login
 
-### Dashboard
-- `GET /api/dashboard/stats/{userId}` - Estatísticas do usuário
+## 🔗 Endpoints de la API
 
-### Sessões de Estudo
-- `GET /api/study-sessions/user/{userId}` - Listar sessões
-- `GET /api/study-sessions/user/{userId}/recent` - Sessões recentes
-- `POST /api/study-sessions` - Criar sessão
-- `DELETE /api/study-sessions/{id}` - Deletar sessão
+| Funcionalidad          | Endpoint                                 | Método |
+|------------------------|-----------------------------------------|--------|
+| Registrar usuario       | /api/auth/register                       | POST   |
+| Iniciar sesión          | /api/auth/login                          | POST   |
+| Estadísticas del usuario| /api/dashboard/stats/{userId}           | GET    |
+| Listar sesiones         | /api/study-sessions/user/{userId}       | GET    |
+| Listar sesiones recientes| /api/study-sessions/user/{userId}/recent| GET    |
+| Crear sesión            | /api/study-sessions                     | POST   |
+| Eliminar sesión         | /api/study-sessions/{id}                | DELETE |
+| Listar metas            | /api/goals/user/{userId}                | GET    |
+| Crear meta              | /api/goals                              | POST   |
+| Actualizar meta         | /api/goals/{id}                         | PUT    |
+| Eliminar meta           | /api/goals/{id}                         | DELETE |
+| Listar materias         | /api/subjects/user/{userId}             | GET    |
+| Crear materia           | /api/subjects                           | POST   |
+| Eliminar materia        | /api/subjects/{id}                      | DELETE |
 
-### Metas
-- `GET /api/goals/user/{userId}` - Listar metas
-- `POST /api/goals` - Criar meta
-- `PUT /api/goals/{id}` - Atualizar meta
-- `DELETE /api/goals/{id}` - Deletar meta
 
-### Matérias
-- `GET /api/subjects/user/{userId}` - Listar matérias
-- `POST /api/subjects` - Criar matéria
-- `DELETE /api/subjects/{id}` - Deletar matéria
+## 🗄 Base de Datos
 
-## Banco de Dados
+- **H2 Database** en memoria (para desarrollo)  
+- Console H2: `http://localhost:8080/h2-console`  
+- JDBC URL: `jdbc:h2:mem:studyplanner`  
+- Usuario: `sa`  
+- Contraseña: (vacío)  
 
-O projeto usa H2 Database em memória para desenvolvimento. Para implementar persistência, configure um banco de dados como PostgreSQL ou MySQL no `application.properties`.
+> Para usar un **banco de datos persistente** (PostgreSQL / MySQL), configure `application.properties` y cambie `spring.jpa.hibernate.ddl-auto` a `update`.
 
-Console H2: `http://localhost:8080/h2-console`
-- JDBC URL: `jdbc:h2:mem:studyplanner`
-- Username: `sa`
-- Password: (vazio)
 
-## Próximos Passos
+## 🤝 Contribuciones
 
-Para implementar o banco de dados persistente:
+1. Hacer fork del repositorio  
+2. Crear una rama de función: `feature/mi-funcion`  
+3. Hacer commit de los cambios  
+4. Abrir un Pull Request
 
-1. Adicionar dependência do PostgreSQL/MySQL no `pom.xml`
-2. Atualizar `application.properties` com configurações do banco
-3. Alterar `spring.jpa.hibernate.ddl-auto` para `update`
-4. Executar migrations se necessário
+## 🚀 Próximos Pasos
+
+- Implementar base de datos persistente  
+- Mejorar tests  
+- Añadir más estadísticas y gráficos
+
+### 📸 Capturas de Pantalla
+
+![Pantalla de Inicio](./frontend/src/assets/home.png)  
+*Vista de la pantalla principal de Study Planner Pro*
+
+![Vista de Sesiones](./frontend/src/assets/sessions.png)  
+*Listado de sesiones de estudio recientes*
+
+![Vista de Metas](./frontend/src/assets/goals.png)  
+*Seguimiento de metas activas con progreso*
