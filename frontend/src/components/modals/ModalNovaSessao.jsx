@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../Modal';
-import { studySessionAPI, subjectAPI } from '../../services/api'; // Usando seus serviços padrão
+import { studySessionAPI, subjectAPI } from '../../services/api'; 
 
 const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
   // Estados do Formulário
@@ -9,14 +9,13 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState(60);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [completed, setCompleted] = useState(true); // Padrão true para registrar estudo feito
+  const [completed, setCompleted] = useState(true); 
   
-  // Estados de Controle
-  const [subjects, setSubjects] = useState([]); // Lista de matérias
+  const [subjects, setSubjects] = useState([]); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // 1. Carregar matérias quando o modal abre (Proteção contra erro do .map)
+  // Carrega matérias quando o modal abre
   useEffect(() => {
     if (isOpen && userId) {
       subjectAPI.getUserSubjects(userId)
@@ -31,27 +30,27 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
     setLoading(true);
 
     try {
-      // 2. Correção de Data para o Backend (LocalDateTime)
-      // Pega a data do input e adiciona o horário atual ou 00:00
+      const [year, month, day] = date.split('-').map(Number); // Quebra a string em pedaçõs númericos x-x-x
+      
       const now = new Date();
-      const selectedDate = new Date(date);
-      selectedDate.setHours(now.getHours(), now.getMinutes(), 0);
-      const isoDate = selectedDate.toISOString();
+      
+      const selectedDate = new Date(year, month - 1, day, now.getHours(), now.getMinutes()); // Cria data usando ctor local
+      
+      const isoDate = selectedDate.toISOString(); // Converte para o UTC equivalente
 
       await studySessionAPI.createSession({
         title,
-        durationMinutes: Number(duration), // Backend espera durationMinutes
+        durationMinutes: Number(duration),
         date: isoDate,
-        description, // Adicione esse campo no seu Backend/Model se quiser salvar
+        description,
         completed,
-        user: { id: userId }, // Usa o ID real do usuário
+        user: { id: userId },
         subject: subjectId ? { id: Number(subjectId) } : null,
       });
 
-      onSuccess(); // Atualiza o Dashboard
-      onClose();   // Fecha o modal
+      onSuccess();
+      onClose();
       
-      // Limpa formulário
       setTitle('');
       setSubjectId('');
       setDescription('');
@@ -67,8 +66,6 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
   return (
     <Modal title="Nova Sessão de Estudo" isOpen={isOpen} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        
-        {/* Título */}
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-1">Título</label>
           <input
@@ -82,7 +79,6 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
           />
         </div>
 
-        {/* Matéria (com proteção contra lista vazia) */}
         <div>
           <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-1">Matéria</label>
           <select
@@ -105,7 +101,6 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
           </select>
         </div>
 
-        {/* Grid para Duração e Data */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="duration" className="block text-sm font-medium text-gray-300 mb-1">Duração (min)</label>
@@ -119,6 +114,7 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
               min="1"
             />
           </div>
+
           <div>
             <label htmlFor="date" className="block text-sm font-medium text-gray-300 mb-1">Data</label>
             <input
@@ -132,7 +128,6 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
           </div>
         </div>
 
-        {/* Checkbox */}
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -144,10 +139,8 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
           <label htmlFor="completed" className="ml-2 text-sm font-medium text-gray-300">Marcar como concluída</label>
         </div>
 
-        {/* Mensagem de Erro */}
         {error && <p className="text-red-500 text-sm bg-red-500/10 p-2 rounded">{error}</p>}
 
-        {/* Botão de Submit */}
         <button
           type="submit"
           disabled={loading}

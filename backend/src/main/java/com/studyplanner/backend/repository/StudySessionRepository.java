@@ -3,7 +3,7 @@ package com.studyplanner.backend.repository;
 import com.studyplanner.backend.model.StudySession;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param; // Importante
+import org.springframework.data.repository.query.Param; 
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -17,17 +17,13 @@ public interface StudySessionRepository extends JpaRepository<StudySession, Long
     @Query("SELECT s FROM StudySession s WHERE s.user.id = :userId AND s.date >= :startDate ORDER BY s.date DESC")
     List<StudySession> findRecentSessions(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
 
-    // --- NOVOS MÉTODOS PARA O DASHBOARD ---
-
-    // Soma total de minutos de todas as sessões do usuário
-    // COALESCE(SUM(...), 0) serve para retornar 0 em vez de NULL se não houver sessões
-    @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId")
+    @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId") // Soma total dos min para todos os users
     Integer getTotalStudyMinutes(@Param("userId") Long userId);
 
-    // Soma total de minutos da semana atual
-    @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId AND s.date >= :startDate")
+    @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId AND s.date >= :startDate") // Soma total min semana atual
     Integer getWeeklyStudyMinutes(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
     
-    // Contagem de sessões completas
-    long countByUser_IdAndCompletedTrue(Long userId);
+    long countByUser_IdAndCompletedTrue(Long userId); // Contagem de sessões completas
+
+    List<StudySession> findByUserIdAndDateAfter(Long userId, LocalDateTime date);
 }

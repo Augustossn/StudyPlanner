@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react'; // <--- Adicionado useCallback
 import { useNavigate } from 'react-router-dom';
 import { 
   GraduationCap, 
@@ -12,7 +12,6 @@ import {
 import { dashboardAPI, studySessionAPI, goalsAPI } from '../services/api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// --- IMPORTANDO OS MODAIS ---
 import ModalNovaMeta from '../components/modals/ModalNovaMeta';
 import ModalNovaMateria from '../components/modals/ModalNovaMateria';
 import ModalNovaSessao from '../components/modals/ModalNovaSessao';
@@ -21,7 +20,6 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   
-  // --- ESTADOS DOS MODAIS ---
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [isSubjectModalOpen, setIsSubjectModalOpen] = useState(false);
@@ -36,9 +34,7 @@ function Dashboard() {
   const [goals, setGoals] = useState([]);
   const [chartData, setChartData] = useState([]);
 
-  // Função declarada antes do useEffect
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const loadDashboardData = async (userId) => {
+  const loadDashboardData = useCallback(async (userId) => {
     try {
       // Carregar estatísticas
       const statsResponse = await dashboardAPI.getStats(userId);
@@ -52,37 +48,33 @@ function Dashboard() {
       const goalsResponse = await goalsAPI.getUserGoals(userId);
       setGoals(goalsResponse.data);
 
-      // Preparar dados do gráfico (últimos 7 dias)
-      prepareChartData(sessionsResponse.data);
+      const sessions = sessionsResponse.data;
+      const last7Days = [];
+      const today = new Date();
+      
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        // Pega o dia da semana em UTC para evitar problemas de fuso
+        const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short', timeZone: 'UTC' });
+        
+        const totalMinutes = sessions
+          .filter(s => s.date.startsWith(dateStr)) 
+          .reduce((sum, s) => sum + s.durationMinutes, 0);
+        
+        last7Days.push({
+          day: dayName,
+          hours: (totalMinutes / 60).toFixed(1),
+        });
+      }
+      setChartData(last7Days);
+
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     }
-  };
-
-  const prepareChartData = (sessions) => {
-    const last7Days = [];
-    const today = new Date();
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      
-      const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short' });
-      
-      // Filtra sessões do dia (ajuste simples de data)
-      const totalMinutes = sessions
-        .filter(s => s.date.startsWith(dateStr)) 
-        .reduce((sum, s) => sum + s.durationMinutes, 0);
-      
-      last7Days.push({
-        day: dayName,
-        hours: (totalMinutes / 60).toFixed(1),
-      });
-    }
-    
-    setChartData(last7Days);
-  };
+  }, []); 
 
   useEffect(() => {
     const fetchData = async () => {
@@ -105,7 +97,6 @@ function Dashboard() {
     navigate('/');
   };
 
-  // Função que os modais chamam quando salvam algo com sucesso
   const handleDataUpdate = () => {
     if (user) {
         loadDashboardData(user.userId);
@@ -113,21 +104,19 @@ function Dashboard() {
   };
 
   const formatDate = (dateString) => {
-    if(!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
+    if(!dateString) return "Data inválida";
+    return new Date(dateString).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
   };
 
   if (!user) return null;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {/* Header */}
       <header className="border-b border-gray-800 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-linear-to-br from-blue-500 to-orange-500 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-orange-500 rounded-xl flex items-center justify-center">
                 <GraduationCap className="w-7 h-7 text-white" />
               </div>
               <div>
@@ -149,9 +138,7 @@ function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {/* ... (Seus cards de estatísticas continuam iguais) ... */}
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-6">
                 <div className="flex items-center justify-between mb-2">
                     <h3 className="text-gray-400 text-sm">Total de Horas</h3>
@@ -182,7 +169,6 @@ function Dashboard() {
             </div>
         </div>
 
-        {/* Action Buttons - AGORA COM ONCLICK */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <button 
             onClick={() => setIsSessionModalOpen(true)}
@@ -208,51 +194,58 @@ function Dashboard() {
             Nova Matéria
           </button>
         </div>
-
-        {/* ... (O restante do gráfico e listas continua igual) ... */}
         
-        {/* Chart e Listas aqui (mantenha o código original que você já tinha) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-             {/* Chart */}
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-6">
                 <h2 className="text-xl font-bold mb-2">Horas de Estudo</h2>
                 <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={chartData}>
+                {/* Mesmo sem dados manda array vazio */}
+                <LineChart data={chartData || []}> 
                     <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                    <XAxis dataKey="day" stroke="#666" />
+                    <XAxis 
+                        dataKey="day" 
+                        stroke="#666" 
+                        type="category" 
+                        tickFormatter={(value) => {
+                            if (!value) return '';
+                            return value; 
+                        }}
+                    />
                     <YAxis stroke="#666" />
-                    <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }} />
+                    <Tooltip 
+                        contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
+                        labelStyle={{ color: '#fff' }}
+                    />
                     <Line type="monotone" dataKey="hours" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 4 }} />
-                    </LineChart>
-                </ResponsiveContainer>
+                </LineChart>
+            </ResponsiveContainer>
             </div>
 
-             {/* Recent Sessions */}
-             <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-6">
-                <h2 className="text-xl font-bold mb-6">Sessões Recentes</h2>
+            <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-6">
+              <h2 className="text-xl font-bold mb-6">Sessões Recentes</h2>
                 <div className="space-y-4">
-                    {recentSessions.length > 0 ? (
-                        recentSessions.map((session) => (
-                        <div key={session.id} className="flex items-center justify-between p-3 bg-[#0a0a0a] rounded-lg border border-gray-800">
-                            <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                <div>
-                                    <p className="font-medium">{session.subject ? session.subject.name : "Sem Matéria"}</p>
-                                    <p className="text-sm text-gray-400">{formatDate(session.date)}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-400">
-                                <Clock className="w-4 h-4" />
-                                <span className="text-sm">{session.durationMinutes}min</span>
-                            </div>
-                        </div>
-                        ))
+                  {recentSessions?.length > 0 ? (
+                      recentSessions.map((session) => (
+                      <div key={session.id} className="flex items-center justify-between p-3 bg-[#0a0a0a] rounded-lg border border-gray-800">
+                          <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <div>
+                                  <p className="font-medium">{session.subject ? session.subject.name : "Sem Matéria"}</p>
+                                  <p className="text-sm text-gray-400">{formatDate(session.date)}</p>
+                              </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-gray-400">
+                              <Clock className="w-4 h-4" />
+                              <span className="text-sm">{session.durationMinutes}min</span>
+                          </div>
+                      </div>
+                      ))
                     ) : <p className="text-gray-400">Nenhuma sessão.</p>}
                 </div>
             </div>
         </div>
 
-        {/* Metas Ativas (Mantenha seu código original) */}
         <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-6">
             <h2 className="text-xl font-bold mb-6">Metas Ativas</h2>
             {goals.map(goal => (
@@ -265,7 +258,6 @@ function Dashboard() {
 
       </main>
 
-      {/* --- RENDERIZAÇÃO DOS MODAIS --- */}
       <ModalNovaSessao 
         isOpen={isSessionModalOpen} 
         onClose={() => setIsSessionModalOpen(false)}
