@@ -5,46 +5,49 @@
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-2.7.18-green?logo=spring)](https://spring.io/projects/spring-boot)
 [![License](https://img.shields.io/badge/License-Apache%202-blue)](LICENSE)
 
-Aplicación completa de planificación de estudios con **frontend en React + Tailwind CSS** y **backend en Java + Spring Boot**.
+A complete study-planning application with a **React + Tailwind CSS frontend** and a **Java + Spring Boot backend**.
 
-## Estrutura do Projeto
+## Project Structure
+
 
 ```
 study-planner/
-├── backend/          # API REST em Java + Spring Boot
-└── frontend/         # Interface em React + Tailwind CSS
+├── backend/ # REST API  in Java + Spring Boot
+└── frontend/ # Interface in React + Tailwind CSS
 ```
 
-## 🛠 Tecnologías
+
+## 🛠 Technologies
 
 ### Backend
 - **Java 11**
-- **Spring Boot 2.7**  
-- **Spring Web** (para crear la API REST)  
-- **Spring Data JPA** (para acceso a la base de datos)  
-- **Spring Security** (autenticación y autorización)  
-- **H2 Database** (en memoria para desarrollo)  
-- **Lombok** (reducción de boilerplate)  
-- **Maven** (gestión de dependencias y build)
+- **Spring Boot 2.7**
+- **Spring Web** (to create the REST API)
+- **Spring Data JPA** (for database access)
+- **Spring Security** (authentication & authorization)
+- **H2 Database** (in-memory for development)
+- **Lombok** (reduces boilerplate)
+- **Maven** (dependency & build management)
 
 ### Frontend
-- **React 19.2** (librería para la interfaz de usuario)  
-- **Vite 7.2** (bundler rápido para desarrollo)  
-- **Tailwind CSS 4.1** (framework CSS para diseño responsivo)  
-- **React Router DOM** (navegación entre páginas)  
-- **Axios** (peticiones HTTP a la API)  
-- **Recharts** (gráficos y estadísticas)  
-- **Lucide React** (iconos modernos)
+- **React 19.2** (UI library)
+- **Vite 7.2** (fast development bundler)
+- **Tailwind CSS 4.1** (responsive CSS framework)
+- **React Router DOM** (page navigation)
+- **Axios** (API HTTP requests)
+- **Recharts** (charts and statistics)
+- **Lucide React** (modern icons)
 
-
-## ⚡ Instalación Rápida
+## ⚡ Quick Installation
 
 ### Backend
+
 ```bash
 cd backend
 ./mvnw spring-boot:run
-# Backend disponible en: http://localhost:8080
+# Backend available at: http://localhost:8080
 ```
+
 
 ### Frontend
 
@@ -52,77 +55,82 @@ cd backend
 cd frontend
 pnpm install
 pnpm dev
-# Frontend disponible en: http://localhost:5173
+# Frontend available at: http://localhost:5173
 ```
 
-O frontend estará disponível em: `http://localhost:5173`
+The frontend will be available at: `http://localhost:5173`
 
-## 🎯 Funcionalidades
+## 🎯 Features
 
-- ✅ Autenticación (Login / Registro)  
-- ✅ Dashboard con estadísticas  
-- ✅ Gráficos de horas de estudio  
-- ✅ Sesiones de estudio recientes  
-- ✅ Metas activas con progreso  
-- ✅ Gestión de materias  
-- ✅ API REST completa  
-- ✅ Diseño responsivo y tema oscuro  
+- ✅ **Authentication** (Login / Register)
+- ✅ **Dashboard with user statistics**
+- ✅ **Study-hours charts**
+- ✅ **Recent study sessions**
+- ✅ **Active goals with progress tracking**
+- ✅ **Subject management**
+- ✅ **Full REST API**
+- ✅ **Responsive design**
+- ✅ **Dark mode support**
 
-![Dashboard Screenshot](./frontend/src/assets/dashboard.png)  
-*Ejemplo de Dashboard de Study Planner Pro*
-
-
-## 🔗 Endpoints de la API
-
-| Funcionalidad          | Endpoint                                 | Método |
-|------------------------|-----------------------------------------|--------|
-| Registrar usuario       | /api/auth/register                       | POST   |
-| Iniciar sesión          | /api/auth/login                          | POST   |
-| Estadísticas del usuario| /api/dashboard/stats/{userId}           | GET    |
-| Listar sesiones         | /api/study-sessions/user/{userId}       | GET    |
-| Listar sesiones recientes| /api/study-sessions/user/{userId}/recent| GET    |
-| Crear sesión            | /api/study-sessions                     | POST   |
-| Eliminar sesión         | /api/study-sessions/{id}                | DELETE |
-| Listar metas            | /api/goals/user/{userId}                | GET    |
-| Crear meta              | /api/goals                              | POST   |
-| Actualizar meta         | /api/goals/{id}                         | PUT    |
-| Eliminar meta           | /api/goals/{id}                         | DELETE |
-| Listar materias         | /api/subjects/user/{userId}             | GET    |
-| Crear materia           | /api/subjects                           | POST   |
-| Eliminar materia        | /api/subjects/{id}                      | DELETE |
+![Dashboard Screenshot](./frontend/src/assets/dashboard.png)
+*Example of the Dashboard of Study Planner Pro*
 
 
-## 🗄 Base de Datos
+## 🔗 API Endpoints
 
-- **H2 Database** en memoria (para desarrollo)  
-- Console H2: `http://localhost:8080/h2-console`  
-- JDBC URL: `jdbc:h2:mem:studyplanner`  
-- Usuario: `sa`  
-- Contraseña: (vacío)  
+| Functionality | Endpoint | Method |
+|------------------------|------------------------------------------------|--------|
+| Register user | `/api/auth/register` | POST |
+| Log in | `/api/auth/login` | POST |
+| User statistics | `/api/dashboard/stats/{userId}` | GET |
+| List sessions | `/api/study-sessions/user/{userId}` | GET |
+| List recent sessions | `/api/study-sessions/user/{userId}/recent` | GET |
+| Create session | `/api/study-sessions` | POST |
+| Delete session | `/api/study-sessions/{id}` | DELETE |
+| List goals | `/api/goals/user/{userId}` | GET |
+| Create goal | `/api/goals` | POST |
+| Update goal | `/api/goals/{id}` | PUT |
+| Delete goal | `/api/goals/{id}` | DELETE |
+| List subjects | `/api/subjects/user/{userId}` | GET |
+| Create subject | `/api/subjects` | POST |
+| Delete subject | `/api/subjects/{id}` | DELETE |
 
-> Para usar un **banco de datos persistente** (PostgreSQL / MySQL), configure `application.properties` y cambie `spring.jpa.hibernate.ddl-auto` a `update`.
+
+## 🗄 Database
+
+- **H2 Database** (in-memory for development)
+- H2 Console: `http://localhost:8080/h2-console`
+- JDBC URL: `jdbc:h2:mem:studyplanner`
+- User: `sa`
+- Password: *(empty)*
+
+> To use a **persistent database** (PostgreSQL / MySQL), update your `application.properties` and set:
+> ```
+> spring.jpa.hibernate.ddl-auto=update
+> ```
+
+## 🤝 Contributions
+
+1. Fork the repository
+2. Create a feature branch: `feature/my-feature`
+3. Commit your changes
+4. Open a Pull Request
 
 
-## 🤝 Contribuciones
+## 🚀 Next Steps
 
-1. Hacer fork del repositorio  
-2. Crear una rama de función: `feature/mi-funcion`  
-3. Hacer commit de los cambios  
-4. Abrir un Pull Request
+- Implement a persistent database
+- Improve test coverage
+- Add more statistics and charts
 
-## 🚀 Próximos Pasos
 
-- Implementar base de datos persistente  
-- Mejorar tests  
-- Añadir más estadísticas y gráficos
+## 📸 Screenshots
 
-### 📸 Capturas de Pantalla
+![Home Screen](./frontend/src/assets/home.png)
+*Main screen view of Study Planner Pro*
 
-![Pantalla de Inicio](./frontend/src/assets/home.png)  
-*Vista de la pantalla principal de Study Planner Pro*
+![Sessions View](./frontend/src/assets/sessions.png)
+*List of recent study sessions*
 
-![Vista de Sesiones](./frontend/src/assets/sessions.png)  
-*Listado de sesiones de estudio recientes*
-
-![Vista de Metas](./frontend/src/assets/goals.png)  
-*Seguimiento de metas activas con progreso*
+![Goals View](./frontend/src/assets/goals.png)
+*Tracking of active goals with progress*
