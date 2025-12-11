@@ -1,6 +1,6 @@
 package com.studyplanner.backend.model;
 
-import javax.persistence.*; // Se der erro, mude para javax.persistence.*
+import jakarta.persistence.*; // Se der erro, mude para javax.persistence.*
 import java.time.LocalDate;
 
 @Entity

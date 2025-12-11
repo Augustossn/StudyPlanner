@@ -1,6 +1,6 @@
 package com.studyplanner.backend.model;
 
-import javax.persistence.*; 
+import jakarta.persistence.*; 
 // SE DER ERRO NA LINHA ACIMA (vermelho), troque 'jakarta' por 'javax'
 
 @Entity
