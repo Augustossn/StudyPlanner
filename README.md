@@ -1,8 +1,8 @@
 # Study Planner Pro 🚀
 
 [![Frontend](https://img.shields.io/badge/React-19.2-blue?logo=react)](https://reactjs.org/)
-[![Backend](https://img.shields.io/badge/Java-11-orange?logo=java)](https://www.java.com/)
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot-2.7.18-green?logo=spring)](https://spring.io/projects/spring-boot)
+[![Backend](https://img.shields.io/badge/Java-25-orange?logo=java)](https://www.java.com/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.1-green?logo=spring)](https://spring.io/projects/spring-boot)
 [![License](https://img.shields.io/badge/License-Apache%202-blue)](LICENSE)
 
 A complete study-planning application with a **React + Tailwind CSS frontend** and a **Java + Spring Boot backend**.
@@ -20,8 +20,8 @@ study-planner/
 ## 🛠 Technologies
 
 ### Backend
-- **Java 11**
-- **Spring Boot 2.7**
+- **Java 25**
+- **Spring Boot 3.5**
 - **Spring Web** (to create the REST API)
 - **Spring Data JPA** (for database access)
 - **Spring Security** (authentication & authorization)
