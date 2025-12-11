@@ -72,7 +72,7 @@ The frontend will be available at: `http://localhost:5173`
 - ✅ **Responsive design**
 - ✅ **Dark mode support**
 
-![Dashboard Screenshot](./frontend/src/assets/dashboard.png)
+![Dashboard Screenshot](./frontend/src/assets/dashboard.png)<br>
 *Example of the Dashboard of Study Planner Pro*
 
 
@@ -126,11 +126,11 @@ The frontend will be available at: `http://localhost:5173`
 
 ## 📸 Screenshots
 
-![Home Screen](./frontend/src/assets/home.png)
+![Home Screen](./frontend/src/assets/home.png)<br>
 *Main screen view of Study Planner Pro*
 
-![Sessions View](./frontend/src/assets/sessions.png)
+![Sessions View](./frontend/src/assets/sessions.png)<br>
 *List of recent study sessions*
 
-![Goals View](./frontend/src/assets/goals.png)
+![Goals View](./frontend/src/assets/goals.png)<br>
 *Tracking of active goals with progress*
