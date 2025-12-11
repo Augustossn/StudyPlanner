@@ -1,46 +1,53 @@
-# Study Planner Pro
+# Study Planner Pro 🚀
 
-Aplicação completa de planejamento de estudos com frontend em React + Tailwind CSS e backend em Java + Spring Boot.
+[![Frontend](https://img.shields.io/badge/React-19.2-blue?logo=react)](https://reactjs.org/)
+[![Backend](https://img.shields.io/badge/Java-25-orange?logo=java)](https://www.java.com/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.1-green?logo=spring)](https://spring.io/projects/spring-boot)
+[![License](https://img.shields.io/badge/License-Apache%202-blue)](LICENSE)
 
-## Estrutura do Projeto
+A complete study-planning application with a **React + Tailwind CSS frontend** and a **Java + Spring Boot backend**.
+
+## Project Structure
+
 
 ```
 study-planner/
-├── backend/          # API REST em Java + Spring Boot
-└── frontend/         # Interface em React + Tailwind CSS
+├── backend/ # REST API  in Java + Spring Boot
+└── frontend/ # Interface in React + Tailwind CSS
 ```
 
-## Tecnologias
+
+## 🛠 Technologies
 
 ### Backend
-- Java 11
-- Spring Boot 2.7.18
-- Spring Web
-- Spring Data JPA
-- Spring Security
-- H2 Database (em memória)
-- Lombok
-- Maven
+- **Java 25**
+- **Spring Boot 3.5**
+- **Spring Web** (to create the REST API)
+- **Spring Data JPA** (for database access)
+- **Spring Security** (authentication & authorization)
+- **H2 Database** (in-memory for development)
+- **Lombok** (reduces boilerplate)
+- **Maven** (dependency & build management)
 
 ### Frontend
-- React 19.2.0
-- Vite 7.2.4
-- Tailwind CSS 4.1.17
-- React Router DOM
-- Axios
-- Recharts
-- Lucide React
+- **React 19.2** (UI library)
+- **Vite 7.2** (fast development bundler)
+- **Tailwind CSS 4.1** (responsive CSS framework)
+- **React Router DOM** (page navigation)
+- **Axios** (API HTTP requests)
+- **Recharts** (charts and statistics)
+- **Lucide React** (modern icons)
 
-## Como Executar
+## ⚡ Quick Installation
 
 ### Backend
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
+# Backend available at: http://localhost:8080
 ```
 
-O backend estará disponível em: `http://localhost:8080`
 
 ### Frontend
 
@@ -48,61 +55,82 @@ O backend estará disponível em: `http://localhost:8080`
 cd frontend
 pnpm install
 pnpm dev
+# Frontend available at: http://localhost:5173
 ```
 
-O frontend estará disponível em: `http://localhost:5173`
+The frontend will be available at: `http://localhost:5173`
 
-## Funcionalidades
+## 🎯 Features
 
-- ✅ Autenticação (Login/Registro)
-- ✅ Dashboard com estatísticas
-- ✅ Gráfico de horas de estudo
-- ✅ Sessões de estudo recentes
-- ✅ Metas ativas com progresso
-- ✅ Gerenciamento de matérias
-- ✅ API REST completa
-- ✅ Design responsivo e tema escuro
+- ✅ **Authentication** (Login / Register)
+- ✅ **Dashboard with user statistics**
+- ✅ **Study-hours charts**
+- ✅ **Recent study sessions**
+- ✅ **Active goals with progress tracking**
+- ✅ **Subject management**
+- ✅ **Full REST API**
+- ✅ **Responsive design**
+- ✅ **Dark mode support**
 
-## Endpoints da API
+![Dashboard Screenshot](./frontend/src/assets/dashboard.png)
+*Example of the Dashboard of Study Planner Pro*
 
-### Autenticação
-- `POST /api/auth/register` - Registrar usuário
-- `POST /api/auth/login` - Fazer login
 
-### Dashboard
-- `GET /api/dashboard/stats/{userId}` - Estatísticas do usuário
+## 🔗 API Endpoints
 
-### Sessões de Estudo
-- `GET /api/study-sessions/user/{userId}` - Listar sessões
-- `GET /api/study-sessions/user/{userId}/recent` - Sessões recentes
-- `POST /api/study-sessions` - Criar sessão
-- `DELETE /api/study-sessions/{id}` - Deletar sessão
+| Functionality | Endpoint | Method |
+|------------------------|------------------------------------------------|--------|
+| Register user | `/api/auth/register` | POST |
+| Log in | `/api/auth/login` | POST |
+| User statistics | `/api/dashboard/stats/{userId}` | GET |
+| List sessions | `/api/study-sessions/user/{userId}` | GET |
+| List recent sessions | `/api/study-sessions/user/{userId}/recent` | GET |
+| Create session | `/api/study-sessions` | POST |
+| Delete session | `/api/study-sessions/{id}` | DELETE |
+| List goals | `/api/goals/user/{userId}` | GET |
+| Create goal | `/api/goals` | POST |
+| Update goal | `/api/goals/{id}` | PUT |
+| Delete goal | `/api/goals/{id}` | DELETE |
+| List subjects | `/api/subjects/user/{userId}` | GET |
+| Create subject | `/api/subjects` | POST |
+| Delete subject | `/api/subjects/{id}` | DELETE |
 
-### Metas
-- `GET /api/goals/user/{userId}` - Listar metas
-- `POST /api/goals` - Criar meta
-- `PUT /api/goals/{id}` - Atualizar meta
-- `DELETE /api/goals/{id}` - Deletar meta
 
-### Matérias
-- `GET /api/subjects/user/{userId}` - Listar matérias
-- `POST /api/subjects` - Criar matéria
-- `DELETE /api/subjects/{id}` - Deletar matéria
+## 🗄 Database
 
-## Banco de Dados
-
-O projeto usa H2 Database em memória para desenvolvimento. Para implementar persistência, configure um banco de dados como PostgreSQL ou MySQL no `application.properties`.
-
-Console H2: `http://localhost:8080/h2-console`
+- **H2 Database** (in-memory for development)
+- H2 Console: `http://localhost:8080/h2-console`
 - JDBC URL: `jdbc:h2:mem:studyplanner`
-- Username: `sa`
-- Password: (vazio)
+- User: `sa`
+- Password: *(empty)*
 
-## Próximos Passos
+> To use a **persistent database** (PostgreSQL / MySQL), update your `application.properties` and set:
+> ```
+> spring.jpa.hibernate.ddl-auto=update
+> ```
 
-Para implementar o banco de dados persistente:
+## 🤝 Contributions
 
-1. Adicionar dependência do PostgreSQL/MySQL no `pom.xml`
-2. Atualizar `application.properties` com configurações do banco
-3. Alterar `spring.jpa.hibernate.ddl-auto` para `update`
-4. Executar migrations se necessário
+1. Fork the repository
+2. Create a feature branch: `feature/my-feature`
+3. Commit your changes
+4. Open a Pull Request
+
+
+## 🚀 Next Steps
+
+- Implement a persistent database
+- Improve test coverage
+- Add more statistics and charts
+
+
+## 📸 Screenshots
+
+![Home Screen](./frontend/src/assets/home.png)
+*Main screen view of Study Planner Pro*
+
+![Sessions View](./frontend/src/assets/sessions.png)
+*List of recent study sessions*
+
+![Goals View](./frontend/src/assets/goals.png)
+*Tracking of active goals with progress*
