@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast'; 
 import Modal from '../Modal';
-import { goalsAPI } from '../../services/api'; // Importando a API correta
+import { goalsAPI } from '../../services/api';
+import { getErrorMessage } from '../../utils/errorHandler'; 
 
-// Recebendo userId e onSuccess
 const ModalNovaMeta = ({ isOpen, onClose, userId, onSuccess }) => {
   const [title, setTitle] = useState('');
   const [goalType, setGoalType] = useState('Semanal');
   const [targetHours, setTargetHours] = useState(10);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -21,20 +20,28 @@ const ModalNovaMeta = ({ isOpen, onClose, userId, onSuccess }) => {
         title,
         goalType,
         targetHours,
-        startDate,
+        startDate, 
         active: true,
-        user: { id: userId } // Usa o ID real
+        user: { id: userId }
       });
       
-      // Atualiza o Dashboard
+      toast.success('Meta criada com sucesso!');
+
       if (onSuccess) onSuccess();
 
       onClose();
+      
       setTitle('');
       setTargetHours(10);
+      setGoalType('Semanal'); 
+      
     } catch (err) {
-      setError('Erro ao criar meta. Tente novamente.');
       console.error(err);
+      
+      // ERRO
+      const message = getErrorMessage(err);
+      toast.error(message);
+      
     } finally {
       setLoading(false);
     }
@@ -94,8 +101,6 @@ const ModalNovaMeta = ({ isOpen, onClose, userId, onSuccess }) => {
             />
           </div>
         </div>
-
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
         <button
           type="submit"

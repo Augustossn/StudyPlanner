@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast'; 
 import Modal from '../Modal';
-import { subjectAPI } from '../../services/api'; // Importando a API correta
+import { subjectAPI } from '../../services/api'; 
+import { getErrorMessage } from '../../utils/errorHandler'; 
 
 const colorOptions = [
   '#3B82F6', // blue-500
@@ -13,34 +15,37 @@ const colorOptions = [
   '#06B6D4', // cyan-500
 ];
 
-// Recebendo userId e onSuccess do Dashboard
 const ModalNovaMateria = ({ isOpen, onClose, userId, onSuccess }) => {
   const [name, setName] = useState('');
   const [color, setColor] = useState(colorOptions[0]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
       await subjectAPI.createSubject({
         name,
         color,
-        user: { id: userId } // Usa o ID real do usuário logado
+        user: { id: userId }
       });
       
-      // Chama a função para atualizar o Dashboard
+      toast.success('Matéria criada com sucesso!');
+
       if (onSuccess) onSuccess();
       
       onClose();
+      
       setName('');
       setColor(colorOptions[0]);
+      
     } catch (err) {
-      setError('Erro ao criar matéria. Tente novamente.');
       console.error(err);
+
+      const message = getErrorMessage(err);
+      toast.error(message);
+      
     } finally {
       setLoading(false);
     }
@@ -75,8 +80,6 @@ const ModalNovaMateria = ({ isOpen, onClose, userId, onSuccess }) => {
             ))}
           </div>
         </div>
-
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
         <button
           type="submit"

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast'; 
 import Modal from '../Modal';
 import { studySessionAPI, subjectAPI } from '../../services/api'; 
+import { getErrorMessage } from '../../utils/errorHandler'; 
 
 const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
   // Estados do Formulário
@@ -13,30 +15,27 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
   
   const [subjects, setSubjects] = useState([]); 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  // Carrega matérias quando o modal abre
+  
   useEffect(() => {
     if (isOpen && userId) {
       subjectAPI.getUserSubjects(userId)
         .then(res => setSubjects(res.data || []))
-        .catch(() => setSubjects([]));
+        .catch(() => {
+            setSubjects([]);
+            toast.error("Erro ao carregar matérias"); 
+        });
     }
   }, [isOpen, userId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
-      const [year, month, day] = date.split('-').map(Number); // Quebra a string em pedaçõs númericos x-x-x
-      
+      const [year, month, day] = date.split('-').map(Number); 
       const now = new Date();
-      
-      const selectedDate = new Date(year, month - 1, day, now.getHours(), now.getMinutes()); // Cria data usando ctor local
-      
-      const isoDate = selectedDate.toISOString(); // Converte para o UTC equivalente
+      const selectedDate = new Date(year, month - 1, day, now.getHours(), now.getMinutes()); 
+      const isoDate = selectedDate.toISOString(); 
 
       await studySessionAPI.createSession({
         title,
@@ -48,6 +47,8 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
         subject: subjectId ? { id: Number(subjectId) } : null,
       });
 
+      toast.success('Sessão registrada com sucesso!');
+
       onSuccess();
       onClose();
       
@@ -55,9 +56,13 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
       setSubjectId('');
       setDescription('');
       setDuration(60);
+      
     } catch (err) {
-      setError('Erro ao criar sessão. Verifique os dados.');
       console.error(err);
+      
+      const message = getErrorMessage(err);
+      toast.error(message);
+      
     } finally {
       setLoading(false);
     }
@@ -138,8 +143,6 @@ const ModalNovaSessao = ({ isOpen, onClose, userId, onSuccess }) => {
           />
           <label htmlFor="completed" className="ml-2 text-sm font-medium text-gray-300">Marcar como concluída</label>
         </div>
-
-        {error && <p className="text-red-500 text-sm bg-red-500/10 p-2 rounded">{error}</p>}
 
         <button
           type="submit"
