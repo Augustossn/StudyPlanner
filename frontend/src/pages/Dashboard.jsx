@@ -79,6 +79,7 @@ function Dashboard() {
     const userData = localStorage.getItem('user');
     if (userData) {
       const parsedUser = JSON.parse(userData);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUser(parsedUser);
       loadDashboardData(parsedUser.userId);
     }

@@ -39,7 +39,7 @@ const Sidebar = () => {
       
       {/* Logo e Marca */}
       <div className="p-6 flex items-center gap-3 border-b border-gray-800">
-        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-orange-500 rounded-lg flex items-center justify-center">
+        <div className="w-8 h-8 bg-linear-to-br from-blue-500 to-orange-500 rounded-lg flex items-center justify-center">
           <GraduationCap className="w-5 h-5 text-white" />
         </div>
         <div>

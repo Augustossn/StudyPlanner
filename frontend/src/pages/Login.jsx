@@ -73,7 +73,7 @@ function Login() {
         {/* Logo */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-orange-500 rounded-2xl flex items-center justify-center">
+            <div className="w-14 h-14 bg-linear-to-br from-blue-500 to-orange-500 rounded-2xl flex items-center justify-center">
               <GraduationCap className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold">
