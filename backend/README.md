@@ -4,8 +4,8 @@ Backend da aplicação Study Planner Pro desenvolvido com Java e Spring Boot.
 
 ## Tecnologias Utilizadas
 
-- Java 11
-- Spring Boot 3.4.0
+- Java 25
+- Spring Boot 3.5.0
 - Spring Web
 - Spring Data JPA
 - Spring Security
