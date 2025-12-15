@@ -1,10 +1,9 @@
-import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Settings, 
   LogOut, 
-  GraduationCap,
+  Zap, 
   BookMarked,
   Target,
   Plus
@@ -14,7 +13,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Tenta recuperar o usuário salvo no localStorage
+  // tenta recuperar o usuário salvo no localStorage
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const handleLogout = () => {
@@ -22,14 +21,12 @@ const Sidebar = () => {
     navigate('/');
   };
 
-  // Aqui você define os itens do menu
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    // Deixei o link de configurações pronto para quando criarmos a página
-    { icon: BookMarked, label: 'Nova Sessão', path: ''},
-    { icon: Target, label: 'Nova Meta', path: ''},
-    { icon: Plus, label: 'Nova Matéria', path: ''},
-    
+    // usando # por enquanto para evitar erros de rota
+    { icon: BookMarked, label: 'Nova Sessão', path: '#' }, 
+    { icon: Target, label: 'Nova Meta', path: '#' }, 
+    { icon: Plus, label: 'Nova Matéria', path: '#' },
   ];
 
   const isSettingsActive = location.pathname === '/settings';
@@ -37,24 +34,23 @@ const Sidebar = () => {
   return (
     <aside className="w-64 h-screen bg-[#1a1a1a] border-r border-gray-800 flex flex-col fixed left-0 top-0 z-50">
       
-      {/* Logo e Marca */}
       <div className="p-6 flex items-center gap-3 border-b border-gray-800">
-        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-orange-500 rounded-lg flex items-center justify-center">
-          <GraduationCap className="w-5 h-5 text-white" />
+
+        <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center border border-gray-800 shadow-sm">
+          <Zap className="w-5 h-5 text-white fill-white" strokeWidth={0} />
         </div>
+
         <div>
-          <h1 className="font-bold text-white text-lg leading-none">StudyPlanner</h1>
-          <span className="text-xs text-orange-500 font-medium">Pro</span>
+          <h1 className="font-bold text-white text-lg leading-none tracking-tight">StudyPlanner</h1>
         </div>
       </div>
 
-      {/* Menu de Navegação Principal */}
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+        {navItems.map((item, index) => {
+          const isActive = location.pathname === item.path && item.path !== '#';
           return (
             <Link
-              key={item.path}
+              key={index}
               to={item.path}
               className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
                 isActive 
@@ -69,9 +65,9 @@ const Sidebar = () => {
         })}
       </nav>
 
-      {/* Área do Usuário e Rodapé */}
       <div className="p-4 border-t border-gray-800 bg-[#151515]">
-        <div className="flex items-center gap-3 mb-6"> {/* Aumentei a margem inferior aqui (mb-6) */}
+        
+        <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white font-bold border-2 border-[#1a1a1a]">
             {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
           </div>
@@ -81,7 +77,6 @@ const Sidebar = () => {
           </div>
         </div>
 
-        {/* 2. ADICIONADO "Configurações" AQUI */}
         <Link
             to="/settings"
             className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 mb-2 ${
