@@ -72,7 +72,7 @@ The frontend will be available at: `http://localhost:5173`
 - ✅ **Responsive design**
 - ✅ **Dark mode support**
 
-![Dashboard Screenshot](frontend/src/assets/dashboard.png)<br>
+![Dashboard Screenshot](./frontend/src/assets/dashboard2.png)<br>
 *Example of the Dashboard of Study Planner Pro*
 
 
