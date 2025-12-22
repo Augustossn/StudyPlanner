@@ -14,14 +14,17 @@ public class DashboardController {
     
     private final DashboardService dashboardService;
 
-    // CONSTRUTOR MANUAL (Sem Lombok)
+    // construtor
     public DashboardController(DashboardService dashboardService) {
         this.dashboardService = dashboardService;
     }
     
+    // get para obter o dashboard do usuário já cadastrado
     @GetMapping("/stats/{userId}")
     public ResponseEntity<DashboardStatsDTO> getStats(@PathVariable Long userId) {
+        // busca os dados no service e armazena no DTO
         DashboardStatsDTO stats = dashboardService.getStats(userId);
+        // retorna 200 com os stats configurados
         return ResponseEntity.ok(stats);
     }
 }

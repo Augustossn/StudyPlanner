@@ -30,41 +30,41 @@ public class DashboardService {
     }
 
     public DashboardStatsDTO getStats(Long userId) {
-    ZoneId brazilZone = ZoneId.of("America/Sao_Paulo");
-    LocalDateTime now = LocalDateTime.now(brazilZone);
-    
-    LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-            .withHour(0).withMinute(0).withSecond(0);
+        ZoneId brazilZone = ZoneId.of("America/Sao_Paulo");
+        LocalDateTime now = LocalDateTime.now(brazilZone);
+        
+        LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                .withHour(0).withMinute(0).withSecond(0);
 
-    LocalDateTime sevenDaysAgo = now.minusDays(6).withHour(0).withMinute(0).withSecond(0); // Calcula os últimos 7 dias, mudar isso depois para conseguir ver mais tempo para trás
-    List<StudySession> sessions = studySessionRepository.findByUserIdAndDateAfter(userId, sevenDaysAgo);
+        LocalDateTime sevenDaysAgo = now.minusDays(6).withHour(0).withMinute(0).withSecond(0); // Calcula os últimos 7 dias, mudar isso depois para conseguir ver mais tempo para trás
+        List<StudySession> sessions = studySessionRepository.findByUserIdAndDateAfter(userId, sevenDaysAgo);
 
-    Map<LocalDate, Double> dailyMap = sessions.stream()
-            .collect(Collectors.groupingBy(
-                    s -> s.getDate().toLocalDate(), // LocalDate para agrupar 
-                    Collectors.summingDouble(s -> s.getDurationMinutes() / 60.0) // Somatório das horas
-            ));
+        Map<LocalDate, Double> dailyMap = sessions.stream()
+                .collect(Collectors.groupingBy(
+                        s -> s.getDate().toLocalDate(), // LocalDate para agrupar 
+                        Collectors.summingDouble(s -> s.getDurationMinutes() / 60.0) // Somatório das horas
+                ));
 
-    List<ChartDataDTO> chartData = new ArrayList<>();
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        List<ChartDataDTO> chartData = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    for (int i = 0; i < 7; i++) {
-        LocalDate date = sevenDaysAgo.plusDays(i).toLocalDate();
-        Double hours = dailyMap.getOrDefault(date, 0.0);
-        chartData.add(new ChartDataDTO(date.format(formatter), hours));
-    }
+        for (int i = 0; i < 7; i++) {
+            LocalDate date = sevenDaysAgo.plusDays(i).toLocalDate();
+            Double hours = dailyMap.getOrDefault(date, 0.0);
+            chartData.add(new ChartDataDTO(date.format(formatter), hours));
+        }
 
-    Integer totalMinutes = studySessionRepository.getTotalStudyMinutes(userId);
-    Integer weeklyMinutes = studySessionRepository.getWeeklyStudyMinutes(userId, startOfWeek);
-    Long completedSessions = studySessionRepository.countByUser_IdAndCompletedTrue(userId);
-    Long activeGoals = goalRepository.countByUser_IdAndActiveTrue(userId);
+        Integer totalMinutes = studySessionRepository.getTotalStudyMinutes(userId);
+        Integer weeklyMinutes = studySessionRepository.getWeeklyStudyMinutes(userId, startOfWeek);
+        Long completedSessions = studySessionRepository.countByUser_IdAndCompletedTrue(userId);
+        Long activeGoals = goalRepository.countByUser_IdAndActiveTrue(userId);
 
-    return new DashboardStatsDTO(
-        totalMinutes != null ? totalMinutes / 60 : 0,  
-        weeklyMinutes != null ? weeklyMinutes / 60 : 0, 
-        completedSessions,
-        activeGoals,
-        chartData 
-    );
+        return new DashboardStatsDTO(
+            totalMinutes != null ? totalMinutes / 60 : 0,  
+            weeklyMinutes != null ? weeklyMinutes / 60 : 0, 
+            completedSessions,
+            activeGoals,
+            chartData 
+        );
     }
 }
