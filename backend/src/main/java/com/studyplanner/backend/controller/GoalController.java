@@ -26,7 +26,7 @@ public class GoalController {
     // get para obter os goals do usuário
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Goal>> getUserGoals(@PathVariable Long userId) {
-        // busca no banco todas as metas ativas do usuário
+        // busca no banco todas as goals ativas do usuário
         List<Goal> goals = goalRepository.findByUser_IdAndActiveTrue(userId);
         // retorna 200 com os goals cadastrados
         return ResponseEntity.ok(goals);
