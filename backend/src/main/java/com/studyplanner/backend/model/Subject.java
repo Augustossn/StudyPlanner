@@ -1,7 +1,8 @@
 package com.studyplanner.backend.model;
 
-import jakarta.persistence.*; 
-// SE DER ERRO NA LINHA ACIMA (vermelho), troque 'jakarta' por 'javax'
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "subjects")
@@ -14,6 +15,12 @@ public class Subject {
     private String name;
     private String color;
 
+    // Lista de submatérias DISPONÍVEIS para esta matéria
+    @ElementCollection(fetch = FetchType.EAGER) // Adicionado EAGER para evitar erro no Dashboard
+    @CollectionTable(name = "subject_subtopics", joinColumns = @JoinColumn(name = "subject_id"))
+    @Column(name = "name")
+    private List<String> subSubjects = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -21,13 +28,15 @@ public class Subject {
     // --- CONSTRUTORES ---
     public Subject() {}
 
-    public Subject(Long id, String name, String color, User user) {
+    public Subject(Long id, String name, String color, User user, List<String> subSubjects) {
         this.id = id;
         this.name = name;
         this.color = color;
         this.user = user;
+        this.subSubjects = subSubjects;
     }
-    
+
+    // --- GETTERS E SETTERS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -39,4 +48,7 @@ public class Subject {
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+
+    public List<String> getSubSubjects() { return subSubjects; }
+    public void setSubSubjects(List<String> subSubjects) { this.subSubjects = subSubjects; }
 }

@@ -1,7 +1,9 @@
 package com.studyplanner.backend.model;
 
-import jakarta.persistence.*; // Se der erro, mude para javax.persistence.*
-import java.time.LocalDateTime; // Ou LocalDate, dependendo do seu uso
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "study_sessions")
@@ -12,7 +14,12 @@ public class StudySession {
     private Long id;
 
     private String title;
-    private LocalDateTime date; // Data da sessão
+    
+    // Adicionei este campo pois seu Frontend envia "description"
+    @Column(columnDefinition = "TEXT") // Permite textos longos
+    private String description; 
+
+    private LocalDateTime date;
     private int durationMinutes;
     private boolean completed;
 
@@ -24,25 +31,36 @@ public class StudySession {
     @JoinColumn(name = "subject_id")
     private Subject subject;
 
+    // Lista de submatérias estudadas NESTA sessão (ex: "Geometria")
+    @ElementCollection(fetch = FetchType.EAGER) 
+    @CollectionTable(name = "session_subtopics", joinColumns = @JoinColumn(name = "session_id"))
+    @Column(name = "name")
+    private List<String> subSubjects = new ArrayList<>();
+    
     // --- CONSTRUTORES ---
     public StudySession() {}
 
-    public StudySession(Long id, String title, LocalDateTime date, int durationMinutes, boolean completed, User user, Subject subject) {
+    public StudySession(Long id, String title, String description, LocalDateTime date, int durationMinutes, boolean completed, User user, Subject subject, List<String> subSubjects) {
         this.id = id;
         this.title = title;
+        this.description = description;
         this.date = date;
         this.durationMinutes = durationMinutes;
         this.completed = completed;
         this.user = user;
         this.subject = subject;
+        this.subSubjects = subSubjects;
     }
 
-    // --- GETTERS E SETTERS MANUAIS ---
+    // --- GETTERS E SETTERS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
     public LocalDateTime getDate() { return date; }
     public void setDate(LocalDateTime date) { this.date = date; }
@@ -58,4 +76,8 @@ public class StudySession {
 
     public Subject getSubject() { return subject; }
     public void setSubject(Subject subject) { this.subject = subject; }
+
+    // Faltava adicionar estes dois abaixo:
+    public List<String> getSubSubjects() { return subSubjects; }
+    public void setSubSubjects(List<String> subSubjects) { this.subSubjects = subSubjects; }
 }

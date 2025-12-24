@@ -24,9 +24,9 @@ const Sidebar = () => {
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     // usando # por enquanto para evitar erros de rota
-    { icon: BookMarked, label: 'Nova Sessão', path: '#' }, 
-    { icon: Target, label: 'Nova Meta', path: '#' }, 
-    { icon: Plus, label: 'Nova Matéria', path: '#' },
+    { icon: BookMarked, label: 'Nova Sessão', path: '/nova-sessao' }, 
+    { icon: Target, label: 'Nova Meta', path: '/nova-meta' }, 
+    { icon: Plus, label: 'Nova Matéria', path: '/nova-materia' },
   ];
 
   const isSettingsActive = location.pathname === '/settings';

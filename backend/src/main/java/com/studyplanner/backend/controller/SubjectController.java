@@ -35,6 +35,17 @@ public class SubjectController {
     // post para criar um novo subject
     @PostMapping
     public ResponseEntity<Subject> createSubject(@RequestBody Subject subject) {
+        System.out.println("Recebendo Subject: " + subject.getName());
+    
+        if (subject.getUser() == null) {
+            System.out.println("ERRO: Objeto User é null");
+            return ResponseEntity.badRequest().build();
+        }
+        
+        if (subject.getUser().getId() == null) {
+            System.out.println("ERRO: ID do User é null");
+            return ResponseEntity.badRequest().build();
+        }
         // valida se o objeto usuário e seu id foram enviados corretamente na requisição
         if (subject.getUser() == null || subject.getUser().getId() == null) {
             return ResponseEntity.badRequest().build();
