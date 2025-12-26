@@ -22,6 +22,12 @@ public class Goal {
     // Adicionei este campo pois seu Controller tentou usar .setTargetHours()
     private Double targetHours; 
 
+    @Transient
+    private double currentHours; // Quanto já estudou
+
+    @Transient
+    private int progressPercentage; // De 0 a 100
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -62,4 +68,10 @@ public class Goal {
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+
+    public double getCurrentHours() { return currentHours; }
+    public void setCurrentHours(double currentHours) { this.currentHours = currentHours; }
+
+    public int getProgressPercentage() { return progressPercentage; }
+    public void setProgressPercentage(int progressPercentage) { this.progressPercentage = progressPercentage; }
 }

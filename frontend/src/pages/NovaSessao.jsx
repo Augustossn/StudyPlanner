@@ -106,10 +106,15 @@ const NovaSessao = () => {
         .react-datepicker__day--keyboard-selected { background-color: #1d4ed8 !important; }
         .custom-datepicker-input { width: 100%; background-color: #0a0a0a; color: white; padding: 0.75rem 1rem; padding-left: 2.5rem; border-radius: 0.5rem; border: 1px solid #374151; outline: none; }
         .custom-datepicker-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); }
+        .react-datepicker__day--disabled {
+        visibility: hidden !important; /* Torna o dia invisível */
+        pointer-events: none !important; /* Garante que não dá pra clicar */
+      }
       `}</style>
 
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-8">Nova Sessão</h1>
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold text-white mb-2">Defina uma nova sessão</h1>
+        <p className="text-gray-400 mb-8">Nos fale o que você estudou. O StudyPlanner te ajuda a monitorar suas sessões.</p>
         
         <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-8 shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -205,17 +210,21 @@ const NovaSessao = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Data</label>
                 <div className="relative">
-                    <CalendarIcon className="absolute left-3 top-3.5 w-5 h-5 text-gray-400 z-10 pointer-events-none" />
-                    <DatePicker 
-                        selected={date} 
-                        onChange={(date) => setDate(date)} 
-                        dateFormat="dd/MM/yyyy"
-                        locale="pt-BR"
-                        className="custom-datepicker-input cursor-pointer"
-                        calendarClassName="shadow-xl"
-                        wrapperClassName="w-full"
-                        showPopperArrow={false}
-                    />
+                  <CalendarIcon className="absolute left-3 top-3.5 w-5 h-5 text-gray-400 z-10 pointer-events-none" />
+                  <DatePicker 
+                      selected={date} 
+                      onChange={(date) => setDate(date)} 
+                      dateFormat="dd/MM/yyyy"
+                      locale="pt-BR"
+                      className="custom-datepicker-input cursor-pointer"
+                      calendarClassName="shadow-xl"
+                      wrapperClassName="w-full"
+                      showPopperArrow={false}
+
+                      maxDate={new Date()} 
+                      
+                      placeholderText="Selecione uma data"
+                  />
                 </div>
               </div>
             </div>

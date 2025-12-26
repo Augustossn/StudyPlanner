@@ -23,6 +23,9 @@ public interface StudySessionRepository extends JpaRepository<StudySession, Long
     @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId AND s.date >= :startDate") // Soma total min semana atual
     Integer getWeeklyStudyMinutes(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
     
+    @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId AND s.date >= :startDate AND s.date <= :endDate")
+    Integer getTotalMinutesByDateRange(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
     long countByUser_IdAndCompletedTrue(Long userId); // Contagem de sessões completas
 
     List<StudySession> findByUserIdAndDateAfter(Long userId, LocalDateTime date);

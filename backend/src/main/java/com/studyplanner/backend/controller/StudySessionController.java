@@ -1,5 +1,6 @@
 package com.studyplanner.backend.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,6 +62,17 @@ public class StudySessionController {
     // post para cadastrar uma nova session
     @PostMapping
     public ResponseEntity<StudySession> createSession(@RequestBody StudySession session) {
+        
+        if (session.getDate() != null) {
+            LocalDate sessionDate = session.getDate().toLocalDate(); // Pega apenas a data (dia/mês/ano)
+            LocalDate today = LocalDate.now(); // Pega a data de hoje
+
+            if (sessionDate.isAfter(today)) {
+                // se for amanhã ou depois, retorna Erro 400 (Bad Request)
+                return ResponseEntity.badRequest().build();
+            }
+        }
+
         // valida se o objeto session e seu ID foram enviados corretamente na requisição
         if (session.getUser() == null || session.getUser().getId() == null) {
             return ResponseEntity.badRequest().build();
