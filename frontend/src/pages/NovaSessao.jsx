@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Adicionado useLocation
 import toast from 'react-hot-toast'; 
 import Layout from '../components/Layout';
 import { studySessionAPI, subjectAPI } from '../services/api'; 
 import { getErrorMessage } from '../utils/errorHandler'; 
-import { CheckCircle2, Circle, Calendar as CalendarIcon, Layers, Tag } from 'lucide-react'; // Novos ícones
+import { CheckCircle2, Circle, Calendar as CalendarIcon, Layers, Tag, Save } from 'lucide-react'; // Ícone Save
 
 // Imports do DatePicker
 import DatePicker, { registerLocale } from "react-datepicker";
@@ -15,44 +15,61 @@ registerLocale('pt-BR', ptBR);
 
 const NovaSessao = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // Hook para pegar dados da navegação
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  const [title, setTitle] = useState('');
-  const [subjectId, setSubjectId] = useState('');
-  const [description, setDescription] = useState('');
-  const [duration, setDuration] = useState(60);
-  const [date, setDate] = useState(new Date()); 
-  const [completed, setCompleted] = useState(true); 
+  // Verifica se é edição
+  const sessionToEdit = location.state?.sessionToEdit;
+  const isEditing = !!sessionToEdit;
+
+  // --- ESTADOS INICIAIS (Preenche se for edição) ---
+  const [title, setTitle] = useState(sessionToEdit?.title || '');
+  const [subjectId, setSubjectId] = useState(sessionToEdit?.subject?.id || '');
+  const [description, setDescription] = useState(sessionToEdit?.description || '');
+  const [duration, setDuration] = useState(sessionToEdit?.durationMinutes || 60);
+  
+  // Data: Se for edição, converte a string ISO para Objeto Date
+  const [date, setDate] = useState(
+    sessionToEdit?.date ? new Date(sessionToEdit.date) : new Date()
+  );
+  
+  const [completed, setCompleted] = useState(
+    sessionToEdit !== undefined ? sessionToEdit.completed : true
+  ); 
   
   const [subjects, setSubjects] = useState([]); 
   
-  // --- NOVOS ESTADOS PARA SUBMATÉRIAS ---
-  const [availableSubSubjects, setAvailableSubSubjects] = useState([]); // Opções disponíveis da matéria escolhida
-  const [selectedSubSubjects, setSelectedSubSubjects] = useState([]);   // O que o usuário selecionou
+  const [availableSubSubjects, setAvailableSubSubjects] = useState([]);
+  const [selectedSubSubjects, setSelectedSubSubjects] = useState(sessionToEdit?.subSubjects || []);
   
   const [loading, setLoading] = useState(false);
   
+  // Carrega matérias e ajusta submatérias na edição
   useEffect(() => {
     if (user.userId) {
       subjectAPI.getUserSubjects(user.userId)
-        .then(res => setSubjects(res.data || []))
+        .then(res => {
+            const loadedSubjects = res.data || [];
+            setSubjects(loadedSubjects);
+
+            // Se for edição, precisamos carregar as submatérias disponíveis da matéria selecionada
+            if (isEditing && sessionToEdit?.subject?.id) {
+                const currentSub = loadedSubjects.find(s => s.id === sessionToEdit.subject.id);
+                if (currentSub) setAvailableSubSubjects(currentSub.subSubjects || []);
+            }
+        })
         .catch(() => setSubjects([]));
     } else {
         navigate('/');
     }
-  }, [user.userId, navigate]);
+  }, [user.userId, navigate, isEditing, sessionToEdit]);
 
-  // Quando o usuário troca a Matéria
   const handleSubjectChange = (e) => {
     const newId = e.target.value;
     setSubjectId(newId);
+    setSelectedSubSubjects([]); // Limpa ao trocar de matéria
     
-    // Limpa as seleções anteriores
-    setSelectedSubSubjects([]); 
-    
-    // Encontra a matéria completa para pegar a lista de subSubjects dela
     const selectedSubject = subjects.find(s => s.id === Number(newId));
-    
     if (selectedSubject && selectedSubject.subSubjects) {
         setAvailableSubSubjects(selectedSubject.subSubjects);
     } else {
@@ -60,7 +77,6 @@ const NovaSessao = () => {
     }
   };
 
-  // Lógica de Selecionar/Deselecionar Tags
   const toggleSubSubject = (sub) => {
     if (selectedSubSubjects.includes(sub)) {
         setSelectedSubSubjects(prev => prev.filter(item => item !== sub));
@@ -74,7 +90,7 @@ const NovaSessao = () => {
     setLoading(true);
 
     try {
-      await studySessionAPI.createSession({
+      const payload = {
         title,
         durationMinutes: Number(duration),
         date: date.toISOString(),
@@ -82,10 +98,19 @@ const NovaSessao = () => {
         completed,
         user: { id: user.userId },
         subject: subjectId ? { id: Number(subjectId) } : null,
-        subSubjects: selectedSubSubjects // <--- ENVIANDO A LISTA
-      });
+        subSubjects: selectedSubSubjects
+      };
 
-      toast.success('Sessão registrada!');
+      if (isEditing) {
+        // --- MODO EDIÇÃO ---
+        await studySessionAPI.updateSession(sessionToEdit.id, payload);
+        toast.success('Sessão atualizada com sucesso!');
+      } else {
+        // --- MODO CRIAÇÃO ---
+        await studySessionAPI.createSession(payload);
+        toast.success('Sessão registrada!');
+      }
+
       navigate('/dashboard');
     } catch (err) {
       const message = getErrorMessage(err);
@@ -106,15 +131,16 @@ const NovaSessao = () => {
         .react-datepicker__day--keyboard-selected { background-color: #1d4ed8 !important; }
         .custom-datepicker-input { width: 100%; background-color: #0a0a0a; color: white; padding: 0.75rem 1rem; padding-left: 2.5rem; border-radius: 0.5rem; border: 1px solid #374151; outline: none; }
         .custom-datepicker-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); }
-        .react-datepicker__day--disabled {
-        visibility: hidden !important; /* Torna o dia invisível */
-        pointer-events: none !important; /* Garante que não dá pra clicar */
-      }
+        .react-datepicker__day--disabled { visibility: hidden !important; pointer-events: none !important; }
       `}</style>
 
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-2">Defina uma nova sessão</h1>
-        <p className="text-gray-400 mb-8">Nos fale o que você estudou. O StudyPlanner te ajuda a monitorar suas sessões.</p>
+        <h1 className="text-3xl font-bold text-white mb-2">
+            {isEditing ? 'Editar Sessão' : 'Defina uma nova sessão'}
+        </h1>
+        <p className="text-gray-400 mb-8">
+            {isEditing ? 'Corrija ou atualize os dados da sua sessão.' : 'Nos fale o que você estudou.'}
+        </p>
         
         <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-8 shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -138,7 +164,7 @@ const NovaSessao = () => {
               <div className="relative">
                   <select
                     value={subjectId}
-                    onChange={handleSubjectChange} // Alterado para nossa função customizada
+                    onChange={handleSubjectChange}
                     className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
                     required
                   >
@@ -151,7 +177,7 @@ const NovaSessao = () => {
               </div>
             </div>
 
-            {/* --- SEÇÃO DE SUBMATÉRIAS (Só aparece se tiver opções) --- */}
+            {/* Submatérias */}
             {availableSubSubjects.length > 0 && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                     <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -220,9 +246,7 @@ const NovaSessao = () => {
                       calendarClassName="shadow-xl"
                       wrapperClassName="w-full"
                       showPopperArrow={false}
-
                       maxDate={new Date()} 
-                      
                       placeholderText="Selecione uma data"
                   />
                 </div>
@@ -276,9 +300,10 @@ const NovaSessao = () => {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-blue-500/20"
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2"
                 >
-                    {loading ? 'Salvando...' : 'Registrar Sessão'}
+                    {isEditing ? <Save className="w-4 h-4"/> : null}
+                    {loading ? 'Salvando...' : (isEditing ? 'Atualizar Sessão' : 'Registrar Sessão')}
                 </button>
             </div>
           </form>

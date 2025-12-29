@@ -101,21 +101,31 @@ public class StudySessionController {
     }
 
     // put para atualizar uma session existente
-    @PutMapping("/{id}/complete")
-    public ResponseEntity<StudySession> completeSession(@PathVariable Long id) {
-        // busca a session no banco de dados pelo id na URL
-        Optional<StudySession> sessionOptional = studySessionRepository.findById(id);
-        // caso seja nulo, retorna um 404
-        if (sessionOptional.isEmpty()) {
+    @PutMapping("/{id}")
+    public ResponseEntity<StudySession> updateSession(@PathVariable Long id, @RequestBody StudySession sessionDetails) {
+        Optional<StudySession> optionalSession = studySessionRepository.findById(id);
+        
+        if (optionalSession.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        // caso não seja nulo, atualiza os valores antigos com os novos valores
-        StudySession session = sessionOptional.get();
-        session.setCompleted(true);
+        StudySession existingSession = optionalSession.get();
+        
+        // Atualiza os campos
+        existingSession.setTitle(sessionDetails.getTitle());
+        existingSession.setDescription(sessionDetails.getDescription());
+        existingSession.setDurationMinutes(sessionDetails.getDurationMinutes());
+        existingSession.setDate(sessionDetails.getDate());
+        existingSession.setCompleted(sessionDetails.isCompleted());
+        existingSession.setSubSubjects(sessionDetails.getSubSubjects());
 
-        // salva os novos valores e retorna um 200
-        StudySession updatedSession = studySessionRepository.save(session);
+        // Atualiza a matéria se tiver mudado
+        if (sessionDetails.getSubject() != null && sessionDetails.getSubject().getId() != null) {
+            // Nota: Em um cenário real, você buscaria o Subject no repository para garantir que existe
+            existingSession.setSubject(sessionDetails.getSubject());
+        }
+
+        StudySession updatedSession = studySessionRepository.save(existingSession);
         return ResponseEntity.ok(updatedSession);
     }
 

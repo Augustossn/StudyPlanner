@@ -63,7 +63,21 @@ public class SubjectController {
         return ResponseEntity.ok(savedSubject);
     }
 
-    // adicionar mais tarde um método HTTP Put para atualizar os Subjects cadastrados
+    @PutMapping("/{id}")
+    public ResponseEntity<Subject> updateSubject(@PathVariable Long id, @RequestBody Subject subject){
+        Optional<Subject> existingSubject = subjectRepository.findById(id);
+        if (existingSubject.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        Subject updatedSubject = existingSubject.get();
+        updatedSubject.setName(subject.getName());
+        updatedSubject.setColor(subject.getColor());
+        updatedSubject.setSubSubjects(subject.getSubSubjects());
+
+        Subject savedSubject = subjectRepository.save(updatedSubject);
+        return ResponseEntity.ok(savedSubject);
+    }
 
     // delete para apagar um subject
     @DeleteMapping("/{id}")

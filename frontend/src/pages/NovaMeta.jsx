@@ -1,27 +1,47 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom'; // Adicionado useLocation
 import toast from 'react-hot-toast'; 
 import Layout from '../components/Layout';
 import { goalsAPI } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandler'; 
-import { Calendar, Clock, Target, ArrowRight, TrendingUp } from 'lucide-react';
+import { Calendar, Clock, Target, ArrowRight, TrendingUp, Save } from 'lucide-react';
 
 const NovaMeta = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // Hook para pegar os dados enviados
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  const [title, setTitle] = useState('');
-  const [goalType, setGoalType] = useState('Semanal'); // Semanal, Mensal, Desafio
-  const [targetHours, setTargetHours] = useState(10);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState('');
+  // Verifica se estamos em modo de edição
+  const goalToEdit = location.state?.goalToEdit;
+  const isEditing = !!goalToEdit;
+
+  // Função auxiliar para formatar data (YYYY-MM-DD) para o input
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toISOString().split('T')[0];
+  };
+
+  // Inicializa os estados: Se for edição, usa os dados existentes; senão, usa padrão
+  const [title, setTitle] = useState(goalToEdit?.title || '');
+  const [goalType, setGoalType] = useState(goalToEdit?.goalType || 'Semanal');
+  const [targetHours, setTargetHours] = useState(goalToEdit?.targetHours || 10);
+  
+  // Datas precisam de cuidado extra para formatar corretamente no input type="date"
+  const [startDate, setStartDate] = useState(
+    goalToEdit?.startDate ? formatDateForInput(goalToEdit.startDate) : new Date().toISOString().split('T')[0]
+  );
+  const [endDate, setEndDate] = useState(
+    goalToEdit?.endDate ? formatDateForInput(goalToEdit.endDate) : ''
+  );
+  
   const [loading, setLoading] = useState(false);
 
   // Redireciona se não estiver logado
-  if (!user.userId) {
-      navigate('/');
-      return null;
-  }
+  useEffect(() => {
+    if (!user.userId) {
+        navigate('/');
+    }
+  }, [user.userId, navigate]);
 
   // Cálculo Inteligente de Esforço
   const dailyEffort = () => {
@@ -54,17 +74,26 @@ const NovaMeta = () => {
     setLoading(true);
 
     try {
-      await goalsAPI.createGoal({
+      const payload = {
         title,
         goalType,
         targetHours,
         startDate, 
         endDate: endDate || null,
-        active: true,
+        active: true, // Mantém ativo ao editar
         user: { id: user.userId }
-      });
+      };
+
+      if (isEditing) {
+        // --- MODO EDIÇÃO (PUT) ---
+        await goalsAPI.updateGoal(goalToEdit.id, payload);
+        toast.success('Meta atualizada com sucesso! 🎯');
+      } else {
+        // --- MODO CRIAÇÃO (POST) ---
+        await goalsAPI.createGoal(payload);
+        toast.success('Meta definida com sucesso! 🚀');
+      }
       
-      toast.success('Meta definida com sucesso! 🚀');
       navigate('/dashboard');
       
     } catch (err) {
@@ -78,8 +107,12 @@ const NovaMeta = () => {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-2">Definir Nova Meta</h1>
-        <p className="text-gray-400 mb-8">Escolha onde você quer chegar. O StudyPlanner te ajuda a monitorar.</p>
+        <h1 className="text-3xl font-bold text-white mb-2">
+            {isEditing ? 'Editar Meta' : 'Definir Nova Meta'}
+        </h1>
+        <p className="text-gray-400 mb-8">
+            {isEditing ? 'Ajuste seus objetivos conforme necessário.' : 'Escolha onde você quer chegar. O StudyPlanner te ajuda a monitorar.'}
+        </p>
         
         <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-8 shadow-xl">
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -96,7 +129,7 @@ const NovaMeta = () => {
                     placeholder="Ex: Dominar Spring Boot até o fim do mês"
                     className="w-full pl-12 pr-4 py-4 bg-[#0a0a0a] border border-gray-700 rounded-xl text-white text-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
                     required
-                    autoFocus
+                    autoFocus={!isEditing}
                 />
               </div>
             </div>
@@ -211,10 +244,11 @@ const NovaMeta = () => {
                 </button>
                 <button
                     type="submit"
-                    className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5"
+                    className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
                     disabled={loading || !title}
                 >
-                    {loading ? 'Salvando...' : 'Definir Meta'}
+                    {isEditing ? <Save className="w-5 h-5" /> : null}
+                    {loading ? 'Salvando...' : (isEditing ? 'Atualizar Meta' : 'Definir Meta')}
                 </button>
             </div>
 

@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom'; // Adicionado useLocation
 import toast from 'react-hot-toast';
 import Layout from '../components/Layout';
 import { subjectAPI } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandler';
-import { BookOpen, Check, Layers, Plus, X } from 'lucide-react'; // Novos ícones importados
+import { BookOpen, Check, Layers, Plus, X, Save } from 'lucide-react'; // Ícone Save
 
-// Cores pré-definidas
 const COLORS = [
   { name: 'Blue', hex: '#3b82f6', label: 'Azul' },
   { name: 'Red', hex: '#ef4444', label: 'Vermelho' },
@@ -20,26 +19,29 @@ const COLORS = [
 
 const NovaMateria = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // Hook para pegar dados da navegação
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  const [name, setName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(COLORS[0].hex);
+  // Verifica se veio dados para edição
+  const editingSubject = location.state?.subjectToEdit;
+  const isEditing = !!editingSubject;
+
+  // Inicializa estados com dados da edição (se houver) ou padrão
+  const [name, setName] = useState(editingSubject?.name || '');
+  const [selectedColor, setSelectedColor] = useState(editingSubject?.color || COLORS[0].hex);
+  const [subSubjects, setSubSubjects] = useState(editingSubject?.subSubjects || []);
   
-  // Novos estados para Submatérias
-  const [subSubjects, setSubSubjects] = useState([]);
   const [currentSub, setCurrentSub] = useState('');
-  
   const [loading, setLoading] = useState(false);
 
-  // Redireciona se não estiver logado
-  if (!user.userId) {
-    navigate('/');
-    return null;
-  }
+  useEffect(() => {
+    if (!user.userId) {
+        navigate('/');
+    }
+  }, [user.userId, navigate]);
 
-  // Função para adicionar submatéria na lista
   const handleAddSubSubject = (e) => {
-    e.preventDefault(); // Evita submit do form principal
+    e.preventDefault();
     if (!currentSub.trim()) return;
     
     if (subSubjects.includes(currentSub.trim())) {
@@ -51,7 +53,6 @@ const NovaMateria = () => {
     setCurrentSub('');
   };
 
-  // Função para remover submatéria da lista
   const handleRemoveSubSubject = (subToRemove) => {
     setSubSubjects(subSubjects.filter(sub => sub !== subToRemove));
   };
@@ -60,24 +61,25 @@ const NovaMateria = () => {
     e.preventDefault();
     setLoading(true);
 
-  const payload = {
+    try {
+      const payload = {
         name,
         color: selectedColor,
         subSubjects,
-        user: { id: user.userId } // <--- SUSPEITO
-    };
-    console.log("PAYLOAD SENDO ENVIADO:", payload);
-    console.log("USUÁRIO NO LOCALSTORAGE:", user);
-
-    try {
-      await subjectAPI.createSubject({
-        name,
-        color: selectedColor,
-        subSubjects: subSubjects, // Envia a lista para o backend
         user: { id: user.userId }
-      });
+      };
 
-      toast.success('Matéria criada com sucesso!');
+      if (isEditing) {
+        // --- MODO EDIÇÃO (PUT) ---
+        // Você precisa adicionar o método updateSubject na sua api.js se não tiver
+        await subjectAPI.updateSubject(editingSubject.id, payload);
+        toast.success('Matéria atualizada com sucesso!');
+      } else {
+        // --- MODO CRIAÇÃO (POST) ---
+        await subjectAPI.createSubject(payload);
+        toast.success('Matéria criada com sucesso!');
+      }
+
       navigate('/dashboard');
 
     } catch (err) {
@@ -91,8 +93,12 @@ const NovaMateria = () => {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-2">Nova Matéria</h1>
-        <p className="text-gray-400 mb-8">Crie categorias para organizar seus estudos.</p>
+        <h1 className="text-3xl font-bold text-white mb-2">
+            {isEditing ? 'Editar Matéria' : 'Nova Matéria'}
+        </h1>
+        <p className="text-gray-400 mb-8">
+            {isEditing ? 'Atualize as informações e submatérias.' : 'Crie categorias para organizar seus estudos.'}
+        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
@@ -112,12 +118,12 @@ const NovaMateria = () => {
                     placeholder="Ex: Matemática"
                     className="w-full pl-12 pr-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
                     required
-                    autoFocus
+                    autoFocus={!isEditing}
                   />
                 </div>
               </div>
 
-              {/* Submatérias (Opcional) */}
+              {/* Submatérias */}
               <div>
                 <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">
                     Submatérias <span className="text-gray-600 text-xs normal-case ml-1">(Opcional)</span>
@@ -143,19 +149,19 @@ const NovaMateria = () => {
                         type="button"
                         onClick={handleAddSubSubject}
                         className="bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-xl border border-gray-700 transition-colors"
-                        title="Adicionar Submatéria"
+                        title="Adicionar"
                     >
                         <Plus className="w-6 h-6" />
                     </button>
                 </div>
                 
-                {/* Lista de Tags Adicionadas */}
+                {/* Lista de Tags */}
                 {subSubjects.length > 0 && (
                     <div className="flex flex-wrap gap-2 p-3 bg-[#0a0a0a] rounded-xl border border-dashed border-gray-800">
                         {subSubjects.map((sub, index) => (
                             <span 
                                 key={index} 
-                                className="flex items-center gap-1 px-3 py-1 bg-gray-800 text-gray-300 text-sm rounded-lg border border-gray-700"
+                                className="flex items-center gap-1 px-3 py-1 bg-gray-800 text-gray-300 text-sm rounded-lg border border-gray-700 animate-in fade-in zoom-in duration-200"
                             >
                                 {sub}
                                 <button
@@ -204,15 +210,16 @@ const NovaMateria = () => {
                 <button
                   type="submit"
                   disabled={loading || !name}
-                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/20"
+                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2"
                 >
-                  {loading ? 'Salvando...' : 'Criar Matéria'}
+                  {isEditing ? <Save className="w-5 h-5" /> : null}
+                  {loading ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Criar Matéria')}
                 </button>
               </div>
             </form>
           </div>
 
-          {/* COLUNA DA DIREITA: PREVIEW (Visualização) */}
+          {/* COLUNA DA DIREITA: PREVIEW */}
           <div className="md:col-span-1">
             <h3 className="text-sm font-bold text-gray-500 uppercase mb-3 tracking-wider">Pré-visualização</h3>
             
@@ -254,7 +261,9 @@ const NovaMateria = () => {
                 )}
             </div>
             <p className="text-xs text-gray-500 mt-4 text-center">
-              Você poderá selecionar essas submatérias ao registrar uma nova sessão.
+              {isEditing 
+                ? 'Essa é a aparência atualizada da matéria.' 
+                : 'Assim que ela aparecerá nos seus cards e gráficos.'}
             </p>
           </div>
 

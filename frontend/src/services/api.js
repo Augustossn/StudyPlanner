@@ -34,6 +34,9 @@ export const studySessionAPI = {
   
   createSession: (session) => 
     api.post('/study-sessions', session),
+
+  updateSession: (id, session) =>
+    api.put(`/study-sessions/${id}`, session),
   
   deleteSession: (id) => 
     api.delete(`/study-sessions/${id}`),
@@ -61,6 +64,9 @@ export const subjectAPI = {
   
   createSubject: (subject) => 
     api.post('/subjects', subject),
+
+  updateSubject: (id, subject) =>
+    api.put(`/subjects/${id}`, subject),
   
   deleteSubject: (id) => 
     api.delete(`/subjects/${id}`),
