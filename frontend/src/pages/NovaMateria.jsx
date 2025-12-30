@@ -5,6 +5,7 @@ import Layout from '../components/Layout';
 import { subjectAPI } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandler';
 import { BookOpen, Check, Layers, Plus, X, Save } from 'lucide-react'; // Ícone Save
+import { getAuthUser } from '../utils/auth';
 
 const COLORS = [
   { name: 'Blue', hex: '#3b82f6', label: 'Azul' },
@@ -20,7 +21,7 @@ const COLORS = [
 const NovaMateria = () => {
   const navigate = useNavigate();
   const location = useLocation(); // Hook para pegar dados da navegação
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [user] = useState(() => getAuthUser());
 
   // Verifica se veio dados para edição
   const editingSubject = location.state?.subjectToEdit;

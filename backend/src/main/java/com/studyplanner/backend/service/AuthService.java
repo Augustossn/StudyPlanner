@@ -11,10 +11,13 @@ public class AuthService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService; // <--- 1. INJETAR ISSO
     
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder){
+    // 2. ADICIONAR NO CONSTRUTOR
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
     }
 
     public AuthDTO.AuthResponse register(AuthDTO.RegisterRequest request) {
@@ -28,12 +31,15 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         
         User savedUser = userRepository.save(user);
+
+        // 3. GERAR O TOKEN AQUI
+        String token = tokenService.generateToken(savedUser);
         
         return new AuthDTO.AuthResponse(
             savedUser.getId(),
             savedUser.getName(),
             savedUser.getEmail(),
-            "Usuário registrado com sucesso"
+            token // <--- 4. ENVIAR O TOKEN NA RESPOSTA
         );
     }
     
@@ -45,11 +51,14 @@ public class AuthService {
             throw new RuntimeException("Senha incorreta");
         }
         
+        // 3. GERAR O TOKEN AQUI TAMBÉM
+        String token = tokenService.generateToken(user);
+
         return new AuthDTO.AuthResponse(
             user.getId(),
             user.getName(),
             user.getEmail(),
-            "Login realizado com sucesso"
+            token // <--- 4. ENVIAR O TOKEN NA RESPOSTA
         );
     }
 }

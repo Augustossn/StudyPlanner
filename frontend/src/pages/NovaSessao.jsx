@@ -5,6 +5,7 @@ import Layout from '../components/Layout';
 import { studySessionAPI, subjectAPI } from '../services/api'; 
 import { getErrorMessage } from '../utils/errorHandler'; 
 import { CheckCircle2, Circle, Calendar as CalendarIcon, Layers, Tag, Save } from 'lucide-react'; // Ícone Save
+import { getAuthUser } from '../utils/auth';
 
 // Imports do DatePicker
 import DatePicker, { registerLocale } from "react-datepicker";
@@ -16,7 +17,7 @@ registerLocale('pt-BR', ptBR);
 const NovaSessao = () => {
   const navigate = useNavigate();
   const location = useLocation(); // Hook para pegar dados da navegação
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [user] = useState(() => getAuthUser());
 
   // Verifica se é edição
   const sessionToEdit = location.state?.sessionToEdit;

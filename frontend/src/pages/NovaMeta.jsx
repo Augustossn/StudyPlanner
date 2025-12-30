@@ -5,11 +5,12 @@ import Layout from '../components/Layout';
 import { goalsAPI } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandler'; 
 import { Calendar, Clock, Target, ArrowRight, TrendingUp, Save } from 'lucide-react';
+import { getAuthUser } from '../utils/auth';
 
 const NovaMeta = () => {
   const navigate = useNavigate();
   const location = useLocation(); // Hook para pegar os dados enviados
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [user] = useState(() => getAuthUser());
 
   // Verifica se estamos em modo de edição
   const goalToEdit = location.state?.goalToEdit;

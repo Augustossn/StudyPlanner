@@ -2,7 +2,7 @@ package com.studyplanner.backend.dto;
 
 public class AuthDTO {
     
-    // --- LOGIN REQUEST ---
+    // --- LOGIN REQUEST (Sem alterações) ---
     public static class LoginRequest {
         private String email;
         private String password;
@@ -21,7 +21,7 @@ public class AuthDTO {
         public void setPassword(String password) { this.password = password; }
     }
     
-    // --- REGISTER REQUEST ---
+    // --- REGISTER REQUEST (Sem alterações) ---
     public static class RegisterRequest {
         private String name;
         private String email;
@@ -45,20 +45,21 @@ public class AuthDTO {
         public void setPassword(String password) { this.password = password; }
     }
     
-    // --- AUTH RESPONSE ---
+    // --- AUTH RESPONSE (ATUALIZADO COM TOKEN) ---
     public static class AuthResponse {
         private Long userId;
         private String name;
         private String email;
-        private String message;
+        private String token; // <--- 1. NOVO CAMPO TOKEN
 
         public AuthResponse() {}
 
-        public AuthResponse(Long userId, String name, String email, String message) {
+        // 2. CONSTRUTOR ATUALIZADO (Recebe token em vez de message)
+        public AuthResponse(Long userId, String name, String email, String token) {
             this.userId = userId;
             this.name = name;
             this.email = email;
-            this.message = message;
+            this.token = token;
         }
 
         public Long getUserId() { return userId; }
@@ -70,7 +71,8 @@ public class AuthDTO {
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
 
-        public String getMessage() { return message; }
-        public void setMessage(String message) { this.message = message; }
+        // 3. GETTER E SETTER DO NOVO CAMPO
+        public String getToken() { return token; }
+        public void setToken(String token) { this.token = token; }
     }
 }

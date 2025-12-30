@@ -17,14 +17,12 @@ import {
 import { dashboardAPI, studySessionAPI, goalsAPI, subjectAPI } from '../services/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Layout from '../components/Layout';
+import { getAuthUser } from '../utils/auth';
 
 function Dashboard() {
   const navigate = useNavigate();
 
-  const [user] = useState(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [user] = useState(() => getAuthUser());
 
   const [stats, setStats] = useState({ totalHours: 0, weeklyHours: 0, completedSessions: 0, activeGoals: 0 });
   

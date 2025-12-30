@@ -5,6 +5,20 @@ import Dashboard from './pages/Dashboard';
 import NovaSessao from './pages/NovaSessao';
 import NovaMeta from './pages/NovaMeta';
 import NovaMateria from './pages/NovaMateria';
+import { isAuthenticated } from './utils/auth'; // Certifique-se de ter criado este arquivo
+
+// --- COMPONENTES DE PROTEÇÃO DE ROTA ---
+
+// 1. Rota Privada: Só entra se estiver logado. Se não, vai pro Login.
+const PrivateRoute = ({ children }) => {
+  return isAuthenticated() ? children : <Navigate to="/" />;
+};
+
+// 2. Rota Pública: Só entra se NÃO estiver logado. Se já estiver, vai pro Dashboard.
+// (É isso que faz o usuário "pular" o login se marcou "Permanecer conectado")
+const PublicRoute = ({ children }) => {
+  return isAuthenticated() ? <Navigate to="/dashboard" /> : children;
+};
 
 function App() {
   return (
@@ -34,12 +48,57 @@ function App() {
         }}
       />
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/nova-sessao" element={<NovaSessao />} />
-        <Route path="/nova-meta" element={<NovaMeta />} />
-        <Route path="/nova-materia" element={<NovaMateria />} />
+        
+        {/* Rota de Login (Protegida contra quem já está logado) */}
+        <Route 
+          path="/" 
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } 
+        />
+
+        {/* Rotas do Sistema (Protegidas contra quem NÃO está logado) */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          } 
+        />
+        
+        <Route 
+          path="/nova-sessao" 
+          element={
+            <PrivateRoute>
+              <NovaSessao />
+            </PrivateRoute>
+          } 
+        />
+        
+        <Route 
+          path="/nova-meta" 
+          element={
+            <PrivateRoute>
+              <NovaMeta />
+            </PrivateRoute>
+          } 
+        />
+        
+        <Route 
+          path="/nova-materia" 
+          element={
+            <PrivateRoute>
+              <NovaMateria />
+            </PrivateRoute>
+          } 
+        />
+        
+        {/* Rota Coringa: Redireciona qualquer URL inválida para a raiz */}
         <Route path="*" element={<Navigate to="/" replace />} />
+        
       </Routes>
     </Router>
   );
