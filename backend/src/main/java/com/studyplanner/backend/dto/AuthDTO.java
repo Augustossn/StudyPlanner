@@ -75,4 +75,36 @@ public class AuthDTO {
         public String getToken() { return token; }
         public void setToken(String token) { this.token = token; }
     }
+
+    public static class ForgotPasswordRequest {
+        private String email;
+        
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+    }
+
+    // 2. Validação do código (Email + Código)
+    public static class ValidateCodeRequest {
+        private String email;
+        private String code;
+
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public String getCode() { return code; }
+        public void setCode(String code) { this.code = code; }
+    }
+
+    // 3. Troca de senha (Email + Código + Nova Senha)
+    public static class ResetPasswordRequest {
+        private String email;
+        private String code;
+        private String newPassword;
+
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public String getCode() { return code; }
+        public void setCode(String code) { this.code = code; }
+        public String getNewPassword() { return newPassword; }
+        public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
+    }
 }

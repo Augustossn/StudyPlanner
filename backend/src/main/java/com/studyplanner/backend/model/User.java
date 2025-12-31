@@ -3,6 +3,7 @@ package com.studyplanner.backend.model;
 import jakarta.persistence.*; // Se der erro, mude para javax.persistence.*
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
+import java.time.LocalDateTime; 
 
 @Entity
 @Table(name = "users")
@@ -29,6 +30,9 @@ public class User {
     @JsonIgnore
     private List<Goal> goals;
 
+    private String recoveryCode;
+    private LocalDateTime recoveryExpiration;
+
     // --- CONSTRUTORES ---
     public User() {}
 
@@ -39,62 +43,30 @@ public class User {
         this.password = password;
     }
 
-    // --- GETTERS E SETTERS MANUAIS (Obrigatório sem Lombok) ---
-    
-    // O erro "getId" acontece porque este método abaixo não existia ou não foi gerado:
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public String getEmail() {
-        return email;
-    }
+    public List<Subject> getSubjects() { return subjects; }
+    public void setSubjects(List<Subject> subjects) { this.subjects = subjects; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public List<StudySession> getStudySessions() { return studySessions; }
+    public void setStudySessions(List<StudySession> studySessions) { this.studySessions = studySessions; }
 
-    public String getPassword() {
-        return password;
-    }
+    public List<Goal> getGoals() { return goals; }
+    public void setGoals(List<Goal> goals) { this.goals = goals; }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public String getRecoveryCode() { return recoveryCode; }
+    public void setRecoveryCode(String recoveryCode) { this.recoveryCode = recoveryCode; }
 
-    public List<Subject> getSubjects() {
-        return subjects;
-    }
-
-    public void setSubjects(List<Subject> subjects) {
-        this.subjects = subjects;
-    }
-
-    public List<StudySession> getStudySessions() {
-        return studySessions;
-    }
-
-    public void setStudySessions(List<StudySession> studySessions) {
-        this.studySessions = studySessions;
-    }
-
-    public List<Goal> getGoals() {
-        return goals;
-    }
-
-    public void setGoals(List<Goal> goals) {
-        this.goals = goals;
-    }
+    public LocalDateTime getRecoveryExpiration() { return recoveryExpiration; }
+    public void setRecoveryExpiration(LocalDateTime recoveryExpiration) { this.recoveryExpiration = recoveryExpiration; }
 }

@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Settings, 
@@ -9,21 +9,18 @@ import {
   Plus
 } from 'lucide-react';
 
+// IMPORTANTE: Importamos as funções centrais de autenticação
+import { logout, getAuthUser } from '../utils/auth';
+
 const Sidebar = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   
-  // tenta recuperar o usuário salvo no localStorage
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/');
-  };
+  // CORREÇÃO 1: Usamos getAuthUser() em vez de ler localStorage manualmente.
+  // Isso garante que funcione tanto se o usuário marcou "Lembrar de mim" quanto se não marcou.
+  const user = getAuthUser() || {};
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    // usando # por enquanto para evitar erros de rota
     { icon: BookMarked, label: 'Nova Sessão', path: '/nova-sessao' }, 
     { icon: Target, label: 'Nova Meta', path: '/nova-meta' }, 
     { icon: Plus, label: 'Nova Matéria', path: '/nova-materia' },
@@ -35,11 +32,9 @@ const Sidebar = () => {
     <aside className="w-64 h-screen bg-[#1a1a1a] border-r border-gray-800 flex flex-col fixed left-0 top-0 z-50">
       
       <div className="p-6 flex items-center gap-3 border-b border-gray-800">
-
         <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center border border-gray-800 shadow-sm">
           <Zap className="w-5 h-5 text-white fill-white" strokeWidth={0} />
         </div>
-
         <div>
           <h1 className="font-bold text-white text-lg leading-none tracking-tight">StudyPlanner</h1>
         </div>
@@ -47,7 +42,7 @@ const Sidebar = () => {
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {navItems.map((item, index) => {
-          const isActive = location.pathname === item.path && item.path !== '#';
+          const isActive = location.pathname === item.path;
           return (
             <Link
               key={index}
@@ -90,7 +85,7 @@ const Sidebar = () => {
         </Link>
 
         <button
-          onClick={handleLogout}
+          onClick={logout} // CORREÇÃO 2: Chamamos a função logout importada
           className="w-full flex items-center justify-center gap-2 p-2 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors text-sm font-medium"
         >
           <LogOut className="w-4 h-4" />

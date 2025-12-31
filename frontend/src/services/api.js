@@ -16,6 +16,16 @@ export const authAPI = {
   
   register: (name, email, password) => 
     api.post('/auth/register', { name, email, password }),
+
+  forgotPassword: (email) =>
+    api.post('/auth/forgot-password', { email }),
+
+  validateCode: (email, code) =>
+    api.post('/auth/validate-code', { email, code }),
+
+  resetPassword: (email, code, newPassword) =>
+    api.post('/auth/reset-password', { email, code, newPassword }),
+
 };
 
 // Dashboard API

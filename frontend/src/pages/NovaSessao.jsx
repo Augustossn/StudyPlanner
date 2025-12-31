@@ -10,7 +10,7 @@ import { getAuthUser } from '../utils/auth';
 // Imports do DatePicker
 import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import ptBR from 'date-fns/locale/pt-BR';
+import { ptBR } from "date-fns/locale";
 
 registerLocale('pt-BR', ptBR);
 

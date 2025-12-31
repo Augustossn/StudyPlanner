@@ -3,6 +3,10 @@ package com.studyplanner.backend.service;
 import com.studyplanner.backend.dto.AuthDTO;
 import com.studyplanner.backend.model.User;
 import com.studyplanner.backend.repository.UserRepository;
+
+import java.time.LocalDateTime;
+import java.util.Random;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -60,5 +64,53 @@ public class AuthService {
             user.getEmail(),
             token // <--- 4. ENVIAR O TOKEN NA RESPOSTA
         );
+    }
+
+    public void forgotPassword(String email){
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        String code = String.format("%06d", new Random().nextInt(999999));
+
+        user.setRecoveryCode(code);
+        user.setRecoveryExpiration(LocalDateTime.now().plusMinutes(15));
+
+        userRepository.save(user);
+
+        // simulando o email por enquanto
+        System.out.println("========================================");
+        System.out.println("EMAIL SIMULADO PARA: " + email);
+        System.out.println("Seu código de recuperação é: " + code);
+        System.out.println("========================================");
+    }
+
+    public boolean validateCode(String email, String code){
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (user.getRecoveryCode() == null || !user.getRecoveryCode().equals(code)){
+            return false;
+        }
+
+        if (user.getRecoveryExpiration().isBefore(LocalDateTime.now())){
+            return false;
+        }
+
+        return true;
+    }
+
+    public void resetPassword(String email, String code, String newPassword){
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        
+        if (!validateCode(email, code)){
+            throw new RuntimeException("Código inválido ou expirado");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setRecoveryCode(null);
+        user.setRecoveryExpiration(null);
+
+        userRepository.save(user);
     }
 }

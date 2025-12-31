@@ -6,6 +6,7 @@ import NovaSessao from './pages/NovaSessao';
 import NovaMeta from './pages/NovaMeta';
 import NovaMateria from './pages/NovaMateria';
 import { isAuthenticated } from './utils/auth'; // Certifique-se de ter criado este arquivo
+import RecuperarSenha from './pages/RecuperarSenha';
 
 // --- COMPONENTES DE PROTEÇÃO DE ROTA ---
 
@@ -93,6 +94,15 @@ function App() {
             <PrivateRoute>
               <NovaMateria />
             </PrivateRoute>
+          } 
+        />
+
+        <Route 
+          path="/recuperar-senha" 
+          element={
+            <PublicRoute>
+              <RecuperarSenha />
+            </PublicRoute>
           } 
         />
         

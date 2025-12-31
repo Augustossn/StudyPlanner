@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { 
   GraduationCap, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, Check // Importei o Check
@@ -150,9 +150,9 @@ function Login() {
                     </label>
                     
                     {/* Link de esqueci a senha (Visual) */}
-                    <button type="button" className="text-sm text-blue-500 hover:text-blue-400 hover:underline">
+                    <Link to="/recuperar-senha" className="text-sm text-blue-500 hover:text-blue-400 hover:underline">
                         Esqueceu?
-                    </button>
+                    </Link>
                 </div>
             )}
 
