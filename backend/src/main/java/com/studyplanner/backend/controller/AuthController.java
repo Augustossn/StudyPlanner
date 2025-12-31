@@ -2,6 +2,9 @@ package com.studyplanner.backend.controller;
 
 import com.studyplanner.backend.dto.AuthDTO;
 import com.studyplanner.backend.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,33 +14,36 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // construtor
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
-    // post para registrar um novo usuário
+    @Operation(summary = "Registrar novo usuário", description = "Cria uma nova conta no sistema e retorna o token JWT para acesso imediato.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Usuário criado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Erro de validação (ex: email já existente)")
+    })
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody AuthDTO.RegisterRequest request) {
         try {
-            // atribui a response a requisição de um novo usuário, caso positivo, retorna um 200 com o usuário cadastrado
             AuthDTO.AuthResponse response = authService.register(request); 
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            // caso negativo, retorna um 400 com a mensagem de erro
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // post para realizar o login de um usuário já cadastrado
+    @Operation(summary = "Realizar login", description = "Autentica as credenciais do usuário e retorna o token JWT necessário para acessar as rotas protegidas.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Credenciais inválidas (senha incorreta ou usuário inexistente)")
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthDTO.LoginRequest request) {
         try {
-            // atribui a response a requisição de login do authService, caso positivo, retorna 200 com o usuário logado
             AuthDTO.AuthResponse response = authService.login(request);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            // caso negativo, retorna um 401 (Unauthorized) com a mensagem de erro
             return ResponseEntity.status(401).body(e.getMessage());
         }
     }

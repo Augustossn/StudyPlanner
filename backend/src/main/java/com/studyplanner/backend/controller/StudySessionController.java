@@ -5,14 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.studyplanner.backend.model.StudySession;
 import com.studyplanner.backend.model.Subject;
@@ -20,6 +13,10 @@ import com.studyplanner.backend.model.User;
 import com.studyplanner.backend.repository.StudySessionRepository;
 import com.studyplanner.backend.repository.SubjectRepository;
 import com.studyplanner.backend.repository.UserRepository;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 @RestController
 @RequestMapping("/api/study-sessions")
@@ -29,7 +26,6 @@ public class StudySessionController {
     private final UserRepository userRepository;
     private final SubjectRepository subjectRepository;
 
-    // construtor
     public StudySessionController(StudySessionRepository studySessionRepository, 
                                   UserRepository userRepository, 
                                   SubjectRepository subjectRepository) {
@@ -38,69 +34,73 @@ public class StudySessionController {
         this.subjectRepository = subjectRepository;
     }
 
-    // get para mostrar as sessions de estudos do usuário    
+    // GET: Mostrar histórico completo
+    @Operation(summary = "Listar histórico de sessões", description = "Retorna a lista completa de todas as sessões de estudo de um usuário, ordenadas da mais recente para a mais antiga.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Histórico retornado com sucesso")
+    })
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<StudySession>> getUserSessions(@PathVariable Long userId) {
-        // busca no banco de dados as sessions de estudo do usuário
         List<StudySession> sessions = studySessionRepository.findByUserIdOrderByDateDesc(userId);
-        // retorna um 200 com a sessions cadastradas
         return ResponseEntity.ok(sessions);
     }
 
-    // get para mostrar a session mais recente do usuário
+    // GET: Mostrar sessões recentes (Gráficos)
+    @Operation(summary = "Listar sessões recentes (7 dias)", description = "Retorna apenas as sessões realizadas nos últimos 7 dias. Utilizado para alimentar gráficos de desempenho semanal.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista recente retornada com sucesso")
+    })
     @GetMapping("/user/{userId}/recent")
     public ResponseEntity<List<StudySession>> getRecentSessions(@PathVariable Long userId) {
-        // atribui a sevenDaysAgo os últimos 7 dias a partir de hoje
         java.time.LocalDateTime sevenDaysAgo = java.time.LocalDate.now().minusDays(7).atStartOfDay();
-        
-        // busca no banco de dados as sessions de estudo do usuário dos últimos 7 dias definido no sevenDaysAgo
         List<StudySession> sessions = studySessionRepository.findRecentSessions(userId, sevenDaysAgo);
-        // retorn um 200 com as sessions que atendem aos requisitos
         return ResponseEntity.ok(sessions);
     }
 
-    // post para cadastrar uma nova session
+    // POST: Cadastrar sessão
+    @Operation(summary = "Registrar nova sessão", description = "Cria um novo registro de estudo. Valida se o usuário existe e bloqueia o cadastro de datas futuras.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Sessão registrada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Data futura inválida ou Usuário não encontrado")
+    })
     @PostMapping
     public ResponseEntity<StudySession> createSession(@RequestBody StudySession session) {
         
+        // Validação de data futura
         if (session.getDate() != null) {
-            LocalDate sessionDate = session.getDate().toLocalDate(); // Pega apenas a data (dia/mês/ano)
-            LocalDate today = LocalDate.now(); // Pega a data de hoje
+            LocalDate sessionDate = session.getDate().toLocalDate();
+            LocalDate today = LocalDate.now();
 
             if (sessionDate.isAfter(today)) {
-                // se for amanhã ou depois, retorna Erro 400 (Bad Request)
                 return ResponseEntity.badRequest().build();
             }
         }
 
-        // valida se o objeto session e seu ID foram enviados corretamente na requisição
         if (session.getUser() == null || session.getUser().getId() == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        // busca o usuário no banco pelo ID (retorna um Optional pois pode não existir)
         Optional<User> userOptional = userRepository.findById(session.getUser().getId());
-        // caso não ache, retorna um 400
         if (userOptional.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-        // se achou o usuário, associa e salva
         session.setUser(userOptional.get());
 
-        // buscar Subject se houver
         if (session.getSubject() != null && session.getSubject().getId() != null) {
             Optional<Subject> subjectOptional = subjectRepository.findById(session.getSubject().getId());
-            // caso haja, associa ele à session
             subjectOptional.ifPresent(session::setSubject);
         }
 
-        // salva a session
         StudySession savedSession = studySessionRepository.save(session);
-        // retorna um 200 com a session salva
         return ResponseEntity.ok(savedSession);
     }
 
-    // put para atualizar uma session existente
+    // PUT: Atualizar sessão
+    @Operation(summary = "Atualizar sessão existente", description = "Permite editar os detalhes de uma sessão (título, descrição, matéria, conclusão) pelo ID.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Sessão atualizada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Sessão não encontrada para o ID informado")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<StudySession> updateSession(@PathVariable Long id, @RequestBody StudySession sessionDetails) {
         Optional<StudySession> optionalSession = studySessionRepository.findById(id);
@@ -111,7 +111,6 @@ public class StudySessionController {
 
         StudySession existingSession = optionalSession.get();
         
-        // Atualiza os campos
         existingSession.setTitle(sessionDetails.getTitle());
         existingSession.setDescription(sessionDetails.getDescription());
         existingSession.setDurationMinutes(sessionDetails.getDurationMinutes());
@@ -119,9 +118,7 @@ public class StudySessionController {
         existingSession.setCompleted(sessionDetails.isCompleted());
         existingSession.setSubSubjects(sessionDetails.getSubSubjects());
 
-        // Atualiza a matéria se tiver mudado
         if (sessionDetails.getSubject() != null && sessionDetails.getSubject().getId() != null) {
-            // Nota: Em um cenário real, você buscaria o Subject no repository para garantir que existe
             existingSession.setSubject(sessionDetails.getSubject());
         }
 
@@ -129,10 +126,13 @@ public class StudySessionController {
         return ResponseEntity.ok(updatedSession);
     }
 
-    // delete para apagar uma session existente
+    // DELETE: Apagar sessão
+    @Operation(summary = "Excluir sessão", description = "Remove permanentemente um registro de estudo do banco de dados.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Sessão excluída com sucesso")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSession(@PathVariable Long id) {
-        // deleta do repositório pelo id e retorna um 200
         studySessionRepository.deleteById(id);
         return ResponseEntity.ok().build();
     }
