@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthUser } from '../utils/auth';
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -7,6 +8,17 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+api.interceptors.request.use((config) => {
+  const user = getAuthUser();
+  if (user && (user.token || user.accessToken)) {
+    const token = user.token || user.accessToken;
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 // Auth API

@@ -33,12 +33,14 @@ const RecuperarSenha = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            // CORREÇÃO AQUI: authAPI.validateCode
             await authAPI.validateCode(email, code);
             toast.success('Código validado com sucesso!');
             setStep(3);
         } catch (error) {
-            toast.error('Código inválido ou expirado.');
+            console.error("Erro na validação:", error);
+            // Pega a mensagem do backend ou usa uma genérica
+            const mensagemErro = error.response?.data || "Ocorreu um erro inesperado.";
+            toast.error(mensagemErro);
         } finally {
             setLoading(false);
         }
@@ -48,12 +50,15 @@ const RecuperarSenha = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            // CORREÇÃO AQUI: authAPI.resetPassword
             await authAPI.resetPassword(email, code, password);
             toast.success('Senha alterada com sucesso! Faça login.');
             navigate('/');
         } catch (error) {
-            toast.error('Erro ao alterar senha.');
+            // CORREÇÃO VISUAL: Ajustei o texto do log para condizer com a função
+            console.error("Erro ao resetar senha:", error);
+            
+            const mensagemErro = error.response?.data || "Ocorreu um erro inesperado.";
+            toast.error(mensagemErro);
         } finally {
             setLoading(false);
         }

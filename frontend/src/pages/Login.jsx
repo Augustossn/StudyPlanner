@@ -34,32 +34,43 @@ function Login() {
     try {
       let response;
       if (isLogin) {
+        // --- FLUXO DE LOGIN ---
         response = await authAPI.login(formData.email, formData.password);
+        
+        // No login, esperamos o token. Se vier, salvamos e entramos.
+        if (response.data) {
+            console.log("LOGIN SUCESSO:", response.data);
+            const userData = JSON.stringify(response.data);
+            
+            if (rememberMe) {
+                localStorage.setItem('user', userData);
+            } else {
+                sessionStorage.setItem('user', userData);
+            }
+            navigate('/dashboard');
+        }
+
       } else {
-        response = await authAPI.register(formData.name, formData.email, formData.password);
+        // --- FLUXO DE REGISTRO (CRIAR CONTA) ---
+        await authAPI.register(formData.name, formData.email, formData.password);
+        
+        // Sucesso! Não entramos direto. Mandamos o usuário logar.
+        setError(''); // Limpa erros
+        setIsLogin(true); // Muda a tela para "Login"
+        // Opcional: Você pode usar um toast aqui se quiser: toast.success('Conta criada! Faça login.')
+        alert('Conta criada com sucesso! Por favor, faça login.');
       }
 
-      if (response.data) {
-        const userData = JSON.stringify(response.data);
-        
-        // --- LÓGICA DE PERMANECER LOGADO ---
-        if (rememberMe) {
-            localStorage.setItem('user', userData); // Persistente
-        } else {
-            sessionStorage.setItem('user', userData); // Temporário (Sessão)
-        }
-        
-        navigate('/dashboard');
-      }
     } catch (err) {
-      console.error("Erro no login:", err);
+      console.error("Erro:", err);
+      // ... (seu tratamento de erro continua igual) ...
       if (err.response && err.response.data) {
         const data = err.response.data;
         if (typeof data === 'string') setError(data);
         else if (data.message) setError(data.message);
-        else setError("Falha na operação. Verifique seus dados.");
+        else setError("Falha na operação.");
       } else {
-        setError('Erro de conexão com o servidor.');
+        setError('Erro de conexão.');
       }
     } finally {
       setLoading(false);
@@ -75,7 +86,7 @@ function Login() {
       <div className="w-full max-w-md relative z-10">
         
         <div className="flex flex-col items-center justify-center mb-8 animate-fade-in-down">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/20 mb-4 transform hover:scale-105 transition-transform duration-300">
+          <div className="w-16 h-16 bg-linear-to-br from-blue-600 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/20 mb-4 transform hover:scale-105 transition-transform duration-300">
             <GraduationCap className="w-9 h-9 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
@@ -163,7 +174,7 @@ function Login() {
               </div>
             )}
 
-            <button type="submit" disabled={loading} className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+            <button type="submit" disabled={loading} className="w-full py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{isLogin ? 'Entrar na Plataforma' : 'Começar Agora'} <ArrowRight className="w-5 h-5" /></>}
             </button>
           </form>
