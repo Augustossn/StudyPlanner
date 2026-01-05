@@ -26,8 +26,7 @@ public class StudySession {
 
     private String title;
     
-    // Adicionei este campo pois seu Frontend envia "description"
-    @Column(columnDefinition = "TEXT") // Permite textos longos
+    @Column(columnDefinition = "TEXT")
     private String description; 
 
     private LocalDateTime date;
@@ -42,25 +41,35 @@ public class StudySession {
     @JoinColumn(name = "subject_id")
     private Subject subject;
 
-    // Lista de assuntos estudadas NESTA sessão (ex: "Geometria")
+    // --- MUDANÇA PRINCIPAL: Renomeado de subSubjects para matters ---
+    // Isso garante que bata com o JSON do Frontend e a Query do Repository
     @ElementCollection(fetch = FetchType.EAGER) 
-    @CollectionTable(name = "session_subtopics", joinColumns = @JoinColumn(name = "session_id"))
-    @Column(name = "name")
-    private List<String> subSubjects = new ArrayList<>();
+    @CollectionTable(name = "session_matters", joinColumns = @JoinColumn(name = "session_id"))
+    @Column(name = "matter")
+    private List<String> matters = new ArrayList<>();
     
     // --- CONSTRUTORES ---
     public StudySession() {}
 
-    public StudySession(Long id, String title, String description, LocalDateTime date, int durationMinutes, boolean completed, User user, Subject subject, List<String> subSubjects) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.date = date;
-        this.durationMinutes = durationMinutes;
-        this.completed = completed;
-        this.user = user;
-        this.subject = subject;
-        this.subSubjects = subSubjects;
+    public StudySession(
+        Long id, 
+        String title, 
+        String description, 
+        LocalDateTime date, 
+        int durationMinutes, 
+        boolean completed, 
+        User user, 
+        Subject subject, 
+        List<String> matters) { // Agora recebe 'matters' corretamente
+            this.id = id;
+            this.title = title;
+            this.description = description;
+            this.date = date;
+            this.durationMinutes = durationMinutes;
+            this.completed = completed;
+            this.user = user;
+            this.subject = subject;
+            this.matters = matters;
     }
 
     // --- GETTERS E SETTERS ---
@@ -88,7 +97,7 @@ public class StudySession {
     public Subject getSubject() { return subject; }
     public void setSubject(Subject subject) { this.subject = subject; }
 
-    // Faltava adicionar estes dois abaixo:
-    public List<String> getSubSubjects() { return subSubjects; }
-    public void setSubSubjects(List<String> subSubjects) { this.subSubjects = subSubjects; }
+    // Getters e Setters atualizados para 'matters'
+    public List<String> getMatters() { return matters; }
+    public void setMatters(List<String> matters) { this.matters = matters; }
 }

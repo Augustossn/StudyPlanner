@@ -86,7 +86,7 @@ public class SubjectController {
         Subject updatedSubject = existingSubject.get();
         updatedSubject.setName(subject.getName());
         updatedSubject.setColor(subject.getColor());
-        updatedSubject.setSubSubjects(subject.getSubSubjects());
+        updatedSubject.setMatters(subject.getMatters());
 
         Subject savedSubject = subjectRepository.save(updatedSubject);
         return ResponseEntity.ok(savedSubject);

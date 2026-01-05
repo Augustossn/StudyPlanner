@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Adicionado useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast'; 
 import Layout from '../components/Layout';
 import { studySessionAPI, subjectAPI } from '../services/api'; 
 import { getErrorMessage } from '../utils/errorHandler'; 
-import { CheckCircle2, Circle, Calendar as CalendarIcon, Layers, Tag, Save } from 'lucide-react'; // Ícone Save
+import { CheckCircle2, Circle, Calendar as CalendarIcon, Layers, Tag, Save } from 'lucide-react';
 import { getAuthUser } from '../utils/auth';
 
 // Imports do DatePicker
@@ -16,20 +16,20 @@ registerLocale('pt-BR', ptBR);
 
 const NovaSessao = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Hook para pegar dados da navegação
+  const location = useLocation();
   const [user] = useState(() => getAuthUser());
 
   // Verifica se é edição
   const sessionToEdit = location.state?.sessionToEdit;
   const isEditing = !!sessionToEdit;
 
-  // --- ESTADOS INICIAIS (Preenche se for edição) ---
+  // --- ESTADOS ---
   const [title, setTitle] = useState(sessionToEdit?.title || '');
   const [subjectId, setSubjectId] = useState(sessionToEdit?.subject?.id || '');
   const [description, setDescription] = useState(sessionToEdit?.description || '');
   const [duration, setDuration] = useState(sessionToEdit?.durationMinutes || 60);
   
-  // Data: Se for edição, converte a string ISO para Objeto Date
+  // Data
   const [date, setDate] = useState(
     sessionToEdit?.date ? new Date(sessionToEdit.date) : new Date()
   );
@@ -40,8 +40,11 @@ const NovaSessao = () => {
   
   const [subjects, setSubjects] = useState([]); 
   
-  const [availableSubSubjects, setAvailableSubSubjects] = useState([]);
-  const [selectedSubSubjects, setSelectedSubSubjects] = useState(sessionToEdit?.subSubjects || []);
+  // LÓGICA DE ASSUNTOS (MATTERS)
+  const [availableMatters, setAvailableMatters] = useState([]); // Opções vindas da Matéria
+  
+  // Aqui usamos 'matters' para alinhar com o Backend
+  const [selectedMatters, setSelectedMatters] = useState(sessionToEdit?.matters || []); 
   
   const [loading, setLoading] = useState(false);
   
@@ -53,10 +56,12 @@ const NovaSessao = () => {
             const loadedSubjects = res.data || [];
             setSubjects(loadedSubjects);
 
-            // Se for edição, precisamos carregar os assuntos disponíveis da matéria selecionada
+            // Se for edição, carrega as opções da matéria já salva
             if (isEditing && sessionToEdit?.subject?.id) {
                 const currentSub = loadedSubjects.find(s => s.id === sessionToEdit.subject.id);
-                if (currentSub) setAvailableSubSubjects(currentSub.subSubjects || []);
+                
+                // --- CORREÇÃO AQUI: Troquei .matter por .matters ---
+                if (currentSub) setAvailableMatters(currentSub.matters || []);
             }
         })
         .catch(() => setSubjects([]));
@@ -65,24 +70,28 @@ const NovaSessao = () => {
     }
   }, [user.userId, navigate, isEditing, sessionToEdit]);
 
+  // Ao trocar a matéria
   const handleSubjectChange = (e) => {
     const newId = e.target.value;
     setSubjectId(newId);
-    setSelectedSubSubjects([]); // Limpa ao trocar de matéria
+    setSelectedMatters([]); // Limpa os assuntos selecionados
     
     const selectedSubject = subjects.find(s => s.id === Number(newId));
-    if (selectedSubject && selectedSubject.subSubjects) {
-        setAvailableSubSubjects(selectedSubject.subSubjects);
+    
+    // --- CORREÇÃO AQUI: Troquei .matter por .matters ---
+    if (selectedSubject && selectedSubject.matters) {
+        setAvailableMatters(selectedSubject.matters);
     } else {
-        setAvailableSubSubjects([]);
+        setAvailableMatters([]);
     }
   };
 
-  const toggleSubSubject = (sub) => {
-    if (selectedSubSubjects.includes(sub)) {
-        setSelectedSubSubjects(prev => prev.filter(item => item !== sub));
+  // Função para marcar/desmarcar assuntos (Multiseleção)
+  const toggleMatter = (matterName) => {
+    if (selectedMatters.includes(matterName)) {
+        setSelectedMatters(prev => prev.filter(item => item !== matterName));
     } else {
-        setSelectedSubSubjects(prev => [...prev, sub]);
+        setSelectedMatters(prev => [...prev, matterName]);
     }
   };
 
@@ -99,15 +108,15 @@ const NovaSessao = () => {
         completed,
         user: { id: user.userId },
         subject: subjectId ? { id: Number(subjectId) } : null,
-        subSubjects: selectedSubSubjects
+        
+        // Envia como 'matters' para o Backend
+        matters: selectedMatters 
       };
 
       if (isEditing) {
-        // --- MODO EDIÇÃO ---
         await studySessionAPI.updateSession(sessionToEdit.id, payload);
         toast.success('Sessão atualizada com sucesso!');
       } else {
-        // --- MODO CRIAÇÃO ---
         await studySessionAPI.createSession(payload);
         toast.success('Sessão registrada!');
       }
@@ -178,20 +187,20 @@ const NovaSessao = () => {
               </div>
             </div>
 
-            {/* Assuntos */}
-            {availableSubSubjects.length > 0 && (
+            {/* Assuntos (Matters) */}
+            {availableMatters.length > 0 && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                        O que você estudou especificamente?
+                    <label className="block text-sm font-bold text-blue-400 mb-2 uppercase tracking-wide">
+                        Quais assuntos você estudou?
                     </label>
                     <div className="flex flex-wrap gap-2 p-4 bg-[#0a0a0a] border border-gray-700 rounded-lg">
-                        {availableSubSubjects.map((sub, index) => {
-                            const isSelected = selectedSubSubjects.includes(sub);
+                        {availableMatters.map((matter, index) => {
+                            const isSelected = selectedMatters.includes(matter);
                             return (
                                 <button
                                     key={index}
                                     type="button"
-                                    onClick={() => toggleSubSubject(sub)}
+                                    onClick={() => toggleMatter(matter)}
                                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border transition-all ${
                                         isSelected 
                                         ? 'bg-blue-600 border-blue-500 text-white shadow-md' 
@@ -199,12 +208,15 @@ const NovaSessao = () => {
                                     }`}
                                 >
                                     <Tag className="w-3 h-3" />
-                                    {sub}
+                                    {matter}
                                     {isSelected && <CheckCircle2 className="w-3 h-3 ml-1" />}
                                 </button>
                             );
                         })}
                     </div>
+                    <p className="text-xs text-gray-500 mt-2 ml-1">
+                        Selecione um ou mais tópicos para atualizar as metas específicas.
+                    </p>
                 </div>
             )}
 

@@ -30,6 +30,9 @@ public interface StudySessionRepository extends JpaRepository<StudySession, Long
     @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId AND s.subject.id = :subjectId")
     Integer getTotalMinutesBySubject(@Param("userId") Long userId, @Param("subjectId") Long subjectId);
 
+    @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s JOIN s.matters matter WHERE s.user.id = :userId AND s.subject.id = :subjectId AND matter = :matter")
+    Integer getTotalMinutesByMatter(@Param("userId") Long userId, @Param("subjectId") Long subjectId, @Param("matter") String matter);
+
     long countByUser_IdAndCompletedTrue(Long userId); // Contagem de sessões completas
 
     List<StudySession> findByUserIdAndDateAfter(Long userId, LocalDateTime date);

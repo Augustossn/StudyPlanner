@@ -1,7 +1,15 @@
 package com.studyplanner.backend.model;
 
-import jakarta.persistence.*; // Se der erro, mude para javax.persistence.*
-import java.time.LocalDate;
+import java.time.LocalDate; // Se der erro, mude para javax.persistence.*
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "goals")
@@ -35,6 +43,7 @@ public class Goal {
     @ManyToOne
     @JoinColumn(name = "subject_id")
     private Subject subject;
+    private String matters;
 
     // --- CONSTRUTORES ---
     public Goal() {}
@@ -81,4 +90,7 @@ public class Goal {
 
     public Subject getSubject() { return subject; }
     public void setSubject(Subject subject) { this.subject = subject; }
+
+    public String getMatters() { return matters; }
+    public void setMatters(String matters) { this.matters = matters; }
 }

@@ -30,9 +30,9 @@ const NovaMateria = () => {
   // Inicializa estados com dados da edição (se houver) ou padrão
   const [name, setName] = useState(editingSubject?.name || '');
   const [selectedColor, setSelectedColor] = useState(editingSubject?.color || COLORS[0].hex);
-  const [subSubjects, setSubSubjects] = useState(editingSubject?.subSubjects || []);
+  const [matters, setMatters] = useState(editingSubject?.matters || []);
   
-  const [currentSub, setCurrentSub] = useState('');
+  const [currentMatter, setCurrentMatter] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -41,21 +41,21 @@ const NovaMateria = () => {
     }
   }, [user.userId, navigate]);
 
-  const handleAddSubSubject = (e) => {
+  const handleAddMatters = (e) => {
     e.preventDefault();
-    if (!currentSub.trim()) return;
-    
-    if (subSubjects.includes(currentSub.trim())) {
+    if (!currentMatter.trim()) return;
+
+    if (matters.includes(currentMatter.trim())) {
         toast.error('Esse assunto já foi adicionado.');
         return;
     }
 
-    setSubSubjects([...subSubjects, currentSub.trim()]);
-    setCurrentSub('');
+    setMatters([...matters, currentMatter.trim()]);
+    setCurrentMatter('');
   };
 
-  const handleRemoveSubSubject = (subToRemove) => {
-    setSubSubjects(subSubjects.filter(sub => sub !== subToRemove));
+  const handleRemoveMatter = (matterToRemove) => {
+    setMatters(matters.filter(matter => matter !== matterToRemove));
   };
 
   const handleSubmit = async (e) => {
@@ -66,7 +66,7 @@ const NovaMateria = () => {
       const payload = {
         name,
         color: selectedColor,
-        subSubjects,
+        matters,
         user: { id: user.userId }
       };
 
@@ -134,21 +134,21 @@ const NovaMateria = () => {
                         <Layers className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
                         <input
                             type="text"
-                            value={currentSub}
-                            onChange={(e) => setCurrentSub(e.target.value)}
+                            value={currentMatter}
+                            onChange={(e) => setCurrentMatter(e.target.value)}
                             placeholder="Ex: Geometria, Álgebra..."
                             className="w-full pl-12 pr-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();
-                                    handleAddSubSubject(e);
+                                    handleAddMatters(e);
                                 }
                             }}
                         />
                     </div>
                     <button
                         type="button"
-                        onClick={handleAddSubSubject}
+                        onClick={handleAddMatters}
                         className="bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-xl border border-gray-700 transition-colors"
                         title="Adicionar"
                     >
@@ -157,17 +157,17 @@ const NovaMateria = () => {
                 </div>
                 
                 {/* Lista de Tags */}
-                {subSubjects.length > 0 && (
+                {matters.length > 0 && (
                     <div className="flex flex-wrap gap-2 p-3 bg-[#0a0a0a] rounded-xl border border-dashed border-gray-800">
-                        {subSubjects.map((sub, index) => (
+                        {matters.map((matter, index) => (
                             <span 
                                 key={index} 
                                 className="flex items-center gap-1 px-3 py-1 bg-gray-800 text-gray-300 text-sm rounded-lg border border-gray-700 animate-in fade-in zoom-in duration-200"
                             >
-                                {sub}
+                                {matter}
                                 <button
                                     type="button"
-                                    onClick={() => handleRemoveSubSubject(sub)}
+                                    onClick={() => handleRemoveMatter(matter)}
                                     className="hover:text-red-400 transition-colors ml-1"
                                 >
                                     <X className="w-3 h-3" />
@@ -235,8 +235,8 @@ const NovaMateria = () => {
                     <div className="overflow-hidden">
                         <p className="font-bold text-white truncate">{name || 'Nome da Matéria'}</p>
                         <p className="text-xs text-gray-500">
-                            {subSubjects.length > 0 
-                                ? `${subSubjects.length} assuntos cadastrados`
+                            {matters.length > 0 
+                                ? `${matters.length} assuntos cadastrados`
                                 : 'Nenhum assunto'}
                         </p>
                     </div>
@@ -246,16 +246,16 @@ const NovaMateria = () => {
                 </div>
 
                 {/* Preview das Tags */}
-                {subSubjects.length > 0 && (
+                {matters.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                        {subSubjects.slice(0, 3).map((sub, i) => (
+                        {matters.slice(0, 3).map((matter, i) => (
                             <span key={i} className="text-[10px] px-2 py-0.5 bg-gray-800 text-gray-400 rounded border border-gray-700">
-                                {sub}
+                                {matter}
                             </span>
                         ))}
-                        {subSubjects.length > 3 && (
+                        {matters.length > 3 && (
                             <span className="text-[10px] px-2 py-0.5 text-gray-500">
-                                +{subSubjects.length - 3}
+                                +{matters.length - 3}
                             </span>
                         )}
                     </div>

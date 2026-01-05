@@ -446,10 +446,10 @@ function Dashboard() {
                                 </div>
 
                                 <div className="flex flex-wrap gap-1.5 pl-6">
-                                    {subject.subSubjects && subject.subSubjects.length > 0 ? (
-                                        subject.subSubjects.map((sub, idx) => (
+                                    {subject.matters && subject.matters.length > 0 ? (
+                                        subject.matters.map((matter, idx) => (
                                             <span key={idx} className="text-[10px] px-2 py-0.5 rounded border border-gray-700 bg-gray-800 text-gray-400 select-none">
-                                                {sub}
+                                                {matter}
                                             </span>
                                         ))
                                     ) : (
@@ -525,14 +525,14 @@ function Dashboard() {
                                 
                                 {/* Tags */}
                                 <div className="flex flex-wrap gap-1">
-                                    {session.subSubjects && session.subSubjects.length > 0 ? (
+                                    {session.matters && session.matters.length > 0 ? (
                                         <>
-                                            {session.subSubjects.slice(0, 2).map((sub, idx) => (
+                                            {session.matters.slice(0, 2).map((matter, idx) => (
                                                 <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded border border-gray-700 bg-gray-800/50 text-gray-400">
-                                                    {sub}
+                                                    {matter}
                                                 </span>
                                             ))}
-                                            {session.subSubjects.length > 2 && <span className="text-[9px] text-gray-500">...</span>}
+                                            {session.matters.length > 2 && <span className="text-[9px] text-gray-500">...</span>}
                                         </>
                                     ) : (
                                         <span className="text-[10px] text-gray-600 italic">Sem tags</span>

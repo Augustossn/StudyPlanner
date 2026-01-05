@@ -30,7 +30,7 @@ public class Subject {
     @ElementCollection(fetch = FetchType.EAGER) // Adicionado EAGER para evitar erro no Dashboard
     @CollectionTable(name = "subject_subtopics", joinColumns = @JoinColumn(name = "subject_id"))
     @Column(name = "name")
-    private List<String> subSubjects = new ArrayList<>();
+    private List<String> matters = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -39,12 +39,12 @@ public class Subject {
     // --- CONSTRUTORES ---
     public Subject() {}
 
-    public Subject(Long id, String name, String color, User user, List<String> subSubjects) {
+    public Subject(Long id, String name, String color, User user, List<String> matters) {
         this.id = id;
         this.name = name;
         this.color = color;
         this.user = user;
-        this.subSubjects = subSubjects;
+        this.matters = matters;
     }
 
     // --- GETTERS E SETTERS ---
@@ -60,6 +60,6 @@ public class Subject {
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
 
-    public List<String> getSubSubjects() { return subSubjects; }
-    public void setSubSubjects(List<String> subSubjects) { this.subSubjects = subSubjects; }
+    public List<String> getMatters() { return matters; }
+    public void setMatters(List<String> matters) { this.matters = matters; }
 }

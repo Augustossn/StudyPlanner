@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast'; 
 import Layout from '../components/Layout';
-// Importamos subjectAPI para buscar as matérias
-import { goalsAPI, subjectAPI } from '../services/api';
+import { goalsAPI, subjectAPI } from '../services/api'; // Importando subjectAPI
 import { getErrorMessage } from '../utils/errorHandler'; 
-import { Calendar, Clock, Target, ArrowRight, TrendingUp, Save, Layers } from 'lucide-react'; // Adicionei Layers
+import { Calendar, Clock, Target, ArrowRight, TrendingUp, Save, Layers, Tag } from 'lucide-react'; // Adicionei Tag
 import { getAuthUser } from '../utils/auth';
 
 const NovaMeta = () => {
@@ -26,10 +25,13 @@ const NovaMeta = () => {
   // --- ESTADOS ---
   const [title, setTitle] = useState(goalToEdit?.title || '');
   
-  // NOVO: Estado para a matéria vinculada
-  // Se estiver editando, tenta pegar o ID da matéria, senão começa vazio
+  // Matéria Principal
   const [subjectId, setSubjectId] = useState(goalToEdit?.subject?.id || '');
-  const [subjects, setSubjects] = useState([]); // Lista de matérias disponíveis
+  const [subjects, setSubjects] = useState([]); // Lista de matérias carregadas
+  
+  // Submatéria (Matters)
+  const [matters, setMatters] = useState(goalToEdit?.matters || '');
+  const [availableMatters, setAvailableMatters] = useState([]); // Opções de submatéria da matéria selecionada
 
   const [goalType, setGoalType] = useState(goalToEdit?.goalType || 'Semanal');
   const [targetHours, setTargetHours] = useState(goalToEdit?.targetHours || 10);
@@ -50,16 +52,41 @@ const NovaMeta = () => {
     if (!user.userId) navigate('/');
   }, [user.userId, navigate]);
 
-  // 2. Carrega as matérias do usuário (NOVO)
+  // 2. Carrega as matérias e configura edição
   useEffect(() => {
     if (user.userId) {
       subjectAPI.getUserSubjects(user.userId)
         .then(res => {
-          setSubjects(res.data || []);
+          const loadedSubjects = res.data || [];
+          setSubjects(loadedSubjects);
+
+          // Se estiver editando, precisamos carregar as submatérias disponíveis para a matéria que já estava salva
+          if (goalToEdit?.subject?.id) {
+             const selected = loadedSubjects.find(s => s.id === goalToEdit.subject.id);
+             // Assume que o objeto subject vem com uma lista 'matters' do backend
+             if (selected && selected.matters) {
+                 setAvailableMatters(selected.matters);
+             }
+          }
         })
         .catch(err => console.error("Erro ao carregar matérias", err));
     }
-  }, [user.userId]);
+  }, [user.userId, goalToEdit]);
+
+  // Função para lidar com a troca de matéria
+  const handleSubjectChange = (e) => {
+      const newId = e.target.value;
+      setSubjectId(newId);
+      setMatters(''); // Limpa a submatéria anterior ao trocar a matéria
+      
+      // Busca as submatérias da nova matéria selecionada
+      const selected = subjects.find(s => s.id === Number(newId));
+      if (selected && selected.matters) {
+          setAvailableMatters(selected.matters);
+      } else {
+          setAvailableMatters([]);
+      }
+  };
 
   // Cálculo Inteligente de Esforço
   const dailyEffort = () => {
@@ -100,8 +127,10 @@ const NovaMeta = () => {
         endDate: endDate || null,
         active: true,
         user: { id: user.userId },
-        // NOVO: Envia o objeto Subject se houver um ID selecionado
-        subject: subjectId ? { id: Number(subjectId) } : null
+        // Envia o objeto Subject se houver um ID selecionado
+        subject: subjectId ? { id: Number(subjectId) } : null,
+        // Envia a submatéria específica (matters)
+        matters: matters || null
       };
 
       if (isEditing) {
@@ -152,7 +181,7 @@ const NovaMeta = () => {
               </div>
             </div>
 
-            {/* 1.5. Vincular Matéria (NOVO CAMPO) */}
+            {/* 1.5. Vincular Matéria */}
             <div>
                 <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">
                     Vincular a uma Matéria (Opcional)
@@ -161,7 +190,7 @@ const NovaMeta = () => {
                     <Layers className="absolute left-4 top-4 w-5 h-5 text-gray-500" />
                     <select
                         value={subjectId}
-                        onChange={(e) => setSubjectId(e.target.value)}
+                        onChange={handleSubjectChange} // Usamos o handler novo aqui
                         className="w-full pl-12 pr-4 py-4 bg-[#0a0a0a] border border-gray-700 rounded-xl text-white text-lg focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
                     >
                         <option value="">Geral (Sem vínculo específico)</option>
@@ -171,16 +200,51 @@ const NovaMeta = () => {
                             </option>
                         ))}
                     </select>
-                    {/* Seta indicativa no canto direito */}
+                    {/* Seta indicativa */}
                     <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
                         <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
                             <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path>
                         </svg>
                     </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-2 ml-1">
-                    Ao selecionar uma matéria, o sistema calculará o progresso somando as sessões registradas nela.
-                </p>
+                
+                {/* 1.6. Vincular Submatéria (Aparece condicionalmente) */}
+                {availableMatters.length > 0 && (
+                    <div className="mt-4 animate-in fade-in slide-in-from-top-2">
+                        <label className="block text-xs font-bold text-gray-300 mb-3 uppercase tracking-wider ml-1">
+                             Especificar Assunto (Opcional)
+                        </label>
+                        <div className="relative">
+                            <Tag className="absolute left-4 top-4 w-5 h-5 text-gray-500" />
+                            <select
+                                value={matters}
+                                onChange={(e) => setMatters(e.target.value)}
+                                className="w-full pl-12 pr-4 py-4 bg-[#0f0f0f] border border-blue-500/30 rounded-xl text-white text-lg focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
+                            >
+                                <option value="">Qualquer assunto da matéria</option>
+                                {availableMatters.map((m, index) => (
+                                    <option key={index} value={m}>
+                                        {m}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2 ml-1">
+                            A meta só contabilizará sessões deste assunto específico.
+                        </p>
+                    </div>
+                )}
+
+                {availableMatters.length === 0 && subjectId && (
+                     <p className="text-xs text-gray-500 mt-2 ml-1">
+                        Ao selecionar uma matéria, o sistema calculará o progresso somando todas as sessões dela.
+                    </p>
+                )}
             </div>
 
             {/* 2. Tipo de Meta */}
