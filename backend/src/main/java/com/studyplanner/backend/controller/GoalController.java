@@ -1,23 +1,30 @@
 package com.studyplanner.backend.controller;
 
-import com.studyplanner.backend.model.Goal;
-import com.studyplanner.backend.model.User;
-import com.studyplanner.backend.model.Subject;
-import com.studyplanner.backend.repository.GoalRepository;
-import com.studyplanner.backend.repository.StudySessionRepository;
-import com.studyplanner.backend.repository.UserRepository;
-import com.studyplanner.backend.repository.SubjectRepository;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse; // <--- Importante
-import io.swagger.v3.oas.annotations.responses.ApiResponses; // <--- Importante
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping; // <--- Importante
+import org.springframework.web.bind.annotation.RequestBody; // <--- Importante
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.studyplanner.backend.model.Goal;
+import com.studyplanner.backend.model.Subject;
+import com.studyplanner.backend.model.User;
+import com.studyplanner.backend.repository.GoalRepository;
+import com.studyplanner.backend.repository.StudySessionRepository;
+import com.studyplanner.backend.repository.SubjectRepository;
+import com.studyplanner.backend.repository.UserRepository;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 @RestController
 @RequestMapping("/api/goals")
@@ -43,47 +50,38 @@ public class GoalController {
     })
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Goal>> getUserGoals(@PathVariable Long userId) {
-        // 1. Busca as metas ativas
         List<Goal> goals = goalRepository.findByUser_IdAndActiveTrue(userId);
 
-        // 2. Loop para calcular o progresso de cada uma
         for (Goal goal : goals) {
-            Integer totalMinutes = 0; // Começamos com zero
+            Integer totalMinutes = 0; // Começa zerado
 
-            // --- NOVA LÓGICA DE DECISÃO ---
-            
-            // CENÁRIO A: A meta é específica de uma matéria (Ex: "Focar em Java")
+            // 1. Decide qual cálculo usar
             if (goal.getSubject() != null) {
-                // Soma todas as sessões daquela matéria específica
+                // Cálculo por Matéria
                 totalMinutes = sessionRepository.getTotalMinutesBySubject(userId, goal.getSubject().getId());
-            } 
-            // CENÁRIO B: A meta é genérica (Ex: "Estudar 10h essa semana")
-            else if (goal.getStartDate() != null) {
+            } else if (goal.getStartDate() != null) {
+                // Cálculo Genérico por Data
                 LocalDateTime start = goal.getStartDate().atStartOfDay();
                 LocalDateTime end = (goal.getEndDate() != null) 
                         ? goal.getEndDate().atTime(23, 59, 59) 
                         : LocalDateTime.now();
-
                 totalMinutes = sessionRepository.getTotalMinutesByDateRange(userId, start, end);
             }
 
-            // --- FIM DA LÓGICA DE DECISÃO ---
-
-            // Tratamento para evitar NullPointerException se não tiver sessões
+            // 2. Blindagem extra (caso o repositório falhe em retornar 0)
             if (totalMinutes == null) totalMinutes = 0;
 
-            // 3. Cálculos Matemáticos (Minutos -> Horas -> %)
+            // 3. Matemática
             double hoursDone = totalMinutes / 60.0;
             goal.setCurrentHours(Math.round(hoursDone * 10.0) / 10.0);
 
             if (goal.getTargetHours() != null && goal.getTargetHours() > 0) {
                 int percent = (int) ((hoursDone / goal.getTargetHours()) * 100);
-                goal.setProgressPercentage(Math.min(percent, 100)); // Trava em 100% para não quebrar o layout
+                goal.setProgressPercentage(Math.min(percent, 100));
             } else {
                 goal.setProgressPercentage(0);
             }
         }
-        
         return ResponseEntity.ok(goals);
     }
 

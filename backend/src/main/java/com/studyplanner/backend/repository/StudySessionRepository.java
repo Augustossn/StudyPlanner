@@ -1,13 +1,14 @@
 package com.studyplanner.backend.repository;
 
-import com.studyplanner.backend.model.StudySession;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param; 
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import com.studyplanner.backend.model.StudySession;
 
 @Repository
 public interface StudySessionRepository extends JpaRepository<StudySession, Long> {
@@ -26,8 +27,8 @@ public interface StudySessionRepository extends JpaRepository<StudySession, Long
     @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId AND s.date >= :startDate AND s.date <= :endDate")
     Integer getTotalMinutesByDateRange(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT SUM(s.durationMinutes) FROM StudySession s WHERE s.user.id = :userId AND s.subject.id = :subjectId")
-    Integer getTotalMinutesBySubject(@Param("userId") Long userId, @Param("subject Id") Long subjectId);
+    @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId AND s.subject.id = :subjectId")
+    Integer getTotalMinutesBySubject(@Param("userId") Long userId, @Param("subjectId") Long subjectId);
 
     long countByUser_IdAndCompletedTrue(Long userId); // Contagem de sessões completas
 
