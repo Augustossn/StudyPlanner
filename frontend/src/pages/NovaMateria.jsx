@@ -46,7 +46,7 @@ const NovaMateria = () => {
     if (!currentSub.trim()) return;
     
     if (subSubjects.includes(currentSub.trim())) {
-        toast.error('Essa submatéria já foi adicionada.');
+        toast.error('Esse assunto já foi adicionado.');
         return;
     }
 
@@ -98,7 +98,7 @@ const NovaMateria = () => {
             {isEditing ? 'Editar Matéria' : 'Nova Matéria'}
         </h1>
         <p className="text-gray-400 mb-8">
-            {isEditing ? 'Atualize as informações e submatérias.' : 'Crie categorias para organizar seus estudos.'}
+            {isEditing ? 'Atualize as informações e assuntos.' : 'Crie categorias para organizar seus estudos.'}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -124,10 +124,10 @@ const NovaMateria = () => {
                 </div>
               </div>
 
-              {/* Submatérias */}
+              {/* Assuntos */}
               <div>
                 <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">
-                    Submatérias <span className="text-gray-600 text-xs normal-case ml-1">(Opcional)</span>
+                    Assuntos <span className="text-gray-600 text-xs normal-case ml-1">(Opcional)</span>
                 </label>
                 <div className="flex gap-2 mb-3">
                     <div className="relative flex-1">
@@ -236,8 +236,8 @@ const NovaMateria = () => {
                         <p className="font-bold text-white truncate">{name || 'Nome da Matéria'}</p>
                         <p className="text-xs text-gray-500">
                             {subSubjects.length > 0 
-                                ? `${subSubjects.length} submatérias cadastradas`
-                                : 'Nenhuma submatéria'}
+                                ? `${subSubjects.length} assuntos cadastrados`
+                                : 'Nenhum assunto'}
                         </p>
                     </div>
                 </div>

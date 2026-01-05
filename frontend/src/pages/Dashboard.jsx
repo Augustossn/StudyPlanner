@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -67,9 +68,31 @@ function Dashboard() {
     }
   }, []);
 
-  useEffect(() => {
-    if (user) loadDashboardData(user.userId);
-  }, [user, loadDashboardData]);
+    useEffect(() => {
+    if (!user) return;
+
+    const loadDashboardData = async () => {
+        try {
+        const [statsRes, sessionsRes, goalsRes, subjectsRes] = await Promise.all([
+            dashboardAPI.getStats(user.userId),
+            studySessionAPI.getRecentSessions(user.userId),
+            goalsAPI.getUserGoals(user.userId),
+            subjectAPI.getUserSubjects(user.userId)
+        ]);
+
+        setStats(statsRes.data);
+        setAllWeekSessions(sessionsRes.data);
+        setRecentSessions(sessionsRes.data.slice(0, 5));
+        setSubjects(subjectsRes.data || []);
+        setGoals(goalsRes.data || []);
+        } catch (error) {
+        console.error(error);
+        toast.error("Erro ao carregar dashboard.");
+        }
+    };
+
+    loadDashboardData();
+    }, [user]);
 
   // --- NOVA LÓGICA DO GRÁFICO (useMemo) ---
   // Isso roda automaticamente sempre que 'allWeekSessions' ou 'selectedSubjectId' mudam
@@ -432,7 +455,7 @@ function Dashboard() {
                                     ) : (
                                         <div className="flex items-center gap-1 text-[10px] text-gray-600 italic">
                                             <Layers className="w-3 h-3" />
-                                            Sem submatérias
+                                            Sem assuntos
                                         </div>
                                     )}
                                 </div>

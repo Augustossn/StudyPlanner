@@ -45,7 +45,7 @@ const NovaSessao = () => {
   
   const [loading, setLoading] = useState(false);
   
-  // Carrega matérias e ajusta submatérias na edição
+  // Carrega matérias e ajusta os assuntos na edição
   useEffect(() => {
     if (user.userId) {
       subjectAPI.getUserSubjects(user.userId)
@@ -53,7 +53,7 @@ const NovaSessao = () => {
             const loadedSubjects = res.data || [];
             setSubjects(loadedSubjects);
 
-            // Se for edição, precisamos carregar as submatérias disponíveis da matéria selecionada
+            // Se for edição, precisamos carregar os assuntos disponíveis da matéria selecionada
             if (isEditing && sessionToEdit?.subject?.id) {
                 const currentSub = loadedSubjects.find(s => s.id === sessionToEdit.subject.id);
                 if (currentSub) setAvailableSubSubjects(currentSub.subSubjects || []);
@@ -178,7 +178,7 @@ const NovaSessao = () => {
               </div>
             </div>
 
-            {/* Submatérias */}
+            {/* Assuntos */}
             {availableSubSubjects.length > 0 && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                     <label className="block text-sm font-medium text-gray-300 mb-2">

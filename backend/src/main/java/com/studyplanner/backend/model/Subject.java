@@ -1,8 +1,19 @@
 package com.studyplanner.backend.model;
 
-import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "subjects")
@@ -15,7 +26,7 @@ public class Subject {
     private String name;
     private String color;
 
-    // Lista de submatérias DISPONÍVEIS para esta matéria
+    // Lista de assuntos DISPONÍVEIS para esta matéria
     @ElementCollection(fetch = FetchType.EAGER) // Adicionado EAGER para evitar erro no Dashboard
     @CollectionTable(name = "subject_subtopics", joinColumns = @JoinColumn(name = "subject_id"))
     @Column(name = "name")

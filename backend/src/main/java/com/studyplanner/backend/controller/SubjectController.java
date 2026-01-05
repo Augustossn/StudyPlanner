@@ -1,5 +1,18 @@
 package com.studyplanner.backend.controller;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.studyplanner.backend.model.Subject;
 import com.studyplanner.backend.model.User;
 import com.studyplanner.backend.repository.SubjectRepository;
@@ -8,12 +21,6 @@ import com.studyplanner.backend.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/subjects")
@@ -28,7 +35,7 @@ public class SubjectController {
     }
 
     // GET: Listar matérias
-    @Operation(summary = "Listar matérias do usuário", description = "Retorna todas as matérias cadastradas para um usuário específico, incluindo suas cores e submatérias.")
+    @Operation(summary = "Listar matérias do usuário", description = "Retorna todas as matérias cadastradas para um usuário específico, incluindo suas cores e seus assuntos.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Lista de matérias retornada com sucesso")
     })
@@ -63,7 +70,7 @@ public class SubjectController {
     }
 
     // PUT: Atualizar matéria
-    @Operation(summary = "Atualizar matéria", description = "Permite alterar o nome, a cor de identificação e a lista de submatérias (tags) de uma disciplina.")
+    @Operation(summary = "Atualizar matéria", description = "Permite alterar o nome, a cor de identificação e a lista de assuntos (tags) de uma disciplina.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Matéria atualizada com sucesso"),
         @ApiResponse(responseCode = "404", description = "Matéria não encontrada para o ID informado")
