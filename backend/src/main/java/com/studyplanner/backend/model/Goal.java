@@ -32,6 +32,10 @@ public class Goal {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "subject_id")
+    private Subject subject;
+
     // --- CONSTRUTORES ---
     public Goal() {}
 
@@ -74,4 +78,7 @@ public class Goal {
 
     public int getProgressPercentage() { return progressPercentage; }
     public void setProgressPercentage(int progressPercentage) { this.progressPercentage = progressPercentage; }
+
+    public Subject getSubject() { return subject; }
+    public void setSubject(Subject subject) { this.subject = subject; }
 }

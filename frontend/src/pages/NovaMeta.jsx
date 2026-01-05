@@ -1,33 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Adicionado useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast'; 
 import Layout from '../components/Layout';
-import { goalsAPI } from '../services/api';
+// Importamos subjectAPI para buscar as matérias
+import { goalsAPI, subjectAPI } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandler'; 
-import { Calendar, Clock, Target, ArrowRight, TrendingUp, Save } from 'lucide-react';
+import { Calendar, Clock, Target, ArrowRight, TrendingUp, Save, Layers } from 'lucide-react'; // Adicionei Layers
 import { getAuthUser } from '../utils/auth';
 
 const NovaMeta = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Hook para pegar os dados enviados
+  const location = useLocation();
   const [user] = useState(() => getAuthUser());
 
   // Verifica se estamos em modo de edição
   const goalToEdit = location.state?.goalToEdit;
   const isEditing = !!goalToEdit;
 
-  // Função auxiliar para formatar data (YYYY-MM-DD) para o input
+  // Função auxiliar para formatar data
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     return new Date(dateString).toISOString().split('T')[0];
   };
 
-  // Inicializa os estados: Se for edição, usa os dados existentes; senão, usa padrão
+  // --- ESTADOS ---
   const [title, setTitle] = useState(goalToEdit?.title || '');
+  
+  // NOVO: Estado para a matéria vinculada
+  // Se estiver editando, tenta pegar o ID da matéria, senão começa vazio
+  const [subjectId, setSubjectId] = useState(goalToEdit?.subject?.id || '');
+  const [subjects, setSubjects] = useState([]); // Lista de matérias disponíveis
+
   const [goalType, setGoalType] = useState(goalToEdit?.goalType || 'Semanal');
   const [targetHours, setTargetHours] = useState(goalToEdit?.targetHours || 10);
   
-  // Datas precisam de cuidado extra para formatar corretamente no input type="date"
   const [startDate, setStartDate] = useState(
     goalToEdit?.startDate ? formatDateForInput(goalToEdit.startDate) : new Date().toISOString().split('T')[0]
   );
@@ -37,12 +43,23 @@ const NovaMeta = () => {
   
   const [loading, setLoading] = useState(false);
 
-  // Redireciona se não estiver logado
+  // --- EFEITOS ---
+
+  // 1. Redireciona se não logado
   useEffect(() => {
-    if (!user.userId) {
-        navigate('/');
-    }
+    if (!user.userId) navigate('/');
   }, [user.userId, navigate]);
+
+  // 2. Carrega as matérias do usuário (NOVO)
+  useEffect(() => {
+    if (user.userId) {
+      subjectAPI.getUserSubjects(user.userId)
+        .then(res => {
+          setSubjects(res.data || []);
+        })
+        .catch(err => console.error("Erro ao carregar matérias", err));
+    }
+  }, [user.userId]);
 
   // Cálculo Inteligente de Esforço
   const dailyEffort = () => {
@@ -81,16 +98,16 @@ const NovaMeta = () => {
         targetHours,
         startDate, 
         endDate: endDate || null,
-        active: true, // Mantém ativo ao editar
-        user: { id: user.userId }
+        active: true,
+        user: { id: user.userId },
+        // NOVO: Envia o objeto Subject se houver um ID selecionado
+        subject: subjectId ? { id: Number(subjectId) } : null
       };
 
       if (isEditing) {
-        // --- MODO EDIÇÃO (PUT) ---
         await goalsAPI.updateGoal(goalToEdit.id, payload);
         toast.success('Meta atualizada com sucesso! 🎯');
       } else {
-        // --- MODO CRIAÇÃO (POST) ---
         await goalsAPI.createGoal(payload);
         toast.success('Meta definida com sucesso! 🚀');
       }
@@ -112,13 +129,13 @@ const NovaMeta = () => {
             {isEditing ? 'Editar Meta' : 'Definir Nova Meta'}
         </h1>
         <p className="text-gray-400 mb-8">
-            {isEditing ? 'Ajuste seus objetivos conforme necessário.' : 'Escolha onde você quer chegar. O StudyPlanner te ajuda a monitorar.'}
+            {isEditing ? 'Ajuste seus objetivos.' : 'Vincule sua meta a uma matéria para rastreamento automático.'}
         </p>
         
         <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-8 shadow-xl">
           <form onSubmit={handleSubmit} className="space-y-8">
             
-            {/* 1. O Objetivo */}
+            {/* 1. O Objetivo (Título) */}
             <div>
               <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Qual é o seu objetivo?</label>
               <div className="relative">
@@ -127,7 +144,7 @@ const NovaMeta = () => {
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Ex: Dominar Spring Boot até o fim do mês"
+                    placeholder="Ex: Dominar Spring Boot"
                     className="w-full pl-12 pr-4 py-4 bg-[#0a0a0a] border border-gray-700 rounded-xl text-white text-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
                     required
                     autoFocus={!isEditing}
@@ -135,7 +152,38 @@ const NovaMeta = () => {
               </div>
             </div>
 
-            {/* 2. Tipo de Meta (Cards Grandes) */}
+            {/* 1.5. Vincular Matéria (NOVO CAMPO) */}
+            <div>
+                <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">
+                    Vincular a uma Matéria (Opcional)
+                </label>
+                <div className="relative">
+                    <Layers className="absolute left-4 top-4 w-5 h-5 text-gray-500" />
+                    <select
+                        value={subjectId}
+                        onChange={(e) => setSubjectId(e.target.value)}
+                        className="w-full pl-12 pr-4 py-4 bg-[#0a0a0a] border border-gray-700 rounded-xl text-white text-lg focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
+                    >
+                        <option value="">Geral (Sem vínculo específico)</option>
+                        {subjects.map((subject) => (
+                            <option key={subject.id} value={subject.id}>
+                                {subject.name}
+                            </option>
+                        ))}
+                    </select>
+                    {/* Seta indicativa no canto direito */}
+                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                            <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2 ml-1">
+                    Ao selecionar uma matéria, o sistema calculará o progresso somando as sessões registradas nela.
+                </p>
+            </div>
+
+            {/* 2. Tipo de Meta */}
             <div>
                 <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Frequência</label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -159,11 +207,6 @@ const NovaMeta = () => {
                                 </div>
                             </div>
                             <h3 className={`font-bold ${goalType === type ? 'text-white' : 'text-gray-300'}`}>{type}</h3>
-                            <p className="text-xs text-gray-500 mt-1">
-                                {type === 'Semanal' && 'Renova toda segunda-feira.'}
-                                {type === 'Mensal' && 'Foco de longo prazo.'}
-                                {type === 'Desafio' && 'Data de início e fim fixas.'}
-                            </p>
                         </div>
                     ))}
                 </div>
@@ -171,14 +214,11 @@ const NovaMeta = () => {
 
             {/* 3. Slider de Horas + Datas */}
             <div className="bg-[#0a0a0a] rounded-xl p-6 border border-gray-800">
-                
-                {/* Cabeçalho do Card */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h3 className="text-white font-medium">Carga Horária</h3>
-                        <p className="text-sm text-gray-500">Quanto você vai estudar?</p>
+                        <h3 className="text-white font-medium">Carga Horária Alvo</h3>
+                        <p className="text-sm text-gray-500">Quanto você quer estudar?</p>
                     </div>
-                    {/* Badge de Esforço Diário */}
                     <div className="text-right">
                         <span className="block text-2xl font-bold text-blue-500">{targetHours}h</span>
                         <span className="text-xs font-mono text-gray-400 bg-gray-800 px-2 py-1 rounded">
@@ -187,7 +227,6 @@ const NovaMeta = () => {
                     </div>
                 </div>
 
-                {/* Slider */}
                 <input
                     type="range"
                     min="1"
@@ -199,7 +238,6 @@ const NovaMeta = () => {
 
                 <div className="h-px bg-gray-800 w-full mb-6"></div>
 
-                {/* Datas */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Data de Início</label>
@@ -234,7 +272,7 @@ const NovaMeta = () => {
                 </div>
             </div>
 
-            {/* Botões de Ação */}
+            {/* Botões */}
             <div className="flex gap-4 pt-4 border-t border-gray-800">
                 <button
                     type="button"
@@ -245,7 +283,7 @@ const NovaMeta = () => {
                 </button>
                 <button
                     type="submit"
-                    className="flex-1 py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                    className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
                     disabled={loading || !title}
                 >
                     {isEditing ? <Save className="w-5 h-5" /> : null}

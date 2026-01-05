@@ -2,9 +2,11 @@ package com.studyplanner.backend.controller;
 
 import com.studyplanner.backend.model.Goal;
 import com.studyplanner.backend.model.User;
+import com.studyplanner.backend.model.Subject;
 import com.studyplanner.backend.repository.GoalRepository;
 import com.studyplanner.backend.repository.StudySessionRepository;
 import com.studyplanner.backend.repository.UserRepository;
+import com.studyplanner.backend.repository.SubjectRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse; // <--- Importante
@@ -23,12 +25,14 @@ public class GoalController {
 
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
+    private final SubjectRepository subjectRepository;
     private final StudySessionRepository sessionRepository;
 
-    public GoalController(GoalRepository goalRepository, UserRepository userRepository, StudySessionRepository sessionRepository) {
+    public GoalController(GoalRepository goalRepository, UserRepository userRepository, StudySessionRepository sessionRepository, SubjectRepository subjectRepository) {
         this.goalRepository = goalRepository;
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
+        this.subjectRepository = subjectRepository;
     }
 
     // GET: Obter goals
@@ -44,28 +48,42 @@ public class GoalController {
 
         // 2. Loop para calcular o progresso de cada uma
         for (Goal goal : goals) {
-            if (goal.getStartDate() != null) {
+            Integer totalMinutes = 0; // Começamos com zero
+
+            // --- NOVA LÓGICA DE DECISÃO ---
+            
+            // CENÁRIO A: A meta é específica de uma matéria (Ex: "Focar em Java")
+            if (goal.getSubject() != null) {
+                // Soma todas as sessões daquela matéria específica
+                totalMinutes = sessionRepository.getTotalMinutesBySubject(userId, goal.getSubject().getId());
+            } 
+            // CENÁRIO B: A meta é genérica (Ex: "Estudar 10h essa semana")
+            else if (goal.getStartDate() != null) {
                 LocalDateTime start = goal.getStartDate().atStartOfDay();
-                
                 LocalDateTime end = (goal.getEndDate() != null) 
                         ? goal.getEndDate().atTime(23, 59, 59) 
                         : LocalDateTime.now();
 
-                Integer totalMinutes = sessionRepository.getTotalMinutesByDateRange(userId, start, end);
-                
-                if (totalMinutes == null) totalMinutes = 0;
+                totalMinutes = sessionRepository.getTotalMinutesByDateRange(userId, start, end);
+            }
 
-                double hoursDone = totalMinutes / 60.0;
-                goal.setCurrentHours(Math.round(hoursDone * 10.0) / 10.0);
+            // --- FIM DA LÓGICA DE DECISÃO ---
 
-                if (goal.getTargetHours() > 0) {
-                    int percent = (int) ((hoursDone / goal.getTargetHours()) * 100);
-                    goal.setProgressPercentage(Math.min(percent, 100));
-                } else {
-                    goal.setProgressPercentage(0);
-                }
+            // Tratamento para evitar NullPointerException se não tiver sessões
+            if (totalMinutes == null) totalMinutes = 0;
+
+            // 3. Cálculos Matemáticos (Minutos -> Horas -> %)
+            double hoursDone = totalMinutes / 60.0;
+            goal.setCurrentHours(Math.round(hoursDone * 10.0) / 10.0);
+
+            if (goal.getTargetHours() != null && goal.getTargetHours() > 0) {
+                int percent = (int) ((hoursDone / goal.getTargetHours()) * 100);
+                goal.setProgressPercentage(Math.min(percent, 100)); // Trava em 100% para não quebrar o layout
+            } else {
+                goal.setProgressPercentage(0);
             }
         }
+        
         return ResponseEntity.ok(goals);
     }
 
@@ -87,6 +105,16 @@ public class GoalController {
         }
 
         goal.setUser(userOptional.get());
+
+        if (goal.getSubject() != null && goal.getSubject().getId() != null){
+            Optional<Subject> sub = subjectRepository.findById(goal.getSubject().getId());
+            if(sub.isPresent()){
+                goal.setSubject(sub.get());
+            } else {
+                goal.setSubject(null);
+            }
+        }
+
         Goal savedGoal = goalRepository.save(goal);
         return ResponseEntity.ok(savedGoal);
     }
@@ -112,6 +140,13 @@ public class GoalController {
         updatedGoal.setEndDate(goal.getEndDate());
         updatedGoal.setActive(goal.isActive());
         
+        if (goal.getSubject() != null && goal.getSubject().getId() != null){
+            Optional<Subject> sub = subjectRepository.findById(goal.getSubject().getId());
+            updatedGoal.setSubject(sub.orElse(null));
+        } else {
+            updatedGoal.setSubject(null);
+        }
+
         Goal savedGoal = goalRepository.save(updatedGoal);
         return ResponseEntity.ok(savedGoal);
     }

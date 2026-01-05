@@ -264,100 +264,121 @@ function Dashboard() {
             
             {/* COLUNA 1: METAS ATIVAS */}
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col h-[400px]">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-bold text-gray-400 text-xs uppercase tracking-wider">Metas Ativas</h3>
-                    <button onClick={() => navigate('/nova-meta')} className="p-1 hover:bg-white/5 rounded transition-colors" title="Nova Meta">
-                        <Plus className="w-4 h-4 text-gray-500 hover:text-white" />
-                    </button>
-                </div>
-                
-                <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                    {goals.length > 0 ? (
-                        goals.filter(g => g.active).map((goal) => (
-                            <div key={goal.id} className="p-4 bg-[#0a0a0a] border border-gray-800 rounded-xl hover:border-gray-700 transition-colors group">
+            {/* Cabeçalho do Bloco */}
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-gray-400 text-xs uppercase tracking-wider">Metas Ativas</h3>
+                <button onClick={() => navigate('/nova-meta')} className="p-1 hover:bg-white/5 rounded transition-colors" title="Nova Meta">
+                    <Plus className="w-4 h-4 text-gray-500 hover:text-white" />
+                </button>
+            </div>
+            
+            {/* Lista de Metas */}
+            <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                {goals.length > 0 ? (
+                    goals.filter(g => g.active).map((goal) => (
+                        <div key={goal.id} className="p-4 bg-[#0a0a0a] border border-gray-800 rounded-xl hover:border-gray-700 transition-colors group">
+                            
+                            {/* CABEÇALHO DO CARD (Título + Badge + Botões) */}
+                            <div className="flex justify-between items-start mb-3 gap-3">
                                 
-                                {/* CABEÇALHO DO CARD (Título + Badge + Botões) */}
-                                <div className="flex justify-between items-start mb-3 gap-3">
+                                {/* Título */}
+                                <h4 className="font-bold text-white text-sm truncate flex-1" title={goal.title}>
+                                    {goal.title}
+                                </h4>
+
+                                {/* Container Direita (Badge + Botões) */}
+                                <div className="flex items-center gap-2 shrink-0">
                                     
-                                    {/* Título (lado esquerdo) */}
-                                    <h4 className="font-bold text-white text-sm truncate flex-1" title={goal.title}>
-                                        {goal.title}
-                                    </h4>
+                                    {/* Badge de Tipo */}
+                                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
+                                        goal.goalType === 'Semanal' ? 'bg-blue-500/10 text-blue-500' :
+                                        goal.goalType === 'Mensal' ? 'bg-purple-500/10 text-purple-500' :
+                                        'bg-orange-500/10 text-orange-500'
+                                    }`}>
+                                        {goal.goalType}
+                                    </span>
 
-                                    {/* Container Direita (Badge + Botões) */}
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        
-                                        {/* Badge (Semanal/Mensal/Desafio) */}
-                                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
-                                            goal.goalType === 'Semanal' ? 'bg-blue-500/10 text-blue-500' :
-                                            goal.goalType === 'Mensal' ? 'bg-purple-500/10 text-purple-500' :
-                                            'bg-orange-500/10 text-orange-500'
-                                        }`}>
-                                            {goal.goalType}
-                                        </span>
-
-                                        {/* Botões (Só aparecem no hover) */}
-                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                            <button 
-                                                onClick={(e) => { e.stopPropagation(); handleEditGoal(goal); }}
-                                                className="p-1 bg-gray-800 rounded text-gray-400 hover:bg-blue-600 hover:text-white transition-colors"
-                                                title="Editar"
-                                            >
-                                                <Edit2 className="w-3 h-3" />
-                                            </button>
-                                            <button 
-                                                onClick={(e) => { e.stopPropagation(); handleDeleteGoal(goal.id); }}
-                                                className="p-1 bg-gray-800 rounded text-gray-400 hover:bg-red-600 hover:text-white transition-colors"
-                                                title="Excluir"
-                                            >
-                                                <Trash2 className="w-3 h-3" />
-                                            </button>
-                                        </div>
+                                    {/* Botões de Ação (Aparecem no Hover) */}
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); handleEditGoal(goal); }}
+                                            className="p-1 bg-gray-800 rounded text-gray-400 hover:bg-blue-600 hover:text-white transition-colors"
+                                            title="Editar"
+                                        >
+                                            <Edit2 className="w-3 h-3" />
+                                        </button>
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteGoal(goal.id); }}
+                                            className="p-1 bg-gray-800 rounded text-gray-400 hover:bg-red-600 hover:text-white transition-colors"
+                                            title="Excluir"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </button>
                                     </div>
-                                </div>
-                                
-                                {/* Resto do card (Progresso e Datas) - SEM ALTERAÇÕES */}
-                                <div className="flex items-end justify-between">
-                                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                        <Target className="w-3 h-3" />
-                                        <span>
-                                            <span className="text-white font-bold">{goal.currentHours || 0}h</span>
-                                            <span className="mx-1">/</span>
-                                            {goal.targetHours}h
-                                        </span>
-                                    </div>
-                                    
-                                    {goal.endDate && (
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                            <Calendar className="w-3 h-3" />
-                                            <span>{formatDate(goal.endDate)}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="w-full bg-gray-800 h-2 rounded-full mt-3 overflow-hidden relative">
-                                    <div 
-                                        className={`h-full transition-all duration-1000 ease-out rounded-full ${
-                                            (goal.progressPercentage || 0) >= 100 ? 'bg-green-500' : 'bg-blue-600'
-                                        }`}
-                                        style={{ width: `${goal.progressPercentage || 0}%` }}
-                                    ></div>
-                                </div>
-                                <div className="text-right mt-1">
-                                    <span className="text-[10px] text-gray-500">{goal.progressPercentage || 0}% concluído</span>
                                 </div>
                             </div>
-                        ))
-                    ) : (
-                        // ... Estado vazio (sem metas) ...
-                        <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 space-y-2">
-                            <Target className="w-8 h-8 opacity-20" />
-                            <p className="text-sm">Nenhuma meta ativa.</p>
-                            <button onClick={() => navigate('/nova-meta')} className="text-xs text-blue-500 hover:underline">Definir objetivo</button>
+                            
+                            {/* Informações de Horas e Datas */}
+                            <div className="flex items-end justify-between">
+                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                    <Target className="w-3 h-3" />
+                                    <span>
+                                        <span className="text-white font-bold">{goal.currentHours || 0}h</span>
+                                        <span className="mx-1">/</span>
+                                        {goal.targetHours}h
+                                    </span>
+                                </div>
+                                
+                                {goal.endDate && (
+                                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                        <Calendar className="w-3 h-3" />
+                                        <span>{formatDate(goal.endDate)}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Barra de Progresso */}
+                            <div className="w-full bg-gray-800 h-2 rounded-full mt-3 overflow-hidden relative">
+                                <div 
+                                    className={`h-full transition-all duration-1000 ease-out rounded-full ${
+                                        (goal.progressPercentage || 0) >= 100 ? 'bg-green-500' : 'bg-blue-600'
+                                    }`}
+                                    style={{ width: `${goal.progressPercentage || 0}%` }}
+                                ></div>
+                            </div>
+
+                            {/* RODAPÉ DO CARD: Matéria Vinculada + Porcentagem */}
+                            <div className="flex items-center justify-between mt-2">
+                                {/* Se tiver matéria vinculada, mostra o badge */}
+                                {goal.subject ? (
+                                    <div className="flex items-center gap-1.5 text-[10px] text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                                        <Layers className="w-3 h-3" />
+                                        <span className="font-medium truncate max-w-[120px]" title={goal.subject.name}>
+                                            {goal.subject.name}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    /* Div vazia para manter o alinhamento do flex justify-between se não tiver matéria */
+                                    <div></div>
+                                )}
+
+                                <span className="text-[10px] text-gray-500 font-medium">
+                                    {goal.progressPercentage || 0}% concluído
+                                </span>
+                            </div>
+
                         </div>
-                    )}
-                </div>
+                    ))
+                ) : (
+                    /* Estado Vazio */
+                    <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 space-y-2">
+                        <Target className="w-8 h-8 opacity-20" />
+                        <p className="text-sm">Nenhuma meta ativa.</p>
+                        <button onClick={() => navigate('/nova-meta')} className="text-xs text-blue-500 hover:underline">Definir objetivo</button>
+                    </div>
+                )}
             </div>
+        </div>
 
             {/* COLUNA 2: MATÉRIAS */}
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col h-[400px]">
