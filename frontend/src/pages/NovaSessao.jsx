@@ -273,7 +273,7 @@ const NovaSessao = () => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Detalhes adicionais..."
-                    className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all min-h-[100px]"
+                    className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all min-h-25"
                 />
             </div>
 

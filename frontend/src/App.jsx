@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import NovaSessao from './pages/NovaSessao';
 import NovaMeta from './pages/NovaMeta';
 import NovaMateria from './pages/NovaMateria';
+import Calendario from './pages/Calendario';
 import { isAuthenticated } from './utils/auth'; // Certifique-se de ter criado este arquivo
 import RecuperarSenha from './pages/RecuperarSenha';
 
@@ -106,6 +107,15 @@ function App() {
           } 
         />
         
+        <Route 
+          path="/calendario" 
+          element={
+            <PrivateRoute>
+              <Calendario />
+            </PrivateRoute>
+          } 
+        />
+
         {/* Rota Coringa: Redireciona qualquer URL inválida para a raiz */}
         <Route path="*" element={<Navigate to="/" replace />} />
         

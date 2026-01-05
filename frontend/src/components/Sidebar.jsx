@@ -3,7 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Settings, LogOut, Zap, 
   BookMarked, Target, Plus, X, 
-  ChevronUp, ChevronDown, User // Novos ícones
+  ChevronUp, ChevronDown, User, // Novos ícones
+  CalendarIcon
 } from 'lucide-react';
 import { logout, getAuthUser } from '../utils/auth';
 
@@ -19,6 +20,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { icon: BookMarked, label: 'Nova Sessão', path: '/nova-sessao' }, 
     { icon: Target, label: 'Nova Meta', path: '/nova-meta' }, 
     { icon: Plus, label: 'Nova Matéria', path: '/nova-materia' },
+    { icon: CalendarIcon, label: 'Calendário', path: '/calendario' }
   ];
 
   const isSettingsActive = location.pathname === '/settings';

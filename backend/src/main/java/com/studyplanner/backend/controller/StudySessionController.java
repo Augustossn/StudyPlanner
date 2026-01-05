@@ -1,6 +1,7 @@
 package com.studyplanner.backend.controller;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.studyplanner.backend.model.StudySession;
@@ -62,6 +64,18 @@ public class StudySessionController {
         java.time.LocalDateTime sevenDaysAgo = java.time.LocalDate.now().minusDays(7).atStartOfDay();
         List<StudySession> sessions = studySessionRepository.findRecentSessions(userId, sevenDaysAgo);
         return ResponseEntity.ok(sessions);
+    }
+
+    @GetMapping("/user/{userId}/range")
+    public ResponseEntity<List<StudySession>> getSessionsByRange(
+            @PathVariable Long userId,
+            @RequestParam("start") String startStr, // Vem como "2026-01-01T00:00:00"
+            @RequestParam("end") String endStr) {
+        
+        LocalDateTime start = LocalDateTime.parse(startStr);
+        LocalDateTime end = LocalDateTime.parse(endStr);
+        
+        return ResponseEntity.ok(studySessionRepository.findSessionsByDateRange(userId, start, end));
     }
 
     // POST: Cadastrar sessão
