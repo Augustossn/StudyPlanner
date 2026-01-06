@@ -14,9 +14,9 @@ import {
   Edit2,
   Trash2, 
   Filter, 
-  Sparkles,
   Rocket,
-  BookCheck
+  BookCheck,
+  Search
 } from 'lucide-react';
 import { dashboardAPI, studySessionAPI, goalsAPI, subjectAPI } from '../services/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -40,6 +40,8 @@ function Dashboard() {
   // NOVOS ESTADOS PARA O FILTRO
   const [allWeekSessions, setAllWeekSessions] = useState([]); 
   const [selectedSubjectId, setSelectedSubjectId] = useState('all'); 
+
+  const [searchTerm, setSearchTerm] = useState('');
 
   // --- CARREGAMENTO DE DADOS ---
   const loadDashboardData = useCallback(async (userId) => {
@@ -95,6 +97,20 @@ function Dashboard() {
 
     loadDashboardData();
     }, [user]);
+
+    const filteredSubjects = subjects.filter(sub => 
+      sub.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredSessions = recentSessions.filter(session => 
+      session.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      session.subject?.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredGoals = goals.filter(goal => 
+      goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (goal.subject && goal.subject.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   // --- NOVA LÓGICA DO GRÁFICO (useMemo) ---
   // Isso roda automaticamente sempre que 'allWeekSessions' ou 'selectedSubjectId' mudam
@@ -394,9 +410,9 @@ function Dashboard() {
                 ) : (
                     <EmptyState 
                         icon={Rocket} 
-                        text="Você está sem meta alguma?" 
-                        description="Defina um objetivo para ir mais longe!"
-                        link="/nova-meta" 
+                        text={searchTerm ? "Nenhuma meta encontrada." : "Você está sem meta alguma?"} 
+                        description={searchTerm ? "Tente outro termo de busca." : "Defina um objetivo para ir mais longe!"}
+                        link={searchTerm ? null : "/nova-meta"} 
                         linkText="Criar Meta" 
                     />
                 )}
@@ -460,11 +476,11 @@ function Dashboard() {
                         ))
                     ) : (
                         <EmptyState 
-                            icon={Sparkles} 
-                            text="Não achei nenhuma matéria." 
-                            description="Que tal cadastrar uma nova matéria pra começar a estudar?" 
-                            link="/nova-materia"
-                            linkText="Registrar Matéria"
+                            icon={BookOpen} 
+                            text={searchTerm ? "Nenhuma matéria encontrada." : "Nada por aqui ainda."} 
+                            description={searchTerm ? "Tente outro termo de busca." : "Cadastre sua primeira matéria para organizar os estudos."}
+                            link={searchTerm ? null : "/nova-materia"}
+                            linkText="Nova Matéria"
                         />
                     )}
                 </div>
@@ -549,10 +565,10 @@ function Dashboard() {
                     ))
                     ) : (
                         <EmptyState 
-                            icon={BookCheck} 
-                            text="Sem sessão ainda?" 
-                            description="Cadastre uma matéria para conseguir cumprir suas metas!" 
-                            link="/nova-sessao"
+                            icon={BookCheck} // Usando o ícone do seu snippet
+                            text={searchTerm ? "Nenhuma sessão encontrada." : "Sem sessão ainda?"} 
+                            description={searchTerm ? "Tente outro termo de busca." : "Cadastre uma matéria para conseguir cumprir suas metas!"}
+                            link={searchTerm ? null : "/nova-sessao"}
                             linkText="Criar uma nova sessão"
                         />
                     )}
