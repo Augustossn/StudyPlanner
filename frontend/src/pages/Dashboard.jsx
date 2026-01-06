@@ -11,9 +11,12 @@ import {
   Activity,
   Layers,
   Calendar,
-  Edit2, // Ícone Editar
-  Trash2, // Ícone Excluir
-  Filter
+  Edit2,
+  Trash2, 
+  Filter, 
+  Sparkles,
+  Rocket,
+  BookCheck
 } from 'lucide-react';
 import { dashboardAPI, studySessionAPI, goalsAPI, subjectAPI } from '../services/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -63,8 +66,7 @@ function Dashboard() {
       // (Ela foi movida para o useMemo abaixo)
 
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      toast.error("Erro ao carregar dashboard.");
+      toast.error("Ops! Tivemos um problema ao carregar seus dados. Tente atualizar a página.");
     }
   }, []);
 
@@ -154,7 +156,7 @@ function Dashboard() {
         toast.success("Matéria excluída com sucesso!");
     } catch (error) {
         console.error(error);
-        toast.error("Erro ao excluir. Verifique se há sessões vinculadas.");
+        toast.error("Não foi possível excluir. Verifique se esta matéria tem sessões ou metas vinculadas.");
     }
   };
 
@@ -290,9 +292,6 @@ function Dashboard() {
             {/* Cabeçalho do Bloco */}
             <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-gray-400 text-xs uppercase tracking-wider">Metas Ativas</h3>
-                <button onClick={() => navigate('/nova-meta')} className="p-1 hover:bg-white/5 rounded transition-colors" title="Nova Meta">
-                    <Plus className="w-4 h-4 text-gray-500 hover:text-white" />
-                </button>
             </div>
             
             {/* Lista de Metas */}
@@ -393,12 +392,13 @@ function Dashboard() {
                         </div>
                     ))
                 ) : (
-                    /* Estado Vazio */
-                    <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 space-y-2">
-                        <Target className="w-8 h-8 opacity-20" />
-                        <p className="text-sm">Nenhuma meta ativa.</p>
-                        <button onClick={() => navigate('/nova-meta')} className="text-xs text-blue-500 hover:underline">Definir objetivo</button>
-                    </div>
+                    <EmptyState 
+                        icon={Rocket} 
+                        text="Você está sem meta alguma?" 
+                        description="Defina um objetivo para ir mais longe!"
+                        link="/nova-meta" 
+                        linkText="Criar Meta" 
+                    />
                 )}
             </div>
         </div>
@@ -407,9 +407,6 @@ function Dashboard() {
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col h-[400px]">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-gray-400 text-xs uppercase tracking-wider">Matérias</h3>
-                    <button onClick={() => navigate('/nova-materia')} className="p-1 hover:bg-white/5 rounded transition-colors" title="Adicionar Matéria">
-                        <Plus className="w-4 h-4 text-gray-500 hover:text-white" />
-                    </button>
                 </div>
                 
                 <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
@@ -462,10 +459,13 @@ function Dashboard() {
                             </div>
                         ))
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 space-y-2">
-                            <BookOpen className="w-8 h-8 opacity-20" />
-                            <p className="text-sm">Nenhuma matéria.</p>
-                        </div>
+                        <EmptyState 
+                            icon={Sparkles} 
+                            text="Não achei nenhuma matéria." 
+                            description="Que tal cadastrar uma nova matéria pra começar a estudar?" 
+                            link="/nova-materia"
+                            linkText="Registrar Matéria"
+                        />
                     )}
                 </div>
             </div>
@@ -474,7 +474,6 @@ function Dashboard() {
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col h-[400px]">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-gray-400 text-xs uppercase tracking-wider">Sessões Recentes</h3>
-                    <button className="text-xs text-blue-500 hover:text-blue-400">Ver todas</button>
                 </div>
                 
                 <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
@@ -549,9 +548,13 @@ function Dashboard() {
                         </div>
                     ))
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 text-sm">
-                            Nenhuma sessão.
-                        </div>
+                        <EmptyState 
+                            icon={BookCheck} 
+                            text="Sem sessão ainda?" 
+                            description="Cadastre uma matéria para conseguir cumprir suas metas!" 
+                            link="/nova-sessao"
+                            linkText="Criar uma nova sessão"
+                        />
                     )}
                 </div>
             </div>
@@ -573,6 +576,23 @@ const StatCard = ({ label, value, icon: Icon, color, bg }) => (
             </div>
         </div>
         <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">{label}</p>
+    </div>
+);
+
+const EmptyState = ({ icon: Icon, text, description, link, linkText }) => (
+    <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 space-y-3 px-4">
+        <div className="p-3 bg-gray-800/30 rounded-full mb-1">
+            <Icon className="w-6 h-6 text-gray-600" />
+        </div>
+        <div>
+            <p className="text-sm font-semibold text-gray-400">{text}</p>
+            {description && <p className="text-xs text-gray-600 mt-1">{description}</p>}
+        </div>
+        {link && (
+            <button onClick={() => window.location.href = link} className="text-xs text-blue-500 hover:text-blue-400 font-medium transition-colors cursor-pointer">
+                {linkText}
+            </button>
+        )}
     </div>
 );
 
