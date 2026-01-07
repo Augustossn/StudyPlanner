@@ -1,9 +1,12 @@
 package com.studyplanner.backend.dto;
 
+import jakarta.validation.constraints.*;
+
 public class AuthDTO {
     
     // --- LOGIN REQUEST (Sem alterações) ---
     public static class LoginRequest {
+
         private String email;
         private String password;
 
@@ -23,8 +26,18 @@ public class AuthDTO {
     
     // --- REGISTER REQUEST (Sem alterações) ---
     public static class RegisterRequest {
+
+        @NotBlank(message = "Nome é obrigatório")
+        @Size(min = 3, max = 100, message = "Nome deve ter entre 3 e 100 caracteres")
         private String name;
+
+        @NotBlank(message = "Email é obrigatório")
+        @Email(message = "Formato de email inválido")
         private String email;
+
+        @NotBlank(message = "Senha é obrigatória")
+        @Size(min = 6, message = "A senha deve ter pelo menos 6 caracteres")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,}$", message = "A senha deve conter pelo menos uma letra e um número")
         private String password;
 
         public RegisterRequest() {}

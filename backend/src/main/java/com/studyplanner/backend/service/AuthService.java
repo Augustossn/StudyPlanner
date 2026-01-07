@@ -15,13 +15,17 @@ public class AuthService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final TokenService tokenService; // <--- 1. INJETAR ISSO
-    
-    // 2. ADICIONAR NO CONSTRUTOR
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService){
+    private final TokenService tokenService;
+    private final EmailService emailService; // 1. Injeção do serviço de email
+
+    public AuthService(UserRepository userRepository, 
+                       PasswordEncoder passwordEncoder, 
+                       TokenService tokenService,
+                       EmailService emailService) { // 2. Adicionado ao construtor
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
+        this.emailService = emailService;
     }
 
     public AuthDTO.AuthResponse register(AuthDTO.RegisterRequest request) {
@@ -35,15 +39,13 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         
         User savedUser = userRepository.save(user);
-
-        // 3. GERAR O TOKEN AQUI
         String token = tokenService.generateToken(savedUser);
         
         return new AuthDTO.AuthResponse(
             savedUser.getId(),
             savedUser.getName(),
             savedUser.getEmail(),
-            token // <--- 4. ENVIAR O TOKEN NA RESPOSTA
+            token
         );
     }
     
@@ -55,14 +57,13 @@ public class AuthService {
             throw new RuntimeException("Senha incorreta");
         }
         
-        // 3. GERAR O TOKEN AQUI TAMBÉM
         String token = tokenService.generateToken(user);
 
         return new AuthDTO.AuthResponse(
             user.getId(),
             user.getName(),
             user.getEmail(),
-            token // <--- 4. ENVIAR O TOKEN NA RESPOSTA
+            token
         );
     }
 
@@ -77,26 +78,21 @@ public class AuthService {
 
         userRepository.save(user);
 
-        // simulando o email por enquanto
-        System.out.println("========================================");
-        System.out.println("EMAIL SIMULADO PARA: " + email);
-        System.out.println("Seu código de recuperação é: " + code);
-        System.out.println("========================================");
+        // 3. Uso real do envio de email (substituindo o System.out)
+        emailService.sendRecoveryEmail(email, code);
     }
 
     public boolean validateCode(String email, String code){
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
+        // Verifica se o código é nulo ou não bate
         if (user.getRecoveryCode() == null || !user.getRecoveryCode().equals(code)){
             return false;
         }
 
-        if (user.getRecoveryExpiration().isBefore(LocalDateTime.now())){
-            return false;
-        }
-
-        return true;
+        // 4. CORREÇÃO DO AVISO: Retorna true se a data NÃO for antes de agora (ou seja, se ainda for válida)
+        return !user.getRecoveryExpiration().isBefore(LocalDateTime.now());
     }
 
     public void resetPassword(String email, String code, String newPassword){

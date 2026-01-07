@@ -1,6 +1,9 @@
-package com.studyplanner.backend.config; // Confirme se a pasta é 'config' mesmo
+package com.studyplanner.backend.config;
 
-import org.springframework.context.annotation.Bean;
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.context.annotation.Bean; // Importe isso
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -12,9 +15,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.List;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -22,14 +22,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 1. Conecta a configuração de CORS (definida lá embaixo)
+            // 1. Configuração de CORS (Fundamental para o React conectar)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // 2. Desabilita CSRF (necessário para o POST funcionar)
+            
+            // 2. Desabilita CSRF (Padrão para APIs REST)
             .csrf(AbstractHttpConfigurer::disable)
-            // 3. Libera as rotas
+            
+            // 3. Gerenciamento de Rotas
             .authorizeHttpRequests(auth -> auth
-                // Aceita qualquer requisição (para não travar seu desenvolvimento)
-                .anyRequest().permitAll()
+                // Explícito: Todo mundo pode acessar rotas de autenticação (Login, Registro, Recuperação)
+                .requestMatchers("/api/auth/**").permitAll()
+                
+                // Swagger (Opcional, mas útil se você usa)
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+
+                // Para Desenvolvimento: Libera tudo. 
+                // No futuro, trocaremos por .anyRequest().authenticated()
+                .anyRequest().permitAll() 
             );
 
         return http.build();
@@ -39,8 +48,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // --- A MÁGICA ACONTECE AQUI ---
-        // Usamos '*' para permitir o localhost:5173, 5174, 5175... qualquer um!
+        // Aceita requisições de QUALQUER origem (localhost:5173, etc)
         configuration.setAllowedOriginPatterns(List.of("*"));
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
