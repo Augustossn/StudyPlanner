@@ -42,12 +42,12 @@ public class GoalController {
 
     // POST: Criar nova meta
     @PostMapping
-    public ResponseEntity<Goal> createGoal(@RequestBody Goal goal) {
+    public ResponseEntity<?> createGoal(@RequestBody Goal goal) {
         try {
             Goal createdGoal = goalService.createGoal(goal);
             return ResponseEntity.ok(createdGoal);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
