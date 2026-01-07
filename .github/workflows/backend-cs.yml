@@ -22,10 +22,10 @@ jobs:
     - name: Baixar código (Checkout)
       uses: actions/checkout@v4
 
-    - name: Configurar Java 17
+    - name: Configurar Java 25
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '25'
         distribution: 'temurin'
         cache: maven
 
