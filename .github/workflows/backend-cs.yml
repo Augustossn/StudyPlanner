@@ -22,11 +22,11 @@ jobs:
     - name: Baixar código (Checkout)
       uses: actions/checkout@v4
 
-    - name: Configurar Java 25
+    - name: Configurar Java 25 (Early Access)
       uses: actions/setup-java@v4
       with:
-        java-version: '25'
-        distribution: 'zulu'
+        java-version: '25-ea'
+        distribution: 'oracle'
         cache: maven
 
     - name: Dar permissão de execução ao Maven Wrapper
