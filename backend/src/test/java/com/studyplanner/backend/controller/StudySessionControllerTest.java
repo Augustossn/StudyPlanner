@@ -1,32 +1,29 @@
 package com.studyplanner.backend.controller;
 
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import org.springframework.beans.factory.annotation.Autowired; // Importe
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType; // Importe
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studyplanner.backend.model.StudySession;
 import com.studyplanner.backend.service.StudySessionService;
-import com.studyplanner.backend.repository.UserRepository; // Importe
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc; // Importe
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(StudySessionController.class)
 @AutoConfigureMockMvc(addFilters = false) // <--- ADICIONE ISSO
 class StudySessionControllerTest {
 
     @Autowired private MockMvc mockMvc;
-    @MockBean private StudySessionService studySessionService;
-    
-    // Adicione mocks extras para evitar erros de contexto
-    @MockBean private UserRepository userRepository;
+
+    @MockitoBean
+    private StudySessionService studySessionService;
 
     @Autowired private ObjectMapper objectMapper;
 

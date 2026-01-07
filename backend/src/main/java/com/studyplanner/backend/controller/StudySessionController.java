@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/study-sessions")
 public class StudySessionController {
@@ -64,7 +66,7 @@ public class StudySessionController {
         @ApiResponse(responseCode = "400", description = "Data futura inválida ou Usuário não encontrado")
     })
     @PostMapping
-    public ResponseEntity<StudySession> createSession(@RequestBody StudySession session) {
+    public ResponseEntity<StudySession> createSession(@Valid @RequestBody StudySession session) {
         try {
             StudySession createdSession = studySessionService.createSession(session);
             return ResponseEntity.ok(createdSession);

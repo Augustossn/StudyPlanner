@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { 
-  GraduationCap, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, Check // Importei o Check
+  GraduationCap, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, Check 
 } from 'lucide-react';
 
 function Login() {
@@ -10,7 +10,7 @@ function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   
-  // --- NOVO ESTADO: REMEMBER ME ---
+  // Estado para o Checkbox "Permanecer conectado"
   const [rememberMe, setRememberMe] = useState(false); 
 
   const [formData, setFormData] = useState({
@@ -32,45 +32,41 @@ function Login() {
     setError('');
 
     try {
-      let response;
       if (isLogin) {
-        // --- FLUXO DE LOGIN ---
-        response = await authAPI.login(formData.email, formData.password);
+        // --- LOGIN ---
+        const response = await authAPI.login(formData.email, formData.password);
         
-        // No login, esperamos o token. Se vier, salvamos e entramos.
         if (response.data) {
-            console.log("LOGIN SUCESSO:", response.data);
             const userData = JSON.stringify(response.data);
             
+            // Lógica do "Lembrar de Mim"
             if (rememberMe) {
-                localStorage.setItem('user', userData);
+                localStorage.setItem('user', userData); // Persiste mesmo se fechar o navegador
             } else {
-                sessionStorage.setItem('user', userData);
+                sessionStorage.setItem('user', userData); // Limpa ao fechar a aba
             }
             navigate('/dashboard');
         }
 
       } else {
-        // --- FLUXO DE REGISTRO (CRIAR CONTA) ---
+        // --- REGISTRO ---
         await authAPI.register(formData.name, formData.email, formData.password);
-        
-        // Sucesso! Não entramos direto. Mandamos o usuário logar.
-        setError(''); // Limpa erros
-        setIsLogin(true); // Muda a tela para "Login"
-        // Opcional: Você pode usar um toast aqui se quiser: toast.success('Conta criada! Faça login.')
+        setError('');
+        setIsLogin(true); // Muda para a tela de login
         alert('Conta criada com sucesso! Por favor, faça login.');
       }
 
     } catch (err) {
       console.error("Erro:", err);
-      // ... (seu tratamento de erro continua igual) ...
       if (err.response && err.response.data) {
+        // Tenta extrair a mensagem de erro do objeto ou string
         const data = err.response.data;
         if (typeof data === 'string') setError(data);
         else if (data.message) setError(data.message);
+        else if (data.error) setError(data.error); // Às vezes o Spring manda "error"
         else setError("Falha na operação.");
       } else {
-        setError('Erro de conexão.');
+        setError('Erro de conexão com o servidor.');
       }
     } finally {
       setLoading(false);
@@ -80,11 +76,13 @@ function Login() {
   return (
     <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden">
       
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-orange-600/10 rounded-full blur-[120px] pointer-events-none" />
+      {/* Background Effects */}
+      <div className="absolute top-[-20%] left-[-10%] w-125 h-125 bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-125 h-125 bg-orange-600/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
         
+        {/* Logo Header */}
         <div className="flex flex-col items-center justify-center mb-8 animate-fade-in-down">
           <div className="w-16 h-16 bg-linear-to-br from-blue-600 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/20 mb-4 transform hover:scale-105 transition-transform duration-300">
             <GraduationCap className="w-9 h-9 text-white" />
@@ -95,8 +93,10 @@ function Login() {
           <p className="text-gray-500 text-sm mt-1">Sua jornada de conhecimento começa aqui</p>
         </div>
 
+        {/* Card Principal */}
         <div className="bg-[#121212]/80 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
           
+          {/* Toggle Login/Register */}
           <div className="bg-[#1a1a1a] p-1 rounded-xl flex mb-8 relative">
             <div 
                 className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#2a2a2a] rounded-lg shadow-sm transition-all duration-300 ease-out ${isLogin ? 'left-1' : 'left-[calc(50%+4px)]'}`}
@@ -107,6 +107,7 @@ function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             
+            {/* Input Nome (Só aparece no Registro) */}
             <div className={`transition-all duration-300 overflow-hidden ${!isLogin ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
                 <label className="block text-gray-400 text-xs font-bold uppercase mb-2 ml-1">Nome Completo</label>
                 <div className="relative group">
@@ -115,6 +116,7 @@ function Login() {
                 </div>
             </div>
 
+            {/* Input Email */}
             <div>
               <label className="block text-gray-400 text-xs font-bold uppercase mb-2 ml-1">Email</label>
               <div className="relative group">
@@ -123,6 +125,7 @@ function Login() {
               </div>
             </div>
 
+            {/* Input Senha */}
             <div>
               <label className="block text-gray-400 text-xs font-bold uppercase mb-2 ml-1">Senha</label>
               <div className="relative group">
@@ -134,39 +137,37 @@ function Login() {
               </div>
             </div>
 
-            {/* --- CHECKBOX CUSTOMIZADO "Permanecer Logado" --- */}
+            {/* Opções Extras (Só no Login) */}
             {isLogin && (
-                <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer group">
+                <div className="flex items-center justify-between mt-2">
+                    {/* Checkbox Customizado */}
+                    <label className="flex items-center gap-2 cursor-pointer group select-none">
                         <div 
                             className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${
                                 rememberMe 
                                 ? 'bg-blue-600 border-blue-600' 
                                 : 'bg-[#0a0a0a] border-gray-700 group-hover:border-gray-500'
                             }`}
-                            onClick={() => setRememberMe(!rememberMe)}
+                            onClick={(e) => {
+                                e.preventDefault(); // Evita duplo clique estranho
+                                setRememberMe(!rememberMe);
+                            }}
                         >
                             {rememberMe && <Check className="w-3.5 h-3.5 text-white" />}
                         </div>
-                        {/* Checkbox invisível para acessibilidade */}
-                        <input 
-                            type="checkbox" 
-                            className="hidden" 
-                            checked={rememberMe} 
-                            onChange={(e) => setRememberMe(e.target.checked)} 
-                        />
-                        <span className="text-sm text-gray-400 group-hover:text-gray-300 select-none">
-                            Permanecer conectado
+                        <span className="text-sm text-gray-400 group-hover:text-gray-300">
+                            Lembrar de mim
                         </span>
                     </label>
                     
-                    {/* Link de esqueci a senha (Visual) */}
-                    <Link to="/recuperar-senha" className="text-sm text-blue-500 hover:text-blue-400 hover:underline">
-                        Esqueceu?
+                    {/* Link para Recuperação de Senha */}
+                    <Link to="/forgot-password" className="text-sm text-blue-500 hover:text-blue-400 hover:underline transition-all">
+                        Esqueceu a senha?
                     </Link>
                 </div>
             )}
 
+            {/* Mensagem de Erro */}
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-center gap-3 animate-pulse">
                 <div className="w-2 h-2 rounded-full bg-red-500" />
@@ -174,13 +175,14 @@ function Login() {
               </div>
             )}
 
-            <button type="submit" disabled={loading} className="w-full py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+            {/* Botão de Submit */}
+            <button type="submit" disabled={loading} className="w-full py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-6">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{isLogin ? 'Entrar na Plataforma' : 'Começar Agora'} <ArrowRight className="w-5 h-5" /></>}
             </button>
           </form>
         </div>
         
-        <p className="text-center text-gray-600 text-xs mt-8">© 2025 Study Planner. Todos os direitos reservados.</p>
+        <p className="text-center text-gray-600 text-xs mt-8">© 2026 Study Planner. Todos os direitos reservados.</p>
       </div>
     </div>
   );

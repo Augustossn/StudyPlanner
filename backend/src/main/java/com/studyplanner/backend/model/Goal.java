@@ -1,6 +1,6 @@
 package com.studyplanner.backend.model;
 
-import java.time.LocalDate; // Se der erro, mude para javax.persistence.*
+import java.time.LocalDate;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +10,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+// Importando todas as validações de uma vez para facilitar
+import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "goals")
@@ -19,30 +21,41 @@ public class Goal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Mudei de 'description' para 'title' para o Controller funcionar
+    @NotBlank(message = "O título é obrigatório")
+    @Size(min = 3, max = 50, message = "O título deve ter entre 3 e 50 caracteres")
     private String title; 
     
+    @NotBlank(message = "O tipo da meta é obrigatório")
     private String goalType; 
+
+    @NotNull(message = "A data de início é obrigatória")
     private LocalDate startDate;
-    private LocalDate endDate;
+
+    private LocalDate endDate; // Pode ser nulo (meta sem prazo definido)
+
     private boolean active;
     
-    // Adicionei este campo pois seu Controller tentou usar .setTargetHours()
+    @NotNull(message = "A meta de horas é obrigatória")
+    @Min(value = 1, message = "A meta deve ser de pelo menos 1 hora")
+    @Max(value = 1000, message = "A meta não pode ultrapassar 1000 horas")
     private Double targetHours; 
 
     @Transient
-    private double currentHours; // Quanto já estudou
+    private double currentHours;
 
     @Transient
-    private int progressPercentage; // De 0 a 100
+    private int progressPercentage;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private User user; // O Controller geralmente preenche isso, então sem @NotNull aqui para não quebrar o JSON de entrada
 
     @ManyToOne
     @JoinColumn(name = "subject_id")
+    @NotNull(message = "Você deve selecionar uma matéria para a meta")
     private Subject subject;
+
+    @Size(max = 255, message = "A descrição dos assuntos deve ter no máximo 255 caracteres")
     private String matters;
 
     // --- CONSTRUTORES ---
@@ -57,7 +70,7 @@ public class Goal {
         this.user = user;
     }
 
-    // --- GETTERS E SETTERS MANUAIS ---
+    // --- GETTERS E SETTERS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

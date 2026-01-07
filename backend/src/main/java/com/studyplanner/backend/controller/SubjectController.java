@@ -19,6 +19,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/subjects")
 public class SubjectController {
@@ -45,7 +47,7 @@ public class SubjectController {
         @ApiResponse(responseCode = "400", description = "Erro de validação")
     })
     @PostMapping
-    public ResponseEntity<?> createSubject(@RequestBody Subject subject) {
+    public ResponseEntity<?> createSubject(@Valid @RequestBody Subject subject) {
         try {
             Subject savedSubject = subjectService.createSubject(subject);
             return ResponseEntity.ok(savedSubject);

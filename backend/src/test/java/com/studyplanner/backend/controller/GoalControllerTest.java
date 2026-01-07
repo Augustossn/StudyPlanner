@@ -1,35 +1,44 @@
 package com.studyplanner.backend.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.studyplanner.backend.model.Goal;
-import com.studyplanner.backend.service.GoalService;
-import com.studyplanner.backend.repository.UserRepository; // Importe para evitar erros de contexto
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.studyplanner.backend.model.Goal;
+import com.studyplanner.backend.service.GoalService;
 
 @WebMvcTest(GoalController.class)
-@AutoConfigureMockMvc(addFilters = false) // Ignora a segurança (Login) nos testes
+@AutoConfigureMockMvc(addFilters = false)
 class GoalControllerTest {
 
     @Autowired private MockMvc mockMvc;
-    @MockBean private GoalService goalService;
-    @MockBean private UserRepository userRepository; // Previne erros de contexto do Spring
+
+    // ATUALIZAÇÃO: @MockBean vira @MockitoBean no Spring Boot 3.4+
+    @MockitoBean 
+    private GoalService goalService;
+
+    // REMOVIDO: private UserRepository userRepository;
+    // Como desligamos os filtros de segurança, ele não é mais obrigatório aqui.
+
     @Autowired private ObjectMapper objectMapper;
 
     @Test

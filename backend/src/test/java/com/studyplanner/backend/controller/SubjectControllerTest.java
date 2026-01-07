@@ -1,25 +1,25 @@
 package com.studyplanner.backend.controller;
 
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest; // Importante
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studyplanner.backend.model.Subject;
 import com.studyplanner.backend.model.User;
 import com.studyplanner.backend.service.SubjectService;
-import com.studyplanner.backend.repository.UserRepository; // Importe o repositório
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc; // Importante
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(SubjectController.class)
 @AutoConfigureMockMvc(addFilters = false) // <--- ESSENCIAL: Desliga a segurança nos testes
@@ -28,13 +28,8 @@ class SubjectControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private SubjectService subjectService;
-
-    // Às vezes o contexto do Spring tenta carregar Beans relacionados a User
-    // Adicionar este MockBean previne erros de "Bean not found"
-    @MockBean
-    private UserRepository userRepository; 
 
     @Autowired
     private ObjectMapper objectMapper;

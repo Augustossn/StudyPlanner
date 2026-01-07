@@ -18,6 +18,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/goals")
 public class GoalController {
@@ -42,7 +44,7 @@ public class GoalController {
 
     // POST: Criar nova meta
     @PostMapping
-    public ResponseEntity<?> createGoal(@RequestBody Goal goal) {
+    public ResponseEntity<?> createGoal(@Valid @RequestBody Goal goal) {
         try {
             Goal createdGoal = goalService.createGoal(goal);
             return ResponseEntity.ok(createdGoal);

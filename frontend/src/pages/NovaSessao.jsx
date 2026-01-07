@@ -3,8 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast'; 
 import Layout from '../components/Layout';
 import { studySessionAPI, subjectAPI } from '../services/api'; 
-import { getErrorMessage } from '../utils/errorHandler'; 
-import { CheckCircle2, Circle, Calendar as CalendarIcon, Layers, Tag, Save } from 'lucide-react';
+// import { getErrorMessage } from '../utils/errorHandler'; // Opcional, vamos tratar direto aqui
+import { CheckCircle2, Circle, Calendar as CalendarIcon, Layers, Tag, Save, ArrowLeft } from 'lucide-react';
 import { getAuthUser } from '../utils/auth';
 
 // Imports do DatePicker
@@ -41,9 +41,7 @@ const NovaSessao = () => {
   const [subjects, setSubjects] = useState([]); 
   
   // LÓGICA DE ASSUNTOS (MATTERS)
-  const [availableMatters, setAvailableMatters] = useState([]); // Opções vindas da Matéria
-  
-  // Aqui usamos 'matters' para alinhar com o Backend
+  const [availableMatters, setAvailableMatters] = useState([]); 
   const [selectedMatters, setSelectedMatters] = useState(sessionToEdit?.matters || []); 
   
   const [loading, setLoading] = useState(false);
@@ -59,12 +57,14 @@ const NovaSessao = () => {
             // Se for edição, carrega as opções da matéria já salva
             if (isEditing && sessionToEdit?.subject?.id) {
                 const currentSub = loadedSubjects.find(s => s.id === sessionToEdit.subject.id);
-                
-                // --- CORREÇÃO AQUI: Troquei .matter por .matters ---
+                // Backend agora retorna .matters na entidade Subject
                 if (currentSub) setAvailableMatters(currentSub.matters || []);
             }
         })
-        .catch(() => setSubjects([]));
+        .catch(() => {
+            toast.error("Erro ao carregar matérias.");
+            setSubjects([]);
+        });
     } else {
         navigate('/');
     }
@@ -74,11 +74,10 @@ const NovaSessao = () => {
   const handleSubjectChange = (e) => {
     const newId = e.target.value;
     setSubjectId(newId);
-    setSelectedMatters([]); // Limpa os assuntos selecionados
+    setSelectedMatters([]); // Limpa os assuntos ao trocar de matéria
     
     const selectedSubject = subjects.find(s => s.id === Number(newId));
     
-    // --- CORREÇÃO AQUI: Troquei .matter por .matters ---
     if (selectedSubject && selectedSubject.matters) {
         setAvailableMatters(selectedSubject.matters);
     } else {
@@ -86,7 +85,6 @@ const NovaSessao = () => {
     }
   };
 
-  // Função para marcar/desmarcar assuntos (Multiseleção)
   const toggleMatter = (matterName) => {
     if (selectedMatters.includes(matterName)) {
         setSelectedMatters(prev => prev.filter(item => item !== matterName));
@@ -103,14 +101,12 @@ const NovaSessao = () => {
       const payload = {
         title,
         durationMinutes: Number(duration),
-        date: date.toISOString(),
+        date: date.toISOString(), // Backend Java aceita ISO string para LocalDateTime
         description,
         completed,
         user: { id: user.userId },
         subject: subjectId ? { id: Number(subjectId) } : null,
-        
-        // Envia como 'matters' para o Backend
-        matters: selectedMatters 
+        matters: selectedMatters // Envia lista de strings
       };
 
       if (isEditing) {
@@ -118,13 +114,35 @@ const NovaSessao = () => {
         toast.success('Sessão atualizada com sucesso!');
       } else {
         await studySessionAPI.createSession(payload);
-        toast.success('Sessão registrada!');
+        toast.success('Sessão registrada com sucesso!');
       }
 
       navigate('/dashboard');
+
     } catch (err) {
-      const message = getErrorMessage(err);
-      toast.error(message);
+      console.error("Erro no submit:", err);
+
+      // --- TRATAMENTO DE ERRO MELHORADO PARA O GLOBAL EXCEPTION HANDLER ---
+      if (err.response && err.response.status === 400 && err.response.data) {
+          const data = err.response.data;
+          
+          // Se for o Map de erros do backend { "title": "erro...", "duration": "erro..." }
+          if (typeof data === 'object' && !Array.isArray(data)) {
+              // Pega a primeira mensagem de erro para mostrar no Toast
+              const firstErrorKey = Object.keys(data)[0];
+              const errorMessage = data[firstErrorKey];
+              
+              // Se tiver mais de um erro, avisa
+              const extraErrors = Object.keys(data).length - 1;
+              const suffix = extraErrors > 0 ? ` (+${extraErrors} erros)` : '';
+
+              toast.error(`${errorMessage}${suffix}`);
+          } else {
+              toast.error(data.message || "Verifique os dados informados.");
+          }
+      } else {
+          toast.error("Erro ao salvar sessão. Tente novamente.");
+      }
     } finally {
       setLoading(false);
     }
@@ -132,6 +150,7 @@ const NovaSessao = () => {
 
   return (
     <Layout>
+      {/* Estilos Globais para o DatePicker dentro do Componente */}
       <style>{`
         .react-datepicker { background-color: #1a1a1a !important; border-color: #333 !important; font-family: inherit !important; }
         .react-datepicker__header { background-color: #0a0a0a !important; border-bottom-color: #333 !important; }
@@ -145,37 +164,45 @@ const NovaSessao = () => {
       `}</style>
 
       <div className="max-w-3xl mx-auto">
+        <button 
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center text-gray-400 hover:text-white mb-6 transition-colors"
+        >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar para o Dashboard
+        </button>
+
         <h1 className="text-3xl font-bold text-white mb-2">
-            {isEditing ? 'Editar Sessão' : 'Registrar uma nova sessão'}
+            {isEditing ? 'Editar Sessão' : 'Registrar Sessão'}
         </h1>
         <p className="text-gray-400 mb-8">
-            {isEditing ? 'Corrija ou atualize os dados da sua sessão.' : 'Nos fale o que você estudou.'}
+            {isEditing ? 'Atualize os detalhes da sua sessão de estudo.' : 'Registre o que você estudou para acompanhar seu progresso.'}
         </p>
         
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-8 shadow-lg">
+        <div className="bg-[#121212] border border-gray-800 rounded-xl p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             
             {/* Título */}
             <div>
-              <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Título</label>
+              <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Título da Sessão</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ex: Revisão de Java"
-                className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                placeholder="Ex: Revisão de Arrays em Java"
+                className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
                 required
               />
             </div>
 
             {/* Matéria */}
             <div>
-              <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider uppercase tracking-wider">Matéria</label>
+              <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Matéria</label>
               <div className="relative">
                   <select
                     value={subjectId}
                     onChange={handleSubjectChange}
-                    className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none "
+                    className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
                     required
                   >
                     <option value="">Selecione uma matéria...</option>
@@ -187,13 +214,13 @@ const NovaSessao = () => {
               </div>
             </div>
 
-            {/* Assuntos (Matters) */}
+            {/* Assuntos (Matters) - Condicional */}
             {availableMatters.length > 0 && (
-                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className="block text-sm font-bold text-white-300 mb-2 uppercase tracking-wide">
-                        Quais assuntos você estudou?
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300 bg-[#0a0a0a] p-4 rounded-lg border border-gray-800">
+                    <label className="flex items-center gap-2 text-sm font-bold text-gray-300 mb-3 uppercase tracking-wide">
+                        <Tag className="w-4 h-4" /> Tópicos Estudados
                     </label>
-                    <div className="flex flex-wrap gap-2 p-4 bg-[#0a0a0a] border border-gray-700 rounded-lg">
+                    <div className="flex flex-wrap gap-2">
                         {availableMatters.map((matter, index) => {
                             const isSelected = selectedMatters.includes(matter);
                             return (
@@ -201,22 +228,18 @@ const NovaSessao = () => {
                                     key={index}
                                     type="button"
                                     onClick={() => toggleMatter(matter)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border transition-all ${
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border transition-all duration-200 ${
                                         isSelected 
-                                        ? 'bg-blue-600 border-blue-500 text-white shadow-md' 
-                                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700'
+                                        ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20' 
+                                        : 'bg-[#1a1a1a] border-gray-700 text-gray-400 hover:bg-gray-800 hover:border-gray-500'
                                     }`}
                                 >
-                                    <Tag className="w-3 h-3" />
                                     {matter}
-                                    {isSelected && <CheckCircle2 className="w-3 h-3 ml-1" />}
+                                    {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
                                 </button>
                             );
                         })}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2 ml-1">
-                        Selecione um ou mais tópicos para atualizar as metas específicas.
-                    </p>
                 </div>
             )}
 
@@ -226,30 +249,32 @@ const NovaSessao = () => {
                 <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Duração (minutos)</label>
                 <input
                   type="number"
+                  min="1"
+                  max="1440"
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
                   className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none"
                   required
                 />
-                <div className="flex gap-2 mt-2">
-                    {[30, 45, 60, 90, 120].map((mins) => (
-                        <button
-                            key={mins}
-                            type="button"
-                            onClick={() => setDuration(mins)}
-                            className="px-2 py-1 text-xs bg-gray-800 text-gray-400 rounded hover:bg-gray-700 hover:text-white transition-colors"
-                        >
-                            {mins}m
-                        </button>
-                    ))}
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {[15, 30, 45, 60, 90, 120].map((mins) => (
+                      <button
+                          key={mins}
+                          type="button"
+                          onClick={() => setDuration(mins)}
+                          className="px-2 py-1 text-xs bg-[#1a1a1a] border border-gray-700 text-gray-400 rounded hover:bg-gray-800 hover:text-white transition-colors"
+                      >
+                          {mins}m
+                      </button>
+                  ))}
                 </div>
               </div>
 
               {/* Data */}
               <div>
                 <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Data</label>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-3 top-3.5 w-5 h-5 text-gray-400 z-10 pointer-events-none" />
+                <div className="relative group">
+                  <CalendarIcon className="absolute left-3 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 z-10 pointer-events-none transition-colors" />
                   <DatePicker 
                       selected={date} 
                       onChange={(date) => setDate(date)} 
@@ -272,31 +297,31 @@ const NovaSessao = () => {
                 <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Detalhes adicionais..."
-                    className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all min-h-25"
+                    placeholder="Anote aqui suas dificuldades ou pontos importantes..."
+                    className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all min-h-25 resize-none placeholder-gray-600"
                 />
             </div>
 
-            {/* Checkbox */}
+            {/* Checkbox "Concluída" */}
             <div 
                 onClick={() => setCompleted(!completed)}
-                className={`flex items-center p-4 rounded-lg border cursor-pointer transition-all ${
+                className={`flex items-center p-4 rounded-xl border cursor-pointer transition-all duration-300 ${
                     completed 
                     ? 'bg-blue-600/10 border-blue-500/50' 
                     : 'bg-[#0a0a0a] border-gray-700 hover:border-gray-600'
                 }`}
             >
                 {completed ? (
-                    <CheckCircle2 className="w-6 h-6 text-blue-500 mr-3" />
+                    <CheckCircle2 className="w-6 h-6 text-blue-500 mr-3 shrink-0" />
                 ) : (
-                    <Circle className="w-6 h-6 text-gray-500 mr-3" />
+                    <Circle className="w-6 h-6 text-gray-500 mr-3 shrink-0" />
                 )}
                 <div>
                     <p className={`font-medium ${completed ? 'text-blue-400' : 'text-gray-300'}`}>
                         Sessão Concluída
                     </p>
-                    <p className="text-xs text-gray-500">
-                        {completed ? 'Contará para suas estatísticas.' : 'Salvar como planejamento.'}
+                    <p className="text-xs text-gray-500 mt-0.5">
+                        {completed ? 'Esta sessão será contabilizada nas suas estatísticas.' : 'Salvar apenas como rascunho/planejamento.'}
                     </p>
                 </div>
             </div>
@@ -313,10 +338,16 @@ const NovaSessao = () => {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                    {isEditing ? <Save className="w-4 h-4"/> : null}
-                    {loading ? 'Salvando...' : (isEditing ? 'Atualizar Sessão' : 'Registrar Sessão')}
+                    {loading ? (
+                        'Salvando...'
+                    ) : (
+                        <>
+                            {isEditing ? <Save className="w-5 h-5"/> : <CheckCircle2 className="w-5 h-5"/>}
+                            {isEditing ? 'Salvar Alterações' : 'Registrar Sessão'}
+                        </>
+                    )}
                 </button>
             </div>
           </form>

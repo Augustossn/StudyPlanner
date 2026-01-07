@@ -16,6 +16,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import jakarta.validation.constraints.*;
+
 @Entity
 @Table(name = "study_sessions")
 public class StudySession {
@@ -24,25 +26,34 @@ public class StudySession {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "O título da sessão é obrigatório")
+    @Size(max = 100, message = "O título deve ter no máximo 100 caracteres")
     private String title;
     
     @Column(columnDefinition = "TEXT")
+    @Size(max = 500, message = "A descrição deve ter no máximo 500 caracteres")
     private String description; 
 
+    @NotNull(message = "A data e hora da sessão são obrigatórias")
     private LocalDateTime date;
+
+    // "int" primitivo não pode ser nulo, então o @NotNull é redundante, 
+    // mas o @Min garante que não venha 0 (valor padrão)
+    @Min(value = 1, message = "A sessão deve ter pelo menos 1 minuto")
+    @Max(value = 1440, message = "A sessão não pode durar mais de 24 horas (1440 minutos)")
     private int durationMinutes;
+    
     private boolean completed;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private User user; // Preenchido pelo backend via Token
 
     @ManyToOne
     @JoinColumn(name = "subject_id")
+    @NotNull(message = "A matéria (disciplina) é obrigatória")
     private Subject subject;
 
-    // --- MUDANÇA PRINCIPAL: Renomeado de subSubjects para matters ---
-    // Isso garante que bata com o JSON do Frontend e a Query do Repository
     @ElementCollection(fetch = FetchType.EAGER) 
     @CollectionTable(name = "session_matters", joinColumns = @JoinColumn(name = "session_id"))
     @Column(name = "matter")
@@ -60,7 +71,7 @@ public class StudySession {
         boolean completed, 
         User user, 
         Subject subject, 
-        List<String> matters) { // Agora recebe 'matters' corretamente
+        List<String> matters) {
             this.id = id;
             this.title = title;
             this.description = description;
@@ -97,7 +108,6 @@ public class StudySession {
     public Subject getSubject() { return subject; }
     public void setSubject(Subject subject) { this.subject = subject; }
 
-    // Getters e Setters atualizados para 'matters'
     public List<String> getMatters() { return matters; }
     public void setMatters(List<String> matters) { this.matters = matters; }
 }
