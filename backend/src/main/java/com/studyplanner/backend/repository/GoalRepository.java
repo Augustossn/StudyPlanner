@@ -9,5 +9,5 @@ import java.util.List;
 public interface GoalRepository extends JpaRepository<Goal, Long> {
     
     List<Goal> findByUser_IdAndActiveTrue(Long userId);
-    long countByUser_IdAndActiveTrue(Long userId);
+    Long countByUser_IdAndActiveTrue(Long userId);
 }

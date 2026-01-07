@@ -1,7 +1,6 @@
 package com.studyplanner.backend.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.studyplanner.backend.model.Subject;
-import com.studyplanner.backend.model.User;
-import com.studyplanner.backend.repository.SubjectRepository;
-import com.studyplanner.backend.repository.UserRepository;
+import com.studyplanner.backend.service.SubjectService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -26,80 +23,61 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 @RequestMapping("/api/subjects")
 public class SubjectController {
 
-    private final SubjectRepository subjectRepository;
-    private final UserRepository userRepository;
+    private final SubjectService subjectService;
 
-    public SubjectController(SubjectRepository subjectRepository, UserRepository userRepository) {
-        this.subjectRepository = subjectRepository;
-        this.userRepository = userRepository;
+    public SubjectController(SubjectService subjectService) {
+        this.subjectService = subjectService;
     }
 
-    // GET: Listar matérias
-    @Operation(summary = "Listar matérias do usuário", description = "Retorna todas as matérias cadastradas para um usuário específico, incluindo suas cores e seus assuntos.")
+    @Operation(summary = "Listar matérias do usuário", description = "Retorna a lista completa de todas as matérias associadas a um usuário.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de matérias retornada com sucesso")
+        @ApiResponse(responseCode = "200", description = "Matérias listadas com sucesso")
     })
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Subject>> getUserSubjects(@PathVariable Long userId) {
-        List<Subject> subjects = subjectRepository.findByUserId(userId);
+        List<Subject> subjects = subjectService.findSubjectsByUserId(userId);
         return ResponseEntity.ok(subjects);
     }
 
-    // POST: Criar matéria
-    @Operation(summary = "Cadastrar nova matéria", description = "Cria uma nova disciplina de estudo (ex: Matemática, História) vinculada a um usuário.")
+    @Operation(summary = "Cadastrar nova matéria", description = "Cria uma nova matéria associada a um usuário. Valida se o usuário existe.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Matéria criada com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Usuário não informado ou não encontrado")
+        @ApiResponse(responseCode = "200", description = "Matéria cadastrada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Erro de validação")
     })
     @PostMapping
-    public ResponseEntity<Subject> createSubject(@RequestBody Subject subject) {
-        // Validação unificada
-        if (subject.getUser() == null || subject.getUser().getId() == null) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> createSubject(@RequestBody Subject subject) {
+        try {
+            Subject savedSubject = subjectService.createSubject(subject);
+            return ResponseEntity.ok(savedSubject);
+        } catch (IllegalArgumentException e) {
+            // Se o Service reclamar (usuário não existe, etc), devolvemos 400 Bad Request
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        Optional<User> userOptional = userRepository.findById(subject.getUser().getId());
-        
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        
-        subject.setUser(userOptional.get());
-        Subject savedSubject = subjectRepository.save(subject);
-        return ResponseEntity.ok(savedSubject);
     }
 
-    // PUT: Atualizar matéria
-    @Operation(summary = "Atualizar matéria", description = "Permite alterar o nome, a cor de identificação e a lista de assuntos (tags) de uma disciplina.")
+    @Operation(summary = "Atualizar matéria")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Matéria atualizada com sucesso"),
         @ApiResponse(responseCode = "404", description = "Matéria não encontrada para o ID informado")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<Subject> updateSubject(@PathVariable Long id, @RequestBody Subject subject){
-        Optional<Subject> existingSubject = subjectRepository.findById(id);
-        
-        if (existingSubject.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-
-        Subject updatedSubject = existingSubject.get();
-        updatedSubject.setName(subject.getName());
-        updatedSubject.setColor(subject.getColor());
-        updatedSubject.setMatters(subject.getMatters());
-
-        Subject savedSubject = subjectRepository.save(updatedSubject);
-        return ResponseEntity.ok(savedSubject);
+    public ResponseEntity<Subject> updateSubject(@PathVariable Long id, @RequestBody Subject subject) {
+        return subjectService.updateSubject(id, subject)
+                .map(ResponseEntity::ok) // Se achou e atualizou, devolve 200 OK
+                .orElse(ResponseEntity.notFound().build()); // Se não achou (Optional vazio), devolve 404
     }
 
-    // DELETE: Apagar matéria
-    @Operation(summary = "Excluir matéria", description = "Remove uma matéria do banco de dados. CUIDADO: Isso pode afetar sessões de estudo vinculadas a ela.")
+    @Operation(summary = "Excluir matéria")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Matéria excluída com sucesso")
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSubject(@PathVariable Long id) {
-        subjectRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+        try {
+            subjectService.deleteSubject(id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
