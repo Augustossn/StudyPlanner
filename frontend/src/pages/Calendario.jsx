@@ -15,6 +15,7 @@ import Layout from '../components/Layout';
 import { studySessionAPI } from '../services/api';
 import { getAuthUser } from '../utils/auth';
 import { Clock, BookOpen, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import SessionDetailsModal from '../components/SessionDetailsModal';
 
 const locales = { 'pt-BR': ptBR };
 const localizer = dateFnsLocalizer({
@@ -39,6 +40,8 @@ const Calendario = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [daySessions, setDaySessions] = useState([]);
+
+  const [viewSession, setViewSession] = useState(null);
 
   // --- GERA OS ÚLTIMOS 12 MESES PARA O SELECT ---
   const monthsOptions = useMemo(() => {
@@ -233,86 +236,108 @@ const Calendario = () => {
             
             {/* --- CALENDÁRIO --- */}
             <Calendar
-                localizer={localizer}
-                events={events}
-                date={currentDate} 
-                onNavigate={(date) => setCurrentDate(date)}
-                toolbar={false}
-                startAccessor="start"
-                endAccessor="end"
-                style={{ height: '100%' }}
-                culture='pt-BR'
-                view='month' 
-                messages={{ showMore: total => `+${total} ver mais` }}
-                eventPropGetter={eventStyleGetter}
-                selectable={true}
-                onSelectSlot={handleSelectSlot}
-                onShowMore={handleShowMore}
-                onSelectEvent={handleSelectEvent}
-                popup={false}
-            />
-        </div>
-
-        {/* MODAL (Mantido igual) */}
-        {isModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 antialiased animate-in fade-in duration-200">
-                <div className="bg-[#1a1a1a] border border-gray-700 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#151515]">
-                        <div>
-                            <h2 className="text-xl font-bold text-white capitalize">
-                                {selectedDate && format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
-                            </h2>
-                            <p className="text-sm text-gray-400 mt-1">
-                                {daySessions.length} sessões registradas
-                            </p>
-                        </div>
-                        <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white cursor-pointer">
-                            <X size={24} />
-                        </button>
-                    </div>
-
-                    <div className="p-5 overflow-y-auto space-y-4 custom-scrollbar">
-                        {daySessions.length > 0 ? (
-                            daySessions.map((event, idx) => (
-                                <div key={idx} className="p-4 bg-[#0a0a0a] border border-gray-800 rounded-xl flex gap-4 items-start">
-                                    <div className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white shadow-md shrink-0 text-xl" style={{ backgroundColor: event.resource.subject?.color || '#333' }}>
-                                        <BookOpen size={24} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-start">
-                                            <h4 className="text-lg font-bold text-white truncate pr-2">{event.title}</h4>
-                                            <span className="flex items-center gap-1.5 text-xs font-mono bg-gray-800 text-gray-300 px-2 py-1 rounded-md border border-gray-700">
-                                                <Clock size={12} />
-                                                {event.resource.durationMinutes} min
-                                            </span>
-                                        </div>
-                                        <p className="text-gray-400 text-sm mt-0.5">{event.resource.subject?.name || 'Geral'}</p>
-                                        {event.resource.matters?.length > 0 && (
-                                            <div className="mt-3 flex flex-wrap gap-2">
-                                                {event.resource.matters.map((matter, mIdx) => (
-                                                    <span key={mIdx} className="text-xs font-medium px-2.5 py-1 bg-gray-800/50 text-blue-200 rounded-md border border-blue-500/20">{matter}</span>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-center py-12 text-gray-500">
-                                <Clock className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                <p className="text-lg">Dia livre!</p>
-                            </div>
-                        )}
-                    </div>
+                    localizer={localizer}
+                    events={events}
+                    date={currentDate}
+                    onNavigate={(date) => setCurrentDate(date)}
+                    toolbar={false}
+                    startAccessor="start"
+                    endAccessor="end"
+                    style={{ height: '100%' }}
+                    culture='pt-BR'
+                    view='month'
+                    messages={{ showMore: total => `+${total} ver mais` }}
+                    eventPropGetter={eventStyleGetter}
+                    selectable={true}
+                    onSelectSlot={handleSelectSlot}
+                    onShowMore={handleShowMore}
                     
-                    <div className="p-5 border-t border-gray-800 bg-[#151515]">
-                         <button onClick={() => setIsModalOpen(false)} className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold shadow-lg cursor-pointer">Fechar</button>
-                    </div>
-                </div>
+                    // 3. AJUSTE: Conecta o clique do calendário ao modal de detalhes
+                    onSelectEvent={handleSelectEvent}
+                    
+                    popup={false}
+                />
             </div>
-        )}
-    </Layout>
-  );
+
+            {/* MODAL DE LISTAGEM DO DIA */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 antialiased animate-in fade-in duration-200">
+                    {/* Adicionado stopPropagation no container para fechar ao clicar fora */}
+                    <div 
+                        className="bg-black border border-gray-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                        onClick={(e) => e.stopPropagation()} 
+                    >
+                        <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#151515]">
+                            <div>
+                                <h2 className="text-xl font-bold text-white capitalize">
+                                    {selectedDate && format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                                </h2>
+                                <p className="text-sm text-gray-400 mt-1">
+                                    {daySessions.length} sessões registradas
+                                </p>
+                            </div>
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white cursor-pointer">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-5 overflow-y-auto space-y-4 custom-scrollbar">
+                            {daySessions.length > 0 ? (
+                                daySessions.map((event, idx) => (
+                                    <div 
+                                        key={idx} 
+                                        // 4. AJUSTE: Clique na lista abre o modal de detalhes
+                                        onClick={() => setViewSession(event.resource || event)}
+                                        // Adicionado cursor-pointer e hover
+                                        className="p-4 bg-[#0a0a0a] border border-gray-800 rounded-xl flex gap-4 items-start cursor-pointer hover:border-gray-600 transition-colors group"
+                                    >
+                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white shadow-md shrink-0 text-xl" style={{ backgroundColor: event.resource.subject?.color || '#333' }}>
+                                            <BookOpen size={24} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-start">
+                                                <h4 className="text-lg font-bold text-white truncate pr-2 group-hover:text-blue-400 transition-colors">{event.title}</h4>
+                                                <span className="flex items-center gap-1.5 text-xs font-mono bg-gray-800 text-gray-300 px-2 py-1 rounded-md border border-gray-700">
+                                                    <Clock size={12} />
+                                                    {event.resource.durationMinutes} min
+                                                </span>
+                                            </div>
+                                            <p className="text-gray-400 text-sm mt-0.5">{event.resource.subject?.name || 'Geral'}</p>
+                                            {event.resource.matters?.length > 0 && (
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    {event.resource.matters.map((matter, mIdx) => (
+                                                        <span key={mIdx} className="text-xs font-medium px-2.5 py-1 bg-gray-800/50 text-blue-200 rounded-md border border-blue-500/20">{matter}</span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-12 text-gray-500">
+                                    <Clock className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                                    <p className="text-lg">Dia livre!</p>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div className="p-5 border-t border-gray-800 bg-[#151515]">
+                             <button onClick={() => setIsModalOpen(false)} className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold shadow-lg cursor-pointer transition-colors">Fechar</button>
+                        </div>
+                    </div>
+                    {/* Fecha o modal ao clicar no fundo escuro */}
+                    <div className="fixed inset-0 -z-10" onClick={() => setIsModalOpen(false)}></div>
+                </div>
+            )}
+
+            {/* 5. NOVO: Renderiza o Modal de Detalhes */}
+            <SessionDetailsModal 
+                isOpen={!!viewSession} 
+                onClose={() => setViewSession(null)} 
+                session={viewSession} 
+            />
+        </Layout>
+    );
 };
 
 export default Calendario;

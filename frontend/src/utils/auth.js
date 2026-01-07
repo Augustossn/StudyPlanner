@@ -7,7 +7,6 @@ export const getAuthUser = () => {
       const parsed = JSON.parse(localUser);
       // SÓ retorna se tiver token. Se não tiver token, considera inválido e tenta o próximo.
       if (parsed && (parsed.token || parsed.accessToken)) {
-        console.log("Auth: Usuário válido encontrado no LocalStorage");
         return parsed;
       }
       console.warn("Auth: Usuário encontrado no LocalStorage, mas SEM TOKEN (Lixo). Ignorando...");
@@ -22,7 +21,6 @@ export const getAuthUser = () => {
     try {
       const parsed = JSON.parse(sessionUser);
       if (parsed && (parsed.token || parsed.accessToken)) {
-        console.log("Auth: Usuário válido encontrado no SessionStorage");
         return parsed;
       }
     } catch (e) {

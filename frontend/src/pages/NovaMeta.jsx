@@ -155,7 +155,7 @@ const NovaMeta = () => {
     <Layout>
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-white mb-2">
-            {isEditing ? 'Editar Meta' : 'Definir Nova Meta'}
+            {isEditing ? 'Editar Meta' : 'Definir nova meta'}
         </h1>
         <p className="text-gray-400 mb-8">
             {isEditing ? 'Ajuste seus objetivos.' : 'Vincule sua meta a uma matéria para rastreamento automático.'}
@@ -341,17 +341,18 @@ const NovaMeta = () => {
                 <button
                     type="button"
                     onClick={() => navigate('/dashboard')}
-                    className="px-8 py-4 bg-transparent border border-gray-700 text-gray-300 hover:bg-gray-800 font-semibold rounded-xl transition-all"
+                    className="px-8 py-4 bg-transparent border border-gray-700 text-gray-300 hover:bg-gray-800 font-semibold rounded-xl transition-all cursor-pointer"
                 >
                     Cancelar
                 </button>
                 <button
                     type="submit"
-                    className="flex-1 py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                    className=
+                    "flex-1 py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer"
                     disabled={loading || !title}
                 >
                     {isEditing ? <Save className="w-5 h-5" /> : null}
-                    {loading ? 'Salvando...' : (isEditing ? 'Atualizar Meta' : 'Definir Meta')}
+                    {loading ? 'Salvando...' : (isEditing ? 'Atualizar meta' : 'Definir meta')}
                 </button>
             </div>
 

@@ -95,7 +95,7 @@ const NovaMateria = () => {
     <Layout>
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-white mb-2">
-            {isEditing ? 'Editar Matéria' : 'Nova Matéria'}
+            {isEditing ? 'Editar Matéria' : 'Criar nova matéria'}
         </h1>
         <p className="text-gray-400 mb-8">
             {isEditing ? 'Atualize as informações e assuntos.' : 'Crie categorias para organizar seus estudos.'}
@@ -187,7 +187,7 @@ const NovaMateria = () => {
                       key={color.hex}
                       type="button"
                       onClick={() => setSelectedColor(color.hex)}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110 cursor-pointer ${
                         selectedColor === color.hex ? 'ring-2 ring-white ring-offset-2 ring-offset-[#1a1a1a]' : ''
                       }`}
                       style={{ backgroundColor: color.hex }}
@@ -204,14 +204,14 @@ const NovaMateria = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/dashboard')}
-                  className="px-6 py-3 bg-transparent border border-gray-700 text-gray-300 hover:bg-gray-800 font-semibold rounded-xl transition-all"
+                  className="px-6 py-3 bg-transparent border border-gray-700 text-gray-300 hover:bg-gray-800 font-semibold rounded-xl transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={loading || !name}
-                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isEditing ? <Save className="w-5 h-5" /> : null}
                   {loading ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Criar Matéria')}

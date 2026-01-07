@@ -22,6 +22,7 @@ import { dashboardAPI, studySessionAPI, goalsAPI, subjectAPI } from '../services
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Layout from '../components/Layout';
 import { getAuthUser } from '../utils/auth';
+import SessionDetailsModal from '../components/SessionDetailsModal';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -30,20 +31,17 @@ function Dashboard() {
 
   const [stats, setStats] = useState({ totalHours: 0, weeklyHours: 0, completedSessions: 0, activeGoals: 0 });
   
-  // MUDANÇA 1: chartData sai do state (agora é calculado via useMemo)
-  // const [chartData, setChartData] = useState([]); <--- REMOVIDO
-  
   const [recentSessions, setRecentSessions] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [goals, setGoals] = useState([]);
   
-  // NOVOS ESTADOS PARA O FILTRO
   const [allWeekSessions, setAllWeekSessions] = useState([]); 
   const [selectedSubjectId, setSelectedSubjectId] = useState('all'); 
 
   const [searchTerm, setSearchTerm] = useState('');
 
-  // --- CARREGAMENTO DE DADOS ---
+  const [viewSession, setViewSession] = useState(null);
+
   const loadDashboardData = useCallback(async (userId) => {
     try {
       const [statsRes, sessionsRes, goalsRes, subjectsRes] = await Promise.all([
@@ -54,18 +52,13 @@ function Dashboard() {
       ]);
 
       setStats(statsRes.data);
-      
-      // MUDANÇA 2: Salvamos TODAS as sessões para o gráfico filtrar depois
+
       setAllWeekSessions(sessionsRes.data); 
       
-      // MUDANÇA 3: Salvamos apenas as 5 mais recentes para a lista
       setRecentSessions(sessionsRes.data.slice(0, 5));
       
       setSubjects(subjectsRes.data || []);
       setGoals(goalsRes.data || []); 
-
-      // MUDANÇA 4: REMOVIDA A LÓGICA MANUAL DO GRÁFICO DAQUI
-      // (Ela foi movida para o useMemo abaixo)
 
     } catch (error) {
       toast.error("Ops! Tivemos um problema ao carregar seus dados. Tente atualizar a página.");
@@ -112,8 +105,6 @@ function Dashboard() {
       (goal.subject && goal.subject.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // --- NOVA LÓGICA DO GRÁFICO (useMemo) ---
-  // Isso roda automaticamente sempre que 'allWeekSessions' ou 'selectedSubjectId' mudam
   const chartData = useMemo(() => {
     const last7Days = [];
     const today = new Date();
@@ -124,12 +115,9 @@ function Dashboard() {
       const dateStr = date.toISOString().split('T')[0];
       const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short', timeZone: 'UTC' });
       
-      // Filtra e Soma
       const totalMinutes = allWeekSessions
         .filter(s => {
-            // 1. Data deve bater
             const matchDate = s.date.startsWith(dateStr);
-            // 2. Se tiver filtro, Matéria deve bater
             const matchSubject = selectedSubjectId === 'all' || s.subject?.id === Number(selectedSubjectId);
             return matchDate && matchSubject;
         })
@@ -143,7 +131,6 @@ function Dashboard() {
     return last7Days;
   }, [allWeekSessions, selectedSubjectId]);
 
-  // Cor dinâmica do gráfico (Muda de azul para a cor da matéria selecionada)
   const activeColor = useMemo(() => {
     if (selectedSubjectId === 'all') return '#3b82f6'; // Azul padrão
     const sub = subjects.find(s => s.id === Number(selectedSubjectId));
@@ -158,7 +145,6 @@ function Dashboard() {
 
   // --- HANDLERS (AÇÕES) ---
 
-  // 1. Ações de Matéria
   const handleEditSubject = (subject) => {
     navigate('/nova-materia', { state: { subjectToEdit: subject } });
   };
@@ -176,7 +162,6 @@ function Dashboard() {
     }
   };
 
-  // 2. Ações de Meta
   const handleEditGoal = (goal) => {
     navigate('/nova-meta', { state: { goalToEdit: goal } });
   };
@@ -186,7 +171,7 @@ function Dashboard() {
 
     try {
         await goalsAPI.deleteGoal(id);
-        setGoals(prev => prev.filter(goal => goal.id !== id)); // Remove da tela
+        setGoals(prev => prev.filter(goal => goal.id !== id)); 
         toast.success("Meta excluída com sucesso!");
     } catch (error) {
         console.error(error);
@@ -203,7 +188,6 @@ function Dashboard() {
     try {
         await studySessionAPI.deleteSession(id);
         setRecentSessions(prev => prev.filter(s => s.id !== id));
-        // Atualiza estatísticas removendo os dados (opcional: ou recarregar dashboard)
         loadDashboardData(user.userId); 
         toast.success("Sessão excluída.");
     } catch (error) {
@@ -246,13 +230,11 @@ function Dashboard() {
         <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                 
-                {/* Título com ícone colorido dinâmico */}
                 <h3 className="font-bold text-white text-sm flex items-center gap-2">
                     <Activity className="w-4 h-4" style={{ color: activeColor }} />
                     Ritmo de Estudos (7 dias)
                 </h3>
 
-                {/* --- SELETOR DE MATÉRIA (DROPDOWN) --- */}
                 <div className="flex items-center gap-2">
                     <Filter className="w-4 h-4 text-gray-500" />
                     <select 
@@ -274,7 +256,6 @@ function Dashboard() {
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
                         <defs>
-                            {/* Gradiente Dinâmico baseado na cor da matéria */}
                             <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor={activeColor} stopOpacity={0.3}/>
                                 <stop offset="95%" stopColor={activeColor} stopOpacity={0}/>
@@ -305,29 +286,23 @@ function Dashboard() {
             
             {/* COLUNA 1: METAS ATIVAS */}
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col h-[400px]">
-            {/* Cabeçalho do Bloco */}
             <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-gray-400 text-xs uppercase tracking-wider">Metas Ativas</h3>
             </div>
             
-            {/* Lista de Metas */}
             <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 {goals.length > 0 ? (
                     goals.filter(g => g.active).map((goal) => (
                         <div key={goal.id} className="p-4 bg-[#0a0a0a] border border-gray-800 rounded-xl hover:border-gray-700 transition-colors group">
                             
-                            {/* CABEÇALHO DO CARD (Título + Badge + Botões) */}
                             <div className="flex justify-between items-start mb-3 gap-3">
                                 
-                                {/* Título */}
                                 <h4 className="font-bold text-white text-sm truncate flex-1" title={goal.title}>
                                     {goal.title}
                                 </h4>
 
-                                {/* Container Direita (Badge + Botões) */}
                                 <div className="flex items-center gap-2 shrink-0">
                                     
-                                    {/* Badge de Tipo */}
                                     <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
                                         goal.goalType === 'Semanal' ? 'bg-blue-500/10 text-blue-500' :
                                         goal.goalType === 'Mensal' ? 'bg-purple-500/10 text-purple-500' :
@@ -336,18 +311,17 @@ function Dashboard() {
                                         {goal.goalType}
                                     </span>
 
-                                    {/* Botões de Ação (Aparecem no Hover) */}
                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); handleEditGoal(goal); }}
-                                            className="p-1 bg-gray-800 rounded text-gray-400 hover:bg-blue-600 hover:text-white transition-colors"
+                                            className="p-1 bg-gray-800 rounded text-gray-400 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
                                             title="Editar"
                                         >
                                             <Edit2 className="w-3 h-3" />
                                         </button>
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); handleDeleteGoal(goal.id); }}
-                                            className="p-1 bg-gray-800 rounded text-gray-400 hover:bg-red-600 hover:text-white transition-colors"
+                                            className="p-1 bg-gray-800 rounded text-gray-400 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
                                             title="Excluir"
                                         >
                                             <Trash2 className="w-3 h-3" />
@@ -356,7 +330,6 @@ function Dashboard() {
                                 </div>
                             </div>
                             
-                            {/* Informações de Horas e Datas */}
                             <div className="flex items-end justify-between">
                                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
                                     <Target className="w-3 h-3" />
@@ -375,7 +348,6 @@ function Dashboard() {
                                 )}
                             </div>
 
-                            {/* Barra de Progresso */}
                             <div className="w-full bg-gray-800 h-2 rounded-full mt-3 overflow-hidden relative">
                                 <div 
                                     className={`h-full transition-all duration-1000 ease-out rounded-full ${
@@ -385,9 +357,7 @@ function Dashboard() {
                                 ></div>
                             </div>
 
-                            {/* RODAPÉ DO CARD: Matéria Vinculada + Porcentagem */}
                             <div className="flex items-center justify-between mt-2">
-                                {/* Se tiver matéria vinculada, mostra o badge */}
                                 {goal.subject ? (
                                     <div className="flex items-center gap-1.5 text-[10px] text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-500/20">
                                         <Layers className="w-3 h-3" />
@@ -396,7 +366,6 @@ function Dashboard() {
                                         </span>
                                     </div>
                                 ) : (
-                                    /* Div vazia para manter o alinhamento do flex justify-between se não tiver matéria */
                                     <div></div>
                                 )}
 
@@ -430,18 +399,17 @@ function Dashboard() {
                         subjects.map((subject) => (
                             <div key={subject.id} className="p-3 bg-[#0a0a0a] border border-gray-800 rounded-xl hover:border-gray-700 transition-colors relative group">
                                 
-                                {/* BOTÕES DE AÇÃO DA MATÉRIA (EDITAR + EXCLUIR) */}
                                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10">
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); handleEditSubject(subject); }}
-                                        className="p-1.5 bg-gray-800 rounded-lg text-gray-400 hover:bg-blue-600 hover:text-white transition-colors shadow-lg"
+                                        className="p-1.5 bg-gray-800 rounded-lg text-gray-400 hover:bg-blue-600 hover:text-white transition-colors shadow-lg cursor-pointer"
                                         title="Editar"
                                     >
                                         <Edit2 className="w-3 h-3" />
                                     </button>
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); handleDeleteSubject(subject.id); }}
-                                        className="p-1.5 bg-gray-800 rounded-lg text-gray-400 hover:bg-red-600 hover:text-white transition-colors shadow-lg"
+                                        className="p-1.5 bg-gray-800 rounded-lg text-gray-400 hover:bg-red-600 hover:text-white transition-colors shadow-lg cursor-pointer"
                                         title="Excluir"
                                     >
                                         <Trash2 className="w-3 h-3" />
@@ -486,7 +454,6 @@ function Dashboard() {
                 </div>
             </div>
 
-            {/* COLUNA 3: SESSÕES RECENTES */}
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 flex flex-col h-[400px]">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-gray-400 text-xs uppercase tracking-wider">Sessões Recentes</h3>
@@ -494,87 +461,91 @@ function Dashboard() {
                 
                 <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                     {recentSessions.length > 0 ? (
-                    recentSessions.map((session) => (
-                        <div key={session.id} className="p-3 bg-[#0a0a0a] border border-gray-800 rounded-xl hover:border-gray-700 transition-colors group">
+                        recentSessions.map((session) => (
+                            <div 
+                            key={session.id} 
+                            onClick={() => setViewSession(session)}
+                            className="p-3 bg-[#0a0a0a] border border-gray-800 rounded-xl hover:border-gray-700 transition-colors group cursor-pointer"
+                            >
                             
-                            {/* --- LINHA SUPERIOR: Ícone + Título + Botões --- */}
                             <div className="flex justify-between items-start mb-2">
                                 <div className="flex items-center gap-3 overflow-hidden">
-                                    {/* Ícone da Matéria */}
-                                    <div 
-                                        className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs shadow-sm shrink-0"
-                                        style={{ backgroundColor: session.subject?.color || '#333' }}
-                                    >
-                                        {session.subject?.name?.charAt(0).toUpperCase()}
-                                    </div>
-                                    
-                                    {/* Título e Nome da Matéria */}
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-semibold text-white truncate" title={session.title}>
-                                            {session.title || session.subject?.name}
-                                        </p>
-                                    </div>
+                                <div 
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs shadow-sm shrink-0"
+                                    style={{ backgroundColor: session.subject?.color || '#333' }}
+                                >
+                                    {session.subject?.name?.charAt(0).toUpperCase()}
+                                </div>
+                                
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-white truncate" title={session.title}>
+                                    {session.title || session.subject?.name}
+                                    </p>
+                                </div>
                                 </div>
 
-                                {/* Botões de Ação (Aparecem no Hover e empurram o conteúdo se necessário) */}
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0 ml-2">
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); handleEditSession(session); }}
-                                        className="p-1.5 bg-gray-800 rounded-lg text-gray-400 hover:bg-blue-600 hover:text-white transition-colors shadow-lg"
-                                        title="Editar"
-                                    >
-                                        <Edit2 className="w-3 h-3" />
-                                    </button>
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }}
-                                        className="p-1.5 bg-gray-800 rounded-lg text-gray-400 hover:bg-red-600 hover:text-white transition-colors shadow-lg"
-                                        title="Excluir"
-                                    >
-                                        <Trash2 className="w-3 h-3" />
-                                    </button>
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); handleEditSession(session); }}
+                                    className="p-1.5 bg-gray-800 rounded-lg text-gray-400 hover:bg-blue-600 hover:text-white transition-colors shadow-lg cursor-pointer"
+                                    title="Editar"
+                                >
+                                    <Edit2 className="w-3 h-3" />
+                                </button>
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }}
+                                    className="p-1.5 bg-gray-800 rounded-lg text-gray-400 hover:bg-red-600 hover:text-white transition-colors shadow-lg cursor-pointer"
+                                    title="Excluir"
+                                >
+                                    <Trash2 className="w-3 h-3" />
+                                </button>
                                 </div>
                             </div>
 
                             {/* --- LINHA INFERIOR: Tags + Tempo/Data --- */}
-                            <div className="flex justify-between items-end pl-11"> {/* pl-11 alinha com o texto acima (pula o ícone) */}
+                            <div className="flex justify-between items-end pl-11">
                                 
                                 {/* Tags */}
                                 <div className="flex flex-wrap gap-1">
-                                    {session.matters && session.matters.length > 0 ? (
-                                        <>
-                                            {session.matters.slice(0, 2).map((matter, idx) => (
-                                                <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded border border-gray-700 bg-gray-800/50 text-gray-400">
-                                                    {matter}
-                                                </span>
-                                            ))}
-                                            {session.matters.length > 2 && <span className="text-[9px] text-gray-500">...</span>}
-                                        </>
-                                    ) : (
-                                        <span className="text-[10px] text-gray-600 italic">Sem tags</span>
-                                    )}
+                                {session.matters && session.matters.length > 0 ? (
+                                    <>
+                                    {session.matters.slice(0, 2).map((matter, idx) => (
+                                        <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded border border-gray-700 bg-gray-800/50 text-gray-400">
+                                        {matter}
+                                        </span>
+                                    ))}
+                                    {session.matters.length > 2 && <span className="text-[9px] text-gray-500">...</span>}
+                                    </>
+                                ) : (
+                                    <span className="text-[10px] text-gray-600 italic">Sem tags</span>
+                                )}
                                 </div>
 
                                 {/* Tempo e Data */}
                                 <div className="text-right shrink-0 leading-tight">
-                                    <p className="text-sm font-bold text-white">{session.durationMinutes}m</p>
-                                    <p className="text-[10px] text-gray-500">{formatDate(session.date)}</p>
+                                <p className="text-sm font-bold text-white">{session.durationMinutes}m</p>
+                                <p className="text-[10px] text-gray-500">{formatDate(session.date)}</p>
                                 </div>
                             </div>
 
-                        </div>
-                    ))
-                    ) : (
+                            </div>
+                        ))
+                        ) : (
                         <EmptyState 
-                            icon={BookCheck} // Usando o ícone do seu snippet
+                            icon={BookCheck}
                             text={searchTerm ? "Nenhuma sessão encontrada." : "Sem sessão ainda?"} 
                             description={searchTerm ? "Tente outro termo de busca." : "Cadastre uma matéria para conseguir cumprir suas metas!"}
                             link={searchTerm ? null : "/nova-sessao"}
                             linkText="Criar uma nova sessão"
                         />
-                    )}
+                        )}
+                    </div>
                 </div>
-            </div>
-
+                <SessionDetailsModal 
+                    isOpen={!!viewSession} 
+                    onClose={() => setViewSession(null)} 
+                    session={viewSession} 
+                />
         </div>
       </div>
     </Layout>

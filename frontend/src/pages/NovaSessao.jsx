@@ -146,7 +146,7 @@ const NovaSessao = () => {
 
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-white mb-2">
-            {isEditing ? 'Editar Sessão' : 'Defina uma nova sessão'}
+            {isEditing ? 'Editar Sessão' : 'Registrar uma nova sessão'}
         </h1>
         <p className="text-gray-400 mb-8">
             {isEditing ? 'Corrija ou atualize os dados da sua sessão.' : 'Nos fale o que você estudou.'}
@@ -157,7 +157,7 @@ const NovaSessao = () => {
             
             {/* Título */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Título</label>
+              <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Título</label>
               <input
                 type="text"
                 value={title}
@@ -170,12 +170,12 @@ const NovaSessao = () => {
 
             {/* Matéria */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Matéria</label>
+              <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider uppercase tracking-wider">Matéria</label>
               <div className="relative">
                   <select
                     value={subjectId}
                     onChange={handleSubjectChange}
-                    className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
+                    className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none "
                     required
                   >
                     <option value="">Selecione uma matéria...</option>
@@ -190,7 +190,7 @@ const NovaSessao = () => {
             {/* Assuntos (Matters) */}
             {availableMatters.length > 0 && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className="block text-sm font-bold text-blue-400 mb-2 uppercase tracking-wide">
+                    <label className="block text-sm font-bold text-white-300 mb-2 uppercase tracking-wide">
                         Quais assuntos você estudou?
                     </label>
                     <div className="flex flex-wrap gap-2 p-4 bg-[#0a0a0a] border border-gray-700 rounded-lg">
@@ -223,7 +223,7 @@ const NovaSessao = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Duração */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Duração (minutos)</label>
+                <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Duração (minutos)</label>
                 <input
                   type="number"
                   value={duration}
@@ -247,7 +247,7 @@ const NovaSessao = () => {
 
               {/* Data */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Data</label>
+                <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Data</label>
                 <div className="relative">
                   <CalendarIcon className="absolute left-3 top-3.5 w-5 h-5 text-gray-400 z-10 pointer-events-none" />
                   <DatePicker 
@@ -268,7 +268,7 @@ const NovaSessao = () => {
 
             {/* Descrição */}
             <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Observações (Opcional)</label>
+                <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Observações (Opcional)</label>
                 <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -306,14 +306,14 @@ const NovaSessao = () => {
                 <button
                     type="button"
                     onClick={() => navigate('/dashboard')}
-                    className="w-full py-3 bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-800 font-semibold rounded-lg transition-all"
+                    className="px-8 py-4 bg-transparent border border-gray-700 text-gray-300 hover:bg-gray-800 font-semibold rounded-xl transition-all cursor-pointer"
                 >
                     Cancelar
                 </button>
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2"
+                    className="flex-1 py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer"
                 >
                     {isEditing ? <Save className="w-4 h-4"/> : null}
                     {loading ? 'Salvando...' : (isEditing ? 'Atualizar Sessão' : 'Registrar Sessão')}
