@@ -7,7 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest; // Importante
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,7 +22,7 @@ import com.studyplanner.backend.model.User;
 import com.studyplanner.backend.service.SubjectService;
 
 @WebMvcTest(SubjectController.class)
-@AutoConfigureMockMvc(addFilters = false) // <--- ESSENCIAL: Desliga a segurança nos testes
+@AutoConfigureMockMvc(addFilters = false)
 class SubjectControllerTest {
 
     @Autowired
@@ -36,8 +36,8 @@ class SubjectControllerTest {
 
     @Test
     void deveListarMateriasDoUsuario() throws Exception {
-        Subject mat1 = new Subject(); mat1.setName("Java");
-        Subject mat2 = new Subject(); mat2.setName("React");
+        Subject mat1 = new Subject(); mat1.setName("Java"); mat1.setColor("#000");
+        Subject mat2 = new Subject(); mat2.setName("React"); mat2.setColor("#FFF");
         
         when(subjectService.findSubjectsByUserId(1L)).thenReturn(List.of(mat1, mat2));
 
@@ -49,8 +49,11 @@ class SubjectControllerTest {
 
     @Test
     void deveCriarMateriaComSucesso() throws Exception {
+        // CRIAR OBJETO COMPLETO
         Subject novaMateria = new Subject();
         novaMateria.setName("Spring Boot");
+        novaMateria.setColor("#00FF00"); // <--- Adicionado
+        
         User user = new User(); user.setId(1L);
         novaMateria.setUser(user);
 
@@ -65,14 +68,17 @@ class SubjectControllerTest {
 
     @Test
     void deveRetornarErro400SeServiceFalhar() throws Exception {
-        Subject materiaInvalida = new Subject();
-        
+        // Para chegar no Service (que lança o erro), o objeto precisa ser válido
+        Subject materiaValidaParaController = new Subject();
+        materiaValidaParaController.setName("Teste Válido");
+        materiaValidaParaController.setColor("#333"); // <--- Adicionado
+
         when(subjectService.createSubject(any()))
             .thenThrow(new IllegalArgumentException("Usuário inválido"));
 
         mockMvc.perform(post("/api/subjects")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(materiaInvalida)))
-                .andExpect(status().isBadRequest()); // Espera 400
+                .content(objectMapper.writeValueAsString(materiaValidaParaController)))
+                .andExpect(status().isBadRequest());
     }
 }

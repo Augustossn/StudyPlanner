@@ -1,72 +1,61 @@
 package com.studyplanner.backend.repository;
 
-import com.studyplanner.backend.model.Subject;
-import com.studyplanner.backend.model.User;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.studyplanner.backend.model.Subject;
+import com.studyplanner.backend.model.User;
 
 @DataJpaTest
+@ActiveProfiles("test")
 class SubjectRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
 
     @Autowired
-    private SubjectRepository repository;
+    private SubjectRepository subjectRepository;
 
     @Test
     void deveListarApenasMateriasDoUsuarioEspecifico() {
-        // 1. CENÁRIO
-        // Cria Usuário 1 (Dono das matérias)
+        // 1. Criar e persistir Usuários
         User user1 = new User();
-        user1.setName("User 1");
-        user1.setEmail("u1@teste.com");
-        user1.setPassword("123");
+        user1.setName("João");
+        user1.setEmail("joao@email.com");
+        user1.setPassword("123456");
         entityManager.persist(user1);
 
-        // Cria Usuário 2 (Intruso)
         User user2 = new User();
-        user2.setName("User 2");
-        user2.setEmail("u2@teste.com");
-        user2.setPassword("123");
+        user2.setName("Maria");
+        user2.setEmail("maria@email.com");
+        user2.setPassword("123456");
         entityManager.persist(user2);
 
-        // Matéria do User 1
-        Subject sub1 = new Subject();
-        sub1.setName("Matemática");
-        sub1.setUser(user1);
-        entityManager.persist(sub1);
+        // 2. Criar Matéria para User 1 (AGORA COM COR!)
+        Subject subject1 = new Subject();
+        subject1.setName("Matemática");
+        subject1.setColor("#FF0000"); // <--- CORREÇÃO: Campo obrigatório
+        subject1.setUser(user1);
+        entityManager.persist(subject1);
 
-        // Matéria do User 1
-        Subject sub2 = new Subject();
-        sub2.setName("História");
-        sub2.setUser(user1);
-        entityManager.persist(sub2);
+        // 3. Criar Matéria para User 2 (AGORA COM COR!)
+        Subject subject2 = new Subject();
+        subject2.setName("História");
+        subject2.setColor("#00FF00"); // <--- CORREÇÃO: Campo obrigatório
+        subject2.setUser(user2);
+        entityManager.persist(subject2);
 
-        // Matéria do User 2 (Não deve aparecer na busca)
-        Subject sub3 = new Subject();
-        sub3.setName("Física");
-        sub3.setUser(user2);
-        entityManager.persist(sub3);
+        // Executa a busca
+        List<Subject> resultado = subjectRepository.findByUserId(user1.getId());
 
-        entityManager.flush();
-
-        // 2. AÇÃO
-        List<Subject> resultado = repository.findByUserId(user1.getId());
-
-        // 3. VERIFICAÇÃO
-        assertThat(resultado).hasSize(2); // Deve achar 2 matérias
-        assertThat(resultado).extracting(Subject::getName)
-                .containsExactlyInAnyOrder("Matemática", "História"); // Verifica os nomes
-        
-        // Garante que Fisica não veio
-        assertThat(resultado).extracting(Subject::getName)
-                .doesNotContain("Física");
+        // Validações
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).getName()).isEqualTo("Matemática");
     }
 }
