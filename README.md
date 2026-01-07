@@ -104,7 +104,7 @@ The frontend will be available at: `http://localhost:5173`
 - User: `sa`
 - Password: *(empty)*
 
-> To use a **persistent database** (PostgreSQL / MySQL) update your `application.properties` and set:
+> To use a **persistent database** (PostgreSQL / MySQL), update your `application.properties` and set:
 > ```
 > spring.jpa.hibernate.ddl-auto=update
 > ```
