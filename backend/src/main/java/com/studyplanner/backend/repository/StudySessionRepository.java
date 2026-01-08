@@ -40,7 +40,7 @@ public interface StudySessionRepository extends JpaRepository<StudySession, Long
         @Param("endDate") LocalDateTime endDate
     );
 
-    long countByUser_IdAndCompletedTrue(Long userId); // Contagem de sessões completas
+    long countByUser_IdAndCompletedTrue(Long userId); 
 
     List<StudySession> findByUserIdAndDateAfter(Long userId, LocalDateTime date);
 }

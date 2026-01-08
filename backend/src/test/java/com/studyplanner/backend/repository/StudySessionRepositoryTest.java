@@ -24,32 +24,28 @@ class StudySessionRepositoryTest {
 
     @Test
     void deveCalcularTotalDeMinutosCorretamente() {
-        // 1. USUÁRIO
         User user = new User();
         user.setName("Teste");
         user.setEmail("teste@email.com");
         user.setPassword("123456");
         entityManager.persist(user);
 
-        // 2. MATÉRIA (Agora com COR)
         Subject subject = new Subject();
         subject.setName("Java");
-        subject.setColor("#FF0000"); // Obrigatório
+        subject.setColor("#FF0000"); 
         subject.setUser(user);
         entityManager.persist(subject);
 
-        // 3. SESSÃO 1 (Agora com TÍTULO)
         StudySession s1 = new StudySession();
-        s1.setTitle("Estudo 1"); // Obrigatório
+        s1.setTitle("Estudo 1"); 
         s1.setUser(user);
         s1.setSubject(subject);
         s1.setDurationMinutes(60); 
         s1.setDate(LocalDateTime.now());
         entityManager.persist(s1);
 
-        // 4. SESSÃO 2
         StudySession s2 = new StudySession();
-        s2.setTitle("Estudo 2"); // Obrigatório
+        s2.setTitle("Estudo 2"); 
         s2.setUser(user);
         s2.setSubject(subject);
         s2.setDurationMinutes(30);
@@ -87,22 +83,20 @@ class StudySessionRepositoryTest {
 
         Subject subject = new Subject();
         subject.setName("História");
-        subject.setColor("#00FF00"); // Obrigatório
+        subject.setColor("#00FF00"); 
         subject.setUser(user);
         entityManager.persist(subject);
 
-        // Sessão Antiga
         StudySession antiga = new StudySession();
-        antiga.setTitle("Antiga"); // Obrigatório
+        antiga.setTitle("Antiga"); 
         antiga.setUser(user);
         antiga.setSubject(subject);
         antiga.setDurationMinutes(60);
         antiga.setDate(LocalDateTime.now().minusDays(10));
         entityManager.persist(antiga);
 
-        // Sessão Recente
         StudySession recente = new StudySession();
-        recente.setTitle("Recente"); // Obrigatório
+        recente.setTitle("Recente");
         recente.setUser(user);
         recente.setSubject(subject);
         recente.setDurationMinutes(60);

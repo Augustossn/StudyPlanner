@@ -15,13 +15,11 @@ import java.time.ZoneOffset;
 @Service
 public class TokenService {
 
-    // Lê a chave fixa do application.properties
     @Value("${api.security.token.secret}")
     private String secret;
 
     public String generateToken(User user) {
         try {
-            // Usa a chave fixa para assinar
             Algorithm algorithm = Algorithm.HMAC256(secret);
             return JWT.create()
                     .withIssuer("auth-api")
@@ -46,7 +44,6 @@ public class TokenService {
         }
     }
 
-    // Define que o token expira em 30 dias (tempo suficiente para "Permanecer Logado")
     private Instant genExpirationDate() {
         return LocalDateTime.now().plusDays(30).toInstant(ZoneOffset.of("-03:00"));
     }

@@ -17,8 +17,8 @@ public class EmailService {
     public void sendRecoveryEmail(String toEmail, String recoveryCode) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("seu.email@gmail.com"); // Quem está enviando
-            message.setTo(toEmail);                 // Quem vai receber
+            message.setFrom("seu.email@gmail.com"); 
+            message.setTo(toEmail);                
             message.setSubject("Recuperação de Senha - Study Planner");
             message.setText("Olá!\n\nSeu código de recuperação de senha é: " + recoveryCode + "\n\n" +
                             "Se você não solicitou isso, ignore este e-mail.");
@@ -27,7 +27,6 @@ public class EmailService {
             System.out.println("E-mail enviado com sucesso para: " + toEmail);
         } catch (MailException e) {
             System.err.println("Erro ao enviar e-mail: " + e.getMessage());
-            // Aqui você poderia lançar uma exceção personalizada para o Controller capturar
         }
     }
 }

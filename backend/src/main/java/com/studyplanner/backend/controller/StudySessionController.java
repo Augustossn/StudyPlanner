@@ -25,7 +25,6 @@ public class StudySessionController {
         this.studySessionService = studySessionService;
     }
 
-    // GET: Mostrar histórico completo
     @Operation(summary = "Listar histórico de sessões", description = "Retorna a lista completa de todas as sessões de estudo de um usuário, ordenadas da mais recente para a mais antiga.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Histórico retornado com sucesso")
@@ -36,7 +35,6 @@ public class StudySessionController {
         return ResponseEntity.ok(sessions);
     }
 
-    // GET: Mostrar sessões recentes (Gráficos)
     @Operation(summary = "Listar sessões recentes (7 dias)", description = "Retorna apenas as sessões realizadas nos últimos 7 dias. Utilizado para alimentar gráficos de desempenho semanal.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Lista recente retornada com sucesso")
@@ -59,7 +57,6 @@ public class StudySessionController {
         return ResponseEntity.ok(studySessionService.findSessionsByRange(userId, start, end));
     }
 
-    // POST: Cadastrar sessão
     @Operation(summary = "Registrar nova sessão", description = "Cria um novo registro de estudo. Valida se o usuário existe e bloqueia o cadastro de datas futuras.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Sessão registrada com sucesso"),
@@ -75,7 +72,6 @@ public class StudySessionController {
         }
     }
 
-    // PUT: Atualizar sessão
     @Operation(summary = "Atualizar sessão existente", description = "Permite editar os detalhes de uma sessão (título, descrição, matéria, conclusão) pelo ID.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Sessão atualizada com sucesso"),
@@ -88,7 +84,6 @@ public class StudySessionController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // DELETE: Apagar sessão
     @Operation(summary = "Excluir sessão", description = "Remove permanentemente um registro de estudo do banco de dados.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Sessão excluída com sucesso")

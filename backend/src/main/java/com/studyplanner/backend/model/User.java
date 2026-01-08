@@ -1,6 +1,6 @@
 package com.studyplanner.backend.model;
 
-import jakarta.persistence.*; // Se der erro, mude para javax.persistence.*
+import jakarta.persistence.*; 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import java.time.LocalDateTime; 
@@ -17,9 +17,8 @@ public class User {
     private String email;
     private String password;
 
-    // Relacionamentos (opcional, mas bom ter para evitar erros de mapeamento)
     @OneToMany(mappedBy = "user")
-    @JsonIgnore // Evita loop infinito no JSON
+    @JsonIgnore 
     private List<Subject> subjects;
 
     @OneToMany(mappedBy = "user")
@@ -33,7 +32,6 @@ public class User {
     private String recoveryCode;
     private LocalDateTime recoveryExpiration;
 
-    // --- CONSTRUTORES ---
     public User() {}
 
     public User(Long id, String name, String email, String password) {

@@ -4,17 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import jakarta.validation.constraints.*;
 
@@ -37,8 +27,6 @@ public class StudySession {
     @NotNull(message = "A data e hora da sessão são obrigatórias")
     private LocalDateTime date;
 
-    // "int" primitivo não pode ser nulo, então o @NotNull é redundante, 
-    // mas o @Min garante que não venha 0 (valor padrão)
     @Min(value = 1, message = "A sessão deve ter pelo menos 1 minuto")
     @Max(value = 1440, message = "A sessão não pode durar mais de 24 horas (1440 minutos)")
     private int durationMinutes;
@@ -47,7 +35,7 @@ public class StudySession {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user; // Preenchido pelo backend via Token
+    private User user; 
 
     @ManyToOne
     @JoinColumn(name = "subject_id")
@@ -59,7 +47,6 @@ public class StudySession {
     @Column(name = "matter")
     private List<String> matters = new ArrayList<>();
     
-    // --- CONSTRUTORES ---
     public StudySession() {}
 
     public StudySession(
@@ -83,7 +70,6 @@ public class StudySession {
             this.matters = matters;
     }
 
-    // --- GETTERS E SETTERS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

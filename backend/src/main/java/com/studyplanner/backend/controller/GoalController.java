@@ -2,14 +2,7 @@ package com.studyplanner.backend.controller;
 
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.studyplanner.backend.model.Goal;
 import com.studyplanner.backend.service.GoalService;
@@ -30,19 +23,22 @@ public class GoalController {
         this.goalService = goalService;
     }
 
-    // GET: Listar metas com cálculo de progresso inteligente
-    @Operation(summary = "Listar metas com progresso", description = "Calcula o progresso baseado em Assunto (Matters), Matéria ou Data.")
+    @Operation(summary = "Listar metas do usuário", description = "Retorna todas as metas ativas e inativas de um usuário específico, calculando o progresso atual baseado nas sessões de estudo.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+        @ApiResponse(responseCode = "200", description = "Lista de metas retornada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Goal>> getUserGoals(@PathVariable Long userId) {
-        // Busca apenas as metas ativas
         List<Goal> goals = goalService.findGoalsByUserId(userId);
         return ResponseEntity.ok(goals);
     }
 
-    // POST: Criar nova meta
+    @Operation(summary = "Criar nova meta", description = "Cadastra uma nova meta de estudo. Requer título, horas alvo, tipo (Semanal/Mensal) e data de início.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Meta criada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos (ex: data nula, horas negativas) ou usuário inexistente")
+    })
     @PostMapping
     public ResponseEntity<?> createGoal(@Valid @RequestBody Goal goal) {
         try {
@@ -53,7 +49,11 @@ public class GoalController {
         }
     }
 
-    // PUT: Atualizar meta existente
+    @Operation(summary = "Atualizar meta existente", description = "Atualiza os dados de uma meta pelo ID. Permite alterar título, horas alvo, datas e status (ativa/inativa).")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Meta atualizada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Meta não encontrada")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<Goal> updateGoal(@PathVariable Long id, @RequestBody Goal goalDetails) {
         return goalService.updateGoal(id, goalDetails)
@@ -61,7 +61,11 @@ public class GoalController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // DELETE: Apagar meta
+    @Operation(summary = "Excluir meta", description = "Remove uma meta do sistema pelo ID. Atenção: isso não apaga as sessões de estudo vinculadas, apenas a meta.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Meta excluída com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Meta não encontrada")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteGoal(@PathVariable Long id) {
         try {

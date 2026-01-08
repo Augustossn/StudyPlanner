@@ -76,7 +76,6 @@ public class GoalService {
         return goals;
     }
 
-    // REMOVIDO @RequestBody
     public Goal createGoal(Goal goal){
         if (goal.getUser() == null || goal.getUser().getId() == null) {
             throw new IllegalArgumentException("ID do usuário é obrigatório");
@@ -102,7 +101,6 @@ public class GoalService {
         return goalRepository.save(goal);
     }
 
-    // REMOVIDO @PathVariable e @RequestBody
     public Optional<Goal> updateGoal(Long id, Goal goal){
         return goalRepository.findById(id).map(existingGoal -> {
             existingGoal.setTitle(goal.getTitle());
@@ -129,7 +127,6 @@ public class GoalService {
         });
     }
 
-    // REMOVIDO @PathVariable
     public void deleteGoal(Long id){
         if (goalRepository.existsById(id)) {
             goalRepository.deleteById(id);

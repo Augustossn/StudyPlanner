@@ -36,13 +36,13 @@ public class DashboardService {
         LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
                 .withHour(0).withMinute(0).withSecond(0);
 
-        LocalDateTime sevenDaysAgo = now.minusDays(6).withHour(0).withMinute(0).withSecond(0); // Calcula os últimos 7 dias, mudar isso depois para conseguir ver mais tempo para trás
+        LocalDateTime sevenDaysAgo = now.minusDays(6).withHour(0).withMinute(0).withSecond(0); 
         List<StudySession> sessions = studySessionRepository.findByUserIdAndDateAfter(userId, sevenDaysAgo);
 
         Map<LocalDate, Double> dailyMap = sessions.stream()
                 .collect(Collectors.groupingBy(
-                        s -> s.getDate().toLocalDate(), // LocalDate para agrupar 
-                        Collectors.summingDouble(s -> s.getDurationMinutes() / 60.0) // Somatório das horas
+                        s -> s.getDate().toLocalDate(), 
+                        Collectors.summingDouble(s -> s.getDurationMinutes() / 60.0) 
                 ));
 
         List<ChartDataDTO> chartData = new ArrayList<>();

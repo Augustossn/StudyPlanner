@@ -16,12 +16,12 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
-    private final EmailService emailService; // 1. Injeção do serviço de email
+    private final EmailService emailService; 
 
     public AuthService(UserRepository userRepository, 
                        PasswordEncoder passwordEncoder, 
                        TokenService tokenService,
-                       EmailService emailService) { // 2. Adicionado ao construtor
+                       EmailService emailService) { 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
@@ -78,7 +78,6 @@ public class AuthService {
 
         userRepository.save(user);
 
-        // 3. Uso real do envio de email (substituindo o System.out)
         emailService.sendRecoveryEmail(email, code);
     }
 
@@ -86,12 +85,10 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        // Verifica se o código é nulo ou não bate
         if (user.getRecoveryCode() == null || !user.getRecoveryCode().equals(code)){
             return false;
         }
 
-        // 4. CORREÇÃO DO AVISO: Retorna true se a data NÃO for antes de agora (ou seja, se ainda for válida)
         return !user.getRecoveryExpiration().isBefore(LocalDateTime.now());
     }
 

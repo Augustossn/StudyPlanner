@@ -26,18 +26,15 @@ public class SubjectService {
     }
 
     public Subject createSubject(Subject subject) {
-        // Validação: Verifica se o ID do usuário veio
         if (subject.getUser() == null || subject.getUser().getId() == null) {
             throw new IllegalArgumentException("ID do usuário é obrigatório.");
         }
 
-        // Lógica: Busca o usuário no banco
         User user = userRepository.findById(subject.getUser().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
 
         subject.setUser(user);
         
-        // Se a lista de assuntos vier nula, inicializa vazia para evitar erro
         if (subject.getMatters() == null) {
             subject.setMatters(List.of());
         }
@@ -50,7 +47,6 @@ public class SubjectService {
             existingSubject.setName(subjectData.getName());
             existingSubject.setColor(subjectData.getColor());
             
-            // Atualiza assuntos/subtópicos
             if (subjectData.getMatters() != null) {
                 existingSubject.setMatters(subjectData.getMatters());
             }
@@ -63,7 +59,6 @@ public class SubjectService {
         if (subjectRepository.existsById(id)) {
             subjectRepository.deleteById(id);
         } else {
-            // Opcional: Lançar erro se tentar deletar algo que não existe
             throw new IllegalArgumentException("Matéria não encontrada para exclusão.");
         }
     }

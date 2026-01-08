@@ -49,10 +49,9 @@ class SubjectControllerTest {
 
     @Test
     void deveCriarMateriaComSucesso() throws Exception {
-        // CRIAR OBJETO COMPLETO
         Subject novaMateria = new Subject();
         novaMateria.setName("Spring Boot");
-        novaMateria.setColor("#00FF00"); // <--- Adicionado
+        novaMateria.setColor("#00FF00"); 
         
         User user = new User(); user.setId(1L);
         novaMateria.setUser(user);
@@ -68,10 +67,9 @@ class SubjectControllerTest {
 
     @Test
     void deveRetornarErro400SeServiceFalhar() throws Exception {
-        // Para chegar no Service (que lança o erro), o objeto precisa ser válido
         Subject materiaValidaParaController = new Subject();
         materiaValidaParaController.setName("Teste Válido");
-        materiaValidaParaController.setColor("#333"); // <--- Adicionado
+        materiaValidaParaController.setColor("#333"); 
 
         when(subjectService.createSubject(any()))
             .thenThrow(new IllegalArgumentException("Usuário inválido"));
