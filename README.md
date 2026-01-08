@@ -1,136 +1,213 @@
 # Study Planner Pro 🚀
 
 [![Frontend](https://img.shields.io/badge/React-19.2-blue?logo=react)](https://reactjs.org/)
-[![Backend](https://img.shields.io/badge/Java-25-orange?logo=java)](https://www.java.com/)
+[![Backend](https://img.shields.io/badge/Java-21-orange?logo=java)](https://www.java.com/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.1-green?logo=spring)](https://spring.io/projects/spring-boot)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-Apache%202-blue)](LICENSE)
 
-A complete study-planning application with a **React + Tailwind CSS frontend** and a **Java + Spring Boot backend**.
+A complete, full-stack **study planning application** designed to boost productivity. Built with a **React + Tailwind CSS frontend** and a **Java + Spring Boot backend**, it features a robust Pomodoro timer, detailed analytics, and a fully customizable user experience.
 
-## Project Structure
+---
 
+## 📂 Project Structure
 
-```
+```text
 study-planner/
-├── backend/ # REST API  in Java + Spring Boot
-└── frontend/ # Interface in React + Tailwind CSS
+├── backend/   # REST API in Java + Spring Boot
+└── frontend/  # Interface in React + Tailwind CSS
 ```
 
+---
 
 ## 🛠 Technologies
 
 ### Backend
-- **Java 25**
-- **Spring Boot 3.5**
-- **Spring Web** (to create the REST API)
-- **Spring Data JPA** (for database access)
-- **Spring Security** (authentication & authorization)
-- **H2 Database** (in-memory for development)
-- **Lombok** (reduces boilerplate)
-- **Maven** (dependency & build management)
+
+* **Java 21**
+* **Spring Boot 3.5**
+* **Spring Web** (REST API)
+* **Spring Data JPA** (Database access)
+* **Spring Security** (Authentication & JWT Authorization)
+* **PostgreSQL** (Primary database)
+* **H2 Database** (Optional for local testing)
+* **Lombok** (Boilerplate reduction)
+* **Maven** (Dependency management)
 
 ### Frontend
-- **React 19.2** (UI library)
-- **Vite 7.2** (fast development bundler)
-- **Tailwind CSS 4.1** (responsive CSS framework)
-- **React Router DOM** (page navigation)
-- **Axios** (API HTTP requests)
-- **Recharts** (charts and statistics)
-- **Lucide React** (modern icons)
 
-## ⚡ Quick Installation
+* **React 19.2** (UI Library)
+* **Vite 7.2** (Build tool)
+* **Tailwind CSS 4.1** (Styling with CSS Variables for theming)
+* **Context API** (State management for themes)
+* **React Router DOM** (Navigation)
+* **Axios** (HTTP requests)
+* **Recharts** (Analytics & charts)
+* **Lucide React** (Icons)
+* **React Hot Toast** (Notifications)
 
-### Backend
+---
+
+## ⚡ Quick Start
+
+### 1. Backend Setup
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
-# Backend available at: http://localhost:8080
 ```
 
+* Server runs at: **[http://localhost:8080](http://localhost:8080)**
 
-### Frontend
+### 2. Frontend Setup
 
 ```bash
 cd frontend
 pnpm install
 pnpm dev
-# Frontend available at: http://localhost:5173
 ```
 
-The frontend will be available at: `http://localhost:5173`
+* App runs at: **[http://localhost:5173](http://localhost:5173)**
 
-## 🎯 Features
+---
 
-- ✅ **Authentication** (Login / Register)
-- ✅ **Dashboard with user statistics**
-- ✅ **Study-hours charts**
-- ✅ **Recent study sessions**
-- ✅ **Active goals with progress tracking**
-- ✅ **Subject management**
-- ✅ **Full REST API**
-- ✅ **Responsive design**
-- ✅ **Dark mode support**
+## 🎯 Key Features
 
-![Dashboard Screenshot](./frontend/src/assets/dashboard2.png)<br>
-*Example of the Dashboard of Study Planner Pro*
+### 🧠 Study Management
 
+* **Dashboard**: Real-time overview of streaks, total hours, and session counts.
+* **Analytics**: Visual charts for study time by subject and question performance.
+* **Goal Tracking**: Weekly, monthly, and long-term goals with progress indicators.
+
+### 🍅 Productivity Tools
+
+* **Advanced & Configurable Pomodoro Timer**
+
+  * Fully customizable durations:
+
+    * Focus time
+    * Short break
+    * Long break
+  * User-defined Pomodoro cycles before long breaks.
+  * Accumulated study time logic across multiple cycles before persisting sessions.
+  * Animated circular progress bar with smooth transitions.
+  * Custom session titles editable directly from the timer.
+
+### 🎨 Customization & UX
+
+* **Dynamic Theming**: Light, Dark, and System modes.
+* **Accessibility**: Adjustable font sizes (Small, Normal, Large).
+* **Settings**: Password management, sound effects, and user preferences.
+* **Responsive Design**: Fully optimized for desktop and mobile devices.
+
+---
 
 ## 🔗 API Endpoints
 
-| Functionality | Endpoint | Method |
-|------------------------|------------------------------------------------|--------|
-| Register user | `/api/auth/register` | POST |
-| Log in | `/api/auth/login` | POST |
-| User statistics | `/api/dashboard/stats/{userId}` | GET |
-| List sessions | `/api/study-sessions/user/{userId}` | GET |
-| List recent sessions | `/api/study-sessions/user/{userId}/recent` | GET |
-| Create session | `/api/study-sessions` | POST |
-| Delete session | `/api/study-sessions/{id}` | DELETE |
-| List goals | `/api/goals/user/{userId}` | GET |
-| Create goal | `/api/goals` | POST |
-| Update goal | `/api/goals/{id}` | PUT |
-| Delete goal | `/api/goals/{id}` | DELETE |
-| List subjects | `/api/subjects/user/{userId}` | GET |
-| Create subject | `/api/subjects` | POST |
-| Delete subject | `/api/subjects/{id}` | DELETE |
+### Authentication
 
+| Endpoint                    | Method | Description          |
+| --------------------------- | ------ | -------------------- |
+| `/api/auth/register`        | POST   | Register a new user  |
+| `/api/auth/login`           | POST   | Authenticate user    |
+| `/api/auth/change-password` | POST   | Update user password |
 
-## 🗄 Database
+### Dashboard
 
-- **H2 Database** (in-memory for development)
-- H2 Console: `http://localhost:8080/h2-console`
-- JDBC URL: `jdbc:h2:mem:studyplanner`
-- User: `sa`
-- Password: *(empty)*
+| Endpoint                        | Method | Description                     |
+| ------------------------------- | ------ | ------------------------------- |
+| `/api/dashboard/stats/{userId}` | GET    | Retrieve main stats and streaks |
 
-> To use a **persistent database** (PostgreSQL / MySQL), update your `application.properties` and set:
-> ```
-> spring.jpa.hibernate.ddl-auto=update
-> ```
+### Study Sessions
 
-## 🤝 Contributions
+| Endpoint                            | Method | Description                     |
+| ----------------------------------- | ------ | ------------------------------- |
+| `/api/study-sessions/user/{userId}` | GET    | List session history            |
+| `/api/study-sessions`               | POST   | Save Pomodoro or manual session |
+| `/api/study-sessions/{id}`          | DELETE | Remove a session                |
 
-1. Fork the repository
-2. Create a feature branch: `feature/my-feature`
-3. Commit your changes
-4. Open a Pull Request
+### Goals
 
+| Endpoint                   | Method | Description          |
+| -------------------------- | ------ | -------------------- |
+| `/api/goals/user/{userId}` | GET    | List active goals    |
+| `/api/goals`               | POST   | Create a new goal    |
+| `/api/goals/{id}`          | PUT    | Update goal progress |
 
-## 🚀 Next Steps
+### Subjects
 
-- Implement a persistent database
-- Improve test coverage
-- Add more statistics and charts
+| Endpoint        | Method | Description                       |
+| --------------- | ------ | --------------------------------- |
+| `/api/subjects` | POST   | Create a subject with a color tag |
 
+---
+
+## 🗄 Database Configuration
+
+* **Primary Database**: PostgreSQL
+* **Optional (Development/Test)**: H2 Database
+
+### PostgreSQL Setup
+
+Configure your database connection in `application.properties` or `application.yml`:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/studyplanner
+spring.datasource.username=postgres
+spring.datasource.password=your_password
+spring.jpa.hibernate.ddl-auto=update
+```
+
+### H2 (Optional)
+
+* H2 Console: [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
+* JDBC URL: `jdbc:h2:mem:studyplanner`
+* User: `sa`
+* Password: *(empty)*
+
+> **Production Tip**: PostgreSQL is the recommended database for production environments.
+
+---
 
 ## 📸 Screenshots
 
-![Home Screen](./frontend/src/assets/home.png)<br>
-*Main screen view of Study Planner Pro*
+* **Dashboard (Dark Mode)**: Overview of study stats, streaks, and analytics.
+* **Pomodoro Timer**: Immersive focus timer with circular progress and mode switching.
+* **Settings & Theming**: Light mode with theme and font size customization.
 
-![Sessions View](./frontend/src/assets/sessions.png)<br>
-*List of recent study sessions*
+---
 
-![Goals View](./frontend/src/assets/goals.png)<br>
-*Tracking of active goals with progress*
+## 🤝 Contributing
+
+Contributions are welcome!
+
+1. Fork the project.
+2. Create your feature branch:
+
+   ```bash
+   git checkout -b feature/AmazingFeature
+   ```
+3. Commit your changes:
+
+   ```bash
+   git commit -m "Add some AmazingFeature"
+   ```
+4. Push to the branch:
+
+   ```bash
+   git push origin feature/AmazingFeature
+   ```
+5. Open a Pull Request.
+
+---
+
+## 🚀 Future Roadmap
+
+* [ ] PWA (Progressive Web App) support for mobile installation
+* [ ] Flashcards system for active recall
+* [ ] Social features (study groups)
+* [ ] Export reports to PDF
+
+---
+
+Made with 💙 by **Augusto Soares**
