@@ -78,7 +78,7 @@ const QuestionsChart = ({ sessions }) => {
 
   if (dailyData.length === 0) {
       return (
-          <div className="w-full h-[350px] flex flex-col items-center justify-center text-gray-500 bg-[#1a1a1a] rounded-2xl border border-gray-800 animate-in fade-in duration-500">
+          <div className="w-full h-87.5 flex flex-col items-center justify-center text-text-muted bg-surface rounded-2xl border border-border animate-in fade-in duration-500">
               <p className="mb-2">Nenhuma questão resolvida neste período.</p>
               <p className="text-xs text-gray-600">Registre uma sessão do tipo "Questões".</p>
           </div>
@@ -86,20 +86,20 @@ const QuestionsChart = ({ sessions }) => {
   }
 
   return (
-    <div className="w-full h-[350px] bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 shadow-sm animate-in fade-in duration-500 flex flex-col">
+    <div className="w-full h-87.5 bg-surface border border-border rounded-2xl p-6 shadow-sm animate-in fade-in duration-500 flex flex-col">
         
         <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold text-white text-sm flex items-center gap-2">
+            <h3 className="font-bold text-text text-sm flex items-center gap-2">
                 Desempenho em Questões
             </h3>
             
-            <div className="flex p-1 bg-[#0a0a0a] rounded-lg border border-gray-800">
+            <div className="flex p-1 bg-background rounded-lg border border-border">
                 <button
                     onClick={() => setViewMode('DAILY')}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
                         viewMode === 'DAILY' 
-                        ? 'bg-gray-800 text-white shadow-sm border border-gray-700' 
-                        : 'text-gray-500 hover:text-gray-300'
+                        ? 'bg-gray-800 text-text shadow-sm border border-border' 
+                        : 'text-text-muted hover:text-gray-300'
                     }`}
                 >
                     <Calendar className="w-3 h-3" />
@@ -109,8 +109,8 @@ const QuestionsChart = ({ sessions }) => {
                     onClick={() => setViewMode('OVERALL')}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
                         viewMode === 'OVERALL' 
-                        ? 'bg-gray-800 text-white shadow-sm border border-gray-700' 
-                        : 'text-gray-500 hover:text-gray-300'
+                        ? 'bg-gray-800 text-text shadow-sm border border-border' 
+                        : 'text-text-muted hover:text-gray-300'
                     }`}
                 >
                     <BarChart3 className="w-3 h-3" />

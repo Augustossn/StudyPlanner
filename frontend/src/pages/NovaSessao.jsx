@@ -182,20 +182,20 @@ const NovaSessao = () => {
       <div className="max-w-3xl mx-auto">
         <button 
             onClick={() => navigate('/dashboard')}
-            className="flex items-center text-gray-400 hover:text-white mb-6 transition-colors"
+            className="flex items-center text-text-muted hover:text-text mb-6 transition-colors"
         >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar para o Dashboard
         </button>
 
-        <h1 className="text-3xl font-bold text-white mb-2">
+        <h1 className="text-3xl font-bold text-text mb-2">
             {isEditing ? 'Editar Sessão' : 'Registrar Sessão'}
         </h1>
-        <p className="text-gray-400 mb-8">
+        <p className="text-text-muted mb-8">
             {isEditing ? 'Atualize os detalhes da sua sessão.' : 'Registre o que você estudou para acompanhar seu progresso.'}
         </p>
         
-        <div className="bg-[#121212] border border-gray-800 rounded-xl p-8 shadow-2xl">
+        <div className="bg-[#121212] border border-border rounded-xl p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-8">
             
             {/* --- SELEÇÃO DO TIPO DE REGISTRO --- */}
@@ -210,7 +210,7 @@ const NovaSessao = () => {
                         className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 ${
                             sessionType === 'TIME' 
                             ? 'bg-blue-600/20 border-blue-500 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]' 
-                            : 'bg-[#0a0a0a] border-gray-800 text-gray-400 hover:bg-[#151515] hover:border-gray-600'
+                            : 'bg-background border-border text-text-muted hover:bg-[#151515] hover:border-gray-600'
                         }`}
                     >
                         <Clock className="w-6 h-6 mb-2" />
@@ -223,7 +223,7 @@ const NovaSessao = () => {
                         className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 ${
                             sessionType === 'QUESTIONS' 
                             ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]' 
-                            : 'bg-[#0a0a0a] border-gray-800 text-gray-400 hover:bg-[#151515] hover:border-gray-600'
+                            : 'bg-background border-border text-text-muted hover:bg-[#151515] hover:border-gray-600'
                         }`}
                     >
                         <HelpCircle className="w-6 h-6 mb-2" />
@@ -236,7 +236,7 @@ const NovaSessao = () => {
                         className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 ${
                             sessionType === 'BOTH' 
                             ? 'bg-purple-600/20 border-purple-500 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.2)]' 
-                            : 'bg-[#0a0a0a] border-gray-800 text-gray-400 hover:bg-[#151515] hover:border-gray-600'
+                            : 'bg-background border-border text-text-muted hover:bg-[#151515] hover:border-gray-600'
                         }`}
                     >
                         <Calculator className="w-6 h-6 mb-2" />
@@ -254,7 +254,7 @@ const NovaSessao = () => {
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Ex: Resolução de Lista de Exercícios"
-                        className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
+                        className="w-full px-4 py-3 bg-background border border-border rounded-lg text-text focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
                         required
                     />
                 </div>
@@ -265,7 +265,7 @@ const NovaSessao = () => {
                         <select
                             value={subjectId}
                             onChange={handleSubjectChange}
-                            className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
+                            className="w-full px-4 py-3 bg-background border border-border rounded-lg text-text focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
                             required
                         >
                             <option value="">Selecione uma matéria...</option>
@@ -273,13 +273,13 @@ const NovaSessao = () => {
                             <option key={subject.id} value={subject.id}>{subject.name}</option>
                             ))}
                         </select>
-                        <Layers className="absolute right-4 top-3.5 w-5 h-5 text-gray-500 pointer-events-none" />
+                        <Layers className="absolute right-4 top-3.5 w-5 h-5 text-text-muted pointer-events-none" />
                     </div>
                 </div>
 
                 {/* Assuntos (Condicional) */}
                 {availableMatters.length > 0 && (
-                    <div className="animate-in fade-in slide-in-from-top-2 duration-300 bg-[#0a0a0a] p-4 rounded-lg border border-gray-800">
+                    <div className="animate-in fade-in slide-in-from-top-2 duration-300 bg-background p-4 rounded-lg border border-border">
                         <label className="flex items-center gap-2 text-sm font-bold text-gray-300 mb-3 uppercase tracking-wide">
                             <Tag className="w-4 h-4" /> Tópicos Estudados
                         </label>
@@ -293,8 +293,8 @@ const NovaSessao = () => {
                                         onClick={() => toggleMatter(matter)}
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border transition-all duration-200 ${
                                             isSelected 
-                                            ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20' 
-                                            : 'bg-[#1a1a1a] border-gray-700 text-gray-400 hover:bg-gray-800 hover:border-gray-500'
+                                            ? 'bg-blue-600 border-blue-500 text-text shadow-lg shadow-blue-500/20' 
+                                            : 'bg-surface border-border text-text-muted hover:bg-gray-800 hover:border-gray-500'
                                         }`}
                                     >
                                         {matter}
@@ -315,8 +315,8 @@ const NovaSessao = () => {
                 {/* 1. INPUT DE TEMPO */}
                 {(sessionType === 'TIME' || sessionType === 'BOTH') && (
                     <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-                        <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider flex items-center gap-2">
-                             <Clock className="w-4 h-4 text-blue-500"/> Duração (minutos)
+                        <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider items-center gap-2">
+                            Duração (minutos)
                         </label>
                         <input
                             type="number"
@@ -324,7 +324,7 @@ const NovaSessao = () => {
                             max="1440"
                             value={duration}
                             onChange={(e) => setDuration(e.target.value)}
-                            className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-lg"
+                            className="w-full px-4 py-3 bg-background border border-border rounded-lg text-text focus:ring-2 focus:ring-blue-500 outline-none font-mono text-lg"
                             required={sessionType !== 'QUESTIONS'}
                         />
                         <div className="flex gap-2 mt-2 flex-wrap">
@@ -333,7 +333,7 @@ const NovaSessao = () => {
                                     key={mins}
                                     type="button"
                                     onClick={() => setDuration(mins)}
-                                    className="px-2 py-1 text-xs bg-[#1a1a1a] border border-gray-700 text-gray-400 rounded hover:bg-gray-800 hover:text-white transition-colors"
+                                    className="px-2 py-1 text-xs bg-surface border border-border text-text-muted rounded hover:bg-gray-800 hover:text-text transition-colors"
                                 >
                                     {mins}m
                                 </button>
@@ -345,9 +345,9 @@ const NovaSessao = () => {
                 {/* 2. INPUT DE QUESTÕES */}
                 {(sessionType === 'QUESTIONS' || sessionType === 'BOTH') && (
                     <div className={`md:col-span-${sessionType === 'QUESTIONS' ? '2' : '1'} animate-in fade-in slide-in-from-right-4 duration-300`}>
-                         <div className="grid grid-cols-2 gap-4 bg-[#0a0a0a] p-4 rounded-xl border border-gray-800 h-full">
+                         <div className="grid grid-cols-2 gap-4 bg-background p-4 rounded-xl border border-border h-full">
                             <div>
-                                <label className="block text-xs font-bold text-emerald-400 mb-2 uppercase tracking-wider flex items-center gap-2">
+                                <label className="block text-xs font-bold text-emerald-400 mb-2 uppercase tracking-wider items-center gap-2">
                                     <CheckCircle2 className="w-3.5 h-3.5"/> Acertos
                                 </label>
                                 <input
@@ -355,11 +355,11 @@ const NovaSessao = () => {
                                     min="0"
                                     value={correctCount}
                                     onChange={(e) => setCorrectCount(Number(e.target.value))}
-                                    className="w-full px-3 py-2 bg-[#151515] border border-emerald-900/50 rounded-lg text-white focus:ring-2 focus:ring-emerald-500 outline-none font-mono text-lg text-center"
+                                    className="w-full px-3 py-2 bg-[#151515] border border-emerald-900/50 rounded-lg text-text focus:ring-2 focus:ring-emerald-500 outline-none font-mono text-lg text-center"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-red-400 mb-2 uppercase tracking-wider flex items-center gap-2">
+                                <label className="block text-xs font-bold text-red-400 mb-2 uppercase tracking-wider items-center gap-2">
                                     <X className="w-3.5 h-3.5"/> Erros
                                 </label>
                                 <input
@@ -367,12 +367,12 @@ const NovaSessao = () => {
                                     min="0"
                                     value={wrongCount}
                                     onChange={(e) => setWrongCount(Number(e.target.value))}
-                                    className="w-full px-3 py-2 bg-[#151515] border border-red-900/50 rounded-lg text-white focus:ring-2 focus:ring-red-500 outline-none font-mono text-lg text-center"
+                                    className="w-full px-3 py-2 bg-[#151515] border border-red-900/50 rounded-lg text-text focus:ring-2 focus:ring-red-500 outline-none font-mono text-lg text-center"
                                 />
                             </div>
-                            <div className="col-span-2 text-center border-t border-gray-800 pt-3 mt-1">
-                                <p className="text-gray-500 text-xs uppercase tracking-widest mb-1">Total Resolvido</p>
-                                <p className="text-white font-bold text-2xl">{Number(correctCount) + Number(wrongCount)}</p>
+                            <div className="col-span-2 text-center border-t border-border pt-3 mt-1">
+                                <p className="text-text-muted text-xs uppercase tracking-widest mb-1">Total Resolvido</p>
+                                <p className="text-text font-bold text-2xl">{Number(correctCount) + Number(wrongCount)}</p>
                             </div>
                          </div>
                     </div>
@@ -382,7 +382,7 @@ const NovaSessao = () => {
                 <div className={`${sessionType === 'QUESTIONS' ? 'md:col-span-2' : ''}`}>
                     <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Data</label>
                     <div className="relative group">
-                        <CalendarIcon className="absolute left-3 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 z-10 pointer-events-none transition-colors" />
+                        <CalendarIcon className="absolute left-3 top-3.5 w-5 h-5 text-text-muted group-focus-within:text-blue-500 z-10 pointer-events-none transition-colors" />
                         <DatePicker 
                             selected={date} 
                             onChange={(date) => setDate(date)} 
@@ -407,7 +407,7 @@ const NovaSessao = () => {
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Anote aqui suas dificuldades..."
-                        className="w-full px-4 py-3 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all min-h-[100px] resize-none placeholder-gray-600"
+                        className="w-full px-4 py-3 bg-background border border-border rounded-lg text-text focus:ring-2 focus:ring-blue-500 outline-none transition-all min-h-25 resize-none placeholder-gray-600"
                     />
                 </div>
 
@@ -416,19 +416,19 @@ const NovaSessao = () => {
                     className={`flex items-center p-4 rounded-xl border cursor-pointer transition-all duration-300 ${
                         completed 
                         ? 'bg-blue-600/10 border-blue-500/50' 
-                        : 'bg-[#0a0a0a] border-gray-700 hover:border-gray-600'
+                        : 'bg-background border-border hover:border-gray-600'
                     }`}
                 >
                     {completed ? (
                         <CheckCircle2 className="w-6 h-6 text-blue-500 mr-3 shrink-0" />
                     ) : (
-                        <Circle className="w-6 h-6 text-gray-500 mr-3 shrink-0" />
+                        <Circle className="w-6 h-6 text-text-muted mr-3 shrink-0" />
                     )}
                     <div>
                         <p className={`font-medium ${completed ? 'text-blue-400' : 'text-gray-300'}`}>
                             Sessão Concluída
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-text-muted mt-0.5">
                             {completed ? 'Esta sessão será contabilizada nas estatísticas.' : 'Salvar como planejamento.'}
                         </p>
                     </div>
@@ -436,18 +436,18 @@ const NovaSessao = () => {
             </div>
 
             {/* Botões */}
-            <div className="flex gap-4 pt-4 border-t border-gray-800">
+            <div className="flex gap-4 pt-4 border-t border-border">
                 <button
                     type="button"
                     onClick={() => navigate('/dashboard')}
-                    className="px-8 py-4 bg-transparent border border-gray-700 text-gray-300 hover:bg-gray-800 font-semibold rounded-xl transition-all cursor-pointer"
+                    className="px-8 py-4 bg-transparent border border-border text-gray-300 hover:bg-gray-800 font-semibold rounded-xl transition-all cursor-pointer"
                 >
                     Cancelar
                 </button>
                 <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex-1 py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-text font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     {loading ? (
                         'Salvando...'

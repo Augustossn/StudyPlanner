@@ -10,7 +10,7 @@ const StatCard = ({
   glowColor
 }) => {
   return (
-    <div className="relative overflow-hidden bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 hover:border-gray-600 transition-all duration-300 group h-[130px] flex flex-col justify-between">
+    <div className="relative overflow-hidden bg-surface border border-border rounded-2xl p-6 hover:border-gray-600 transition-all duration-300 group h-32.5 flex flex-col justify-between">
 
       {/* Glow */}
       <div
@@ -19,7 +19,7 @@ const StatCard = ({
 
       {/* Header */}
       <div className="flex justify-between items-start relative z-10">
-        <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mt-1 truncate pr-2">
+        <p className="text-text-muted text-xs font-bold uppercase tracking-wider mt-1 truncate pr-2">
           {label}
         </p>
 
@@ -33,7 +33,7 @@ const StatCard = ({
 
       {/* Valor */}
       <div className="relative z-10 mt-2">
-        <h4 className="text-3xl font-bold text-white tracking-tight truncate">
+        <h4 className="text-3xl font-bold text-text tracking-tight truncate">
           {value}
         </h4>
       </div>

@@ -74,7 +74,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       
       {/* Background Effects */}
       <div className="absolute top-[-20%] left-[-10%] w-125 h-125 bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
@@ -85,53 +85,53 @@ function Login() {
         {/* Logo Header */}
         <div className="flex flex-col items-center justify-center mb-8 animate-fade-in-down">
           <div className="w-16 h-16 bg-linear-to-br from-blue-600 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/20 mb-4 transform hover:scale-105 transition-transform duration-300">
-            <GraduationCap className="w-9 h-9 text-white" />
+            <GraduationCap className="w-9 h-9 text-text" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-3xl font-bold text-text tracking-tight">
             Study<span className="text-blue-500">Planner</span>
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Sua jornada de conhecimento começa aqui</p>
+          <p className="text-text-muted text-sm mt-1">Sua jornada de conhecimento começa aqui</p>
         </div>
 
         {/* Card Principal */}
         <div className="bg-[#121212]/80 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
           
           {/* Toggle Login/Register */}
-          <div className="bg-[#1a1a1a] p-1 rounded-xl flex mb-8 relative">
+          <div className="bg-surface p-1 rounded-xl flex mb-8 relative">
             <div 
                 className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#2a2a2a] rounded-lg shadow-sm transition-all duration-300 ease-out ${isLogin ? 'left-1' : 'left-[calc(50%+4px)]'}`}
             ></div>
-            <button onClick={() => { setIsLogin(true); setError(''); }} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg relative z-10 transition-colors ${isLogin ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}>Login</button>
-            <button onClick={() => { setIsLogin(false); setError(''); }} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg relative z-10 transition-colors ${!isLogin ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}>Criar Conta</button>
+            <button onClick={() => { setIsLogin(true); setError(''); }} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg relative z-10 transition-colors ${isLogin ? 'text-text' : 'text-text-muted hover:text-gray-300'}`}>Login</button>
+            <button onClick={() => { setIsLogin(false); setError(''); }} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg relative z-10 transition-colors ${!isLogin ? 'text-text' : 'text-text-muted hover:text-gray-300'}`}>Criar Conta</button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             
             {/* Input Nome (Só aparece no Registro) */}
             <div className={`transition-all duration-300 overflow-hidden ${!isLogin ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <label className="block text-gray-400 text-xs font-bold uppercase mb-2 ml-1">Nome Completo</label>
+                <label className="block text-text-muted text-xs font-bold uppercase mb-2 ml-1">Nome Completo</label>
                 <div className="relative group">
-                    <User className="absolute left-4 top-3.5 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
-                    <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Ex: João Silva" required={!isLogin} className="w-full pl-12 pr-4 py-3.5 bg-[#0a0a0a] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+                    <User className="absolute left-4 top-3.5 w-5 h-5 text-text-muted group-focus-within:text-blue-500 transition-colors" />
+                    <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Ex: João Silva" required={!isLogin} className="w-full pl-12 pr-4 py-3.5 bg-background border border-border rounded-xl text-text placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
                 </div>
             </div>
 
             {/* Input Email */}
             <div>
-              <label className="block text-gray-400 text-xs font-bold uppercase mb-2 ml-1">Email</label>
+              <label className="block text-text-muted text-xs font-bold uppercase mb-2 ml-1">Email</label>
               <div className="relative group">
-                <Mail className="absolute left-4 top-3.5 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
-                <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="seu@email.com" required className="w-full pl-12 pr-4 py-3.5 bg-[#0a0a0a] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+                <Mail className="absolute left-4 top-3.5 w-5 h-5 text-text-muted group-focus-within:text-blue-500 transition-colors" />
+                <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="seu@email.com" required className="w-full pl-12 pr-4 py-3.5 bg-background border border-border rounded-xl text-text placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
               </div>
             </div>
 
             {/* Input Senha */}
             <div>
-              <label className="block text-gray-400 text-xs font-bold uppercase mb-2 ml-1">Senha</label>
+              <label className="block text-text-muted text-xs font-bold uppercase mb-2 ml-1">Senha</label>
               <div className="relative group">
-                <Lock className="absolute left-4 top-3.5 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
-                <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" required className="w-full pl-12 pr-12 py-3.5 bg-[#0a0a0a] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-3.5 text-gray-500 hover:text-white transition-colors">
+                <Lock className="absolute left-4 top-3.5 w-5 h-5 text-text-muted group-focus-within:text-blue-500 transition-colors" />
+                <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" required className="w-full pl-12 pr-12 py-3.5 bg-background border border-border rounded-xl text-text placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-3.5 text-text-muted hover:text-text transition-colors">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
@@ -146,22 +146,22 @@ function Login() {
                             className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${
                                 rememberMe 
                                 ? 'bg-blue-600 border-blue-600' 
-                                : 'bg-[#0a0a0a] border-gray-700 group-hover:border-gray-500'
+                                : 'bg-background border-border group-hover:border-gray-500'
                             }`}
                             onClick={(e) => {
                                 e.preventDefault(); // Evita duplo clique estranho
                                 setRememberMe(!rememberMe);
                             }}
                         >
-                            {rememberMe && <Check className="w-3.5 h-3.5 text-white" />}
+                            {rememberMe && <Check className="w-3.5 h-3.5 text-text" />}
                         </div>
-                        <span className="text-sm text-gray-400 group-hover:text-gray-300">
+                        <span className="text-sm text-text-muted group-hover:text-gray-300">
                             Lembrar de mim
                         </span>
                     </label>
                     
                     {/* Link para Recuperação de Senha */}
-                    <Link to="/forgot-password" className="text-sm text-blue-500 hover:text-blue-400 hover:underline transition-all">
+                    <Link to="/recuperar-senha" className="text-sm text-blue-500 hover:text-blue-400 hover:underline transition-all">
                         Esqueceu a senha?
                     </Link>
                 </div>
@@ -176,7 +176,7 @@ function Login() {
             )}
 
             {/* Botão de Submit */}
-            <button type="submit" disabled={loading} className="w-full py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-6">
+            <button type="submit" disabled={loading} className="w-full py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-text font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-6">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{isLogin ? 'Entrar na Plataforma' : 'Começar Agora'} <ArrowRight className="w-5 h-5" /></>}
             </button>
           </form>

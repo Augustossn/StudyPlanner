@@ -166,7 +166,7 @@ const Calendario = () => {
             .rbc-day-bg:hover { background-color: #1f1f1f; transition: background-color 0.2s; }
         `}</style>
 
-        <div className="h-[80vh] p-6 bg-[#1a1a1a] border border-gray-800 rounded-2xl shadow-xl flex flex-col antialiased">
+        <div className="h-[80vh] p-6 bg-surface border border-border rounded-2xl shadow-xl flex flex-col antialiased">
             
             {/* --- HEADER CUSTOMIZADO --- */}
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
@@ -176,15 +176,15 @@ const Calendario = () => {
                         <CalendarIcon className="text-blue-500 w-6 h-6" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-white leading-none">
+                        <h1 className="text-xl font-bold text-text leading-none">
                             {format(currentDate, "MMMM yyyy", { locale: ptBR })}
                         </h1>
-                        <p className="text-sm text-gray-500 mt-1">Histórico de Sessões</p>
+                        <p className="text-sm text-text-muted mt-1">Histórico de Sessões</p>
                     </div>
                 </div>
 
                 {/* Controles de Navegação */}
-                <div className="flex items-center gap-3 bg-[#0f0f0f] p-1.5 rounded-xl border border-gray-800">
+                <div className="flex items-center gap-3 bg-[#0f0f0f] p-1.5 rounded-xl border border-border">
                     
                     {/* Botão Anterior */}
                     <button 
@@ -193,7 +193,7 @@ const Calendario = () => {
                         className={`p-2 rounded-lg transition-colors ${
                             isPrevDisabled 
                             ? 'text-gray-600 cursor-not-allowed opacity-50' // Estilo Bloqueado
-                            : 'text-gray-400 hover:bg-gray-800 hover:text-white cursor-pointer' // Estilo Ativo
+                            : 'text-text-muted hover:bg-gray-800 hover:text-text cursor-pointer' // Estilo Ativo
                         }`}
                         title={isPrevDisabled ? "Limite de histórico alcançado" : "Mês anterior"}
                     >
@@ -205,7 +205,7 @@ const Calendario = () => {
                         <select 
                             value={currentDate.toISOString()} 
                             onChange={handleMonthChange}
-                            className="bg-gray-800 text-white text-sm font-medium py-2 pl-4 pr-8 rounded-lg outline-none border border-gray-700 focus:border-blue-500 appearance-none cursor-pointer hover:bg-gray-700 transition-colors capitalize"
+                            className="bg-gray-800 text-text text-sm font-medium py-2 pl-4 pr-8 rounded-lg outline-none border border-border focus:border-blue-500 appearance-none cursor-pointer hover:bg-gray-700 transition-colors capitalize"
                         >
                             {monthsOptions.map((date, idx) => (
                                 <option key={idx} value={date.toISOString()}>
@@ -213,7 +213,7 @@ const Calendario = () => {
                                 </option>
                             ))}
                         </select>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
                            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         </div>
                     </div>
@@ -225,7 +225,7 @@ const Calendario = () => {
                         className={`p-2 rounded-lg transition-colors ${
                             isNextDisabled 
                             ? 'text-gray-600 cursor-not-allowed opacity-50' // Estilo Bloqueado
-                            : 'text-gray-400 hover:bg-gray-800 hover:text-white cursor-pointer' // Estilo Ativo
+                            : 'text-text-muted hover:bg-gray-800 hover:text-text cursor-pointer' // Estilo Ativo
                         }`}
                         title={isNextDisabled ? "Você está no mês atual" : "Próximo mês"}
                     >
@@ -264,19 +264,19 @@ const Calendario = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 antialiased animate-in fade-in duration-200">
                     {/* Adicionado stopPropagation no container para fechar ao clicar fora */}
                     <div 
-                        className="bg-black border border-gray-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                        className="bg-black border border-border w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                         onClick={(e) => e.stopPropagation()} 
                     >
-                        <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#151515]">
+                        <div className="p-5 border-b border-border flex justify-between items-center bg-[#151515]">
                             <div>
-                                <h2 className="text-xl font-bold text-white capitalize">
+                                <h2 className="text-xl font-bold text-text capitalize">
                                     {selectedDate && format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
                                 </h2>
-                                <p className="text-sm text-gray-400 mt-1">
+                                <p className="text-sm text-text-muted mt-1">
                                     {daySessions.length} sessões registradas
                                 </p>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white cursor-pointer">
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-800 rounded-lg text-text-muted hover:text-text cursor-pointer">
                                 <X size={24} />
                             </button>
                         </div>
@@ -289,20 +289,20 @@ const Calendario = () => {
                                         // 4. AJUSTE: Clique na lista abre o modal de detalhes
                                         onClick={() => setViewSession(event.resource || event)}
                                         // Adicionado cursor-pointer e hover
-                                        className="p-4 bg-[#0a0a0a] border border-gray-800 rounded-xl flex gap-4 items-start cursor-pointer hover:border-gray-600 transition-colors group"
+                                        className="p-4 bg-background border border-border rounded-xl flex gap-4 items-start cursor-pointer hover:border-gray-600 transition-colors group"
                                     >
-                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white shadow-md shrink-0 text-xl" style={{ backgroundColor: event.resource.subject?.color || '#333' }}>
+                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-text shadow-md shrink-0 text-xl" style={{ backgroundColor: event.resource.subject?.color || '#333' }}>
                                             <BookOpen size={24} />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-start">
-                                                <h4 className="text-lg font-bold text-white truncate pr-2 group-hover:text-blue-400 transition-colors">{event.title}</h4>
-                                                <span className="flex items-center gap-1.5 text-xs font-mono bg-gray-800 text-gray-300 px-2 py-1 rounded-md border border-gray-700">
+                                                <h4 className="text-lg font-bold text-text truncate pr-2 group-hover:text-blue-400 transition-colors">{event.title}</h4>
+                                                <span className="flex items-center gap-1.5 text-xs font-mono bg-gray-800 text-gray-300 px-2 py-1 rounded-md border border-border">
                                                     <Clock size={12} />
                                                     {event.resource.durationMinutes} min
                                                 </span>
                                             </div>
-                                            <p className="text-gray-400 text-sm mt-0.5">{event.resource.subject?.name || 'Geral'}</p>
+                                            <p className="text-text-muted text-sm mt-0.5">{event.resource.subject?.name || 'Geral'}</p>
                                             {event.resource.matters?.length > 0 && (
                                                 <div className="mt-3 flex flex-wrap gap-2">
                                                     {event.resource.matters.map((matter, mIdx) => (
@@ -314,15 +314,15 @@ const Calendario = () => {
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-center py-12 text-gray-500">
+                                <div className="text-center py-12 text-text-muted">
                                     <Clock className="w-12 h-12 mx-auto mb-3 opacity-20" />
                                     <p className="text-lg">Dia livre!</p>
                                 </div>
                             )}
                         </div>
                         
-                        <div className="p-5 border-t border-gray-800 bg-[#151515]">
-                             <button onClick={() => setIsModalOpen(false)} className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold shadow-lg cursor-pointer transition-colors">Fechar</button>
+                        <div className="p-5 border-t border-border bg-[#151515]">
+                             <button onClick={() => setIsModalOpen(false)} className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-text rounded-xl font-bold shadow-lg cursor-pointer transition-colors">Fechar</button>
                         </div>
                     </div>
                     {/* Fecha o modal ao clicar no fundo escuro */}

@@ -31,15 +31,15 @@ const StudyTimeChart = ({ sessions, activeColor }) => {
   }, [sessions]);
 
   return (
-    <div className="w-full h-[350px] bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 shadow-sm animate-in fade-in duration-500">
+    <div className="w-full h-87.5 bg-surface border border-border rounded-2xl p-6 shadow-sm animate-in fade-in duration-500">
         <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold text-white text-sm flex items-center gap-2">
+            <h3 className="font-bold text-text text-sm flex items-center gap-2">
                 <Activity className="w-4 h-4" style={{ color: activeColor }} />
                 Ritmo de Estudos (7 dias)
             </h3>
         </div>
         
-        <div className="w-full h-[250px]">
+        <div className="w-full h-62.5">
             <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
                     <defs>

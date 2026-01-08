@@ -27,8 +27,6 @@ export const getAuthUser = () => {
       console.error("Auth: Erro ao ler SessionStorage", e);
     }
   }
-
-  console.log("Auth: Nenhum usuário logado encontrado.");
   return null;
 };
 

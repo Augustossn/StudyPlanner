@@ -16,7 +16,7 @@ const QuestionsStatCard = ({ total, correct }) => {
   }
 
   return (
-    <div className="relative overflow-hidden bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 hover:border-gray-600 transition-all duration-300 group h-[130px] flex flex-col justify-between">
+    <div className="relative overflow-hidden bg-surface border border-border rounded-2xl p-6 hover:border-gray-600 transition-all duration-300 group h-32.5 flex flex-col justify-between">
 
       {/* Glow */}
       <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-emerald-500/10 blur-3xl group-hover:bg-emerald-500/20 transition-all pointer-events-none" />
@@ -26,11 +26,11 @@ const QuestionsStatCard = ({ total, correct }) => {
         {/* Texto */}
         <div className="flex flex-col h-full justify-between pr-2 max-w-[50%]">
           <div>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mt-1">
+            <p className="text-text-muted text-xs font-bold uppercase tracking-wider mt-1">
               Taxa de Acerto
             </p>
 
-            <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mt-1">
+            <div className="flex items-center gap-1 text-[10px] text-text-muted font-medium mt-1">
               <HelpCircle className="w-3 h-3 shrink-0" />
               <span>
                 {correct}/{total} Questões
@@ -40,7 +40,7 @@ const QuestionsStatCard = ({ total, correct }) => {
 
           <h4
             className={`text-3xl font-bold tracking-tight ${
-              percentage >= 70 ? 'text-emerald-400' : 'text-white'
+              percentage >= 70 ? 'text-emerald-400' : 'text-text'
             }`}
           >
             {percentage}%
@@ -48,7 +48,7 @@ const QuestionsStatCard = ({ total, correct }) => {
         </div>
 
         {/* Gráfico */}
-        <div className="w-[100px] h-[100px] relative -mt-4 -mr-4 shrink-0">
+        <div className="w-25 h-25 relative -mt-4 -mr-4 shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -75,7 +75,7 @@ const QuestionsStatCard = ({ total, correct }) => {
                 y="52%"
                 textAnchor="middle"
                 dominantBaseline="middle"
-                className="fill-white text-xl font-bold"
+                className="fill-(--text) text-xl font-bold"
               >
                 {total}
               </text>

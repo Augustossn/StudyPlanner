@@ -1,28 +1,48 @@
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast'; 
+
+// Páginas
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import NovaSessao from './pages/NovaSessao';
 import NovaMeta from './pages/NovaMeta';
 import NovaMateria from './pages/NovaMateria';
 import Calendario from './pages/Calendario';
-import { isAuthenticated } from './utils/auth'; // Certifique-se de ter criado este arquivo
-import RecuperarSenha from './pages/RecuperarSenha';
+import RecuperarSenha from './pages/RecuperarSenha'; // ou ForgotPassword, dependendo do nome do seu arquivo
+import Pomodoro from './pages/Pomodoro';
+import Configuracoes from './pages/Configuracoes'; // <--- IMPORT NOVO
+
+import { isAuthenticated } from './utils/auth';
 
 // --- COMPONENTES DE PROTEÇÃO DE ROTA ---
 
-// 1. Rota Privada: Só entra se estiver logado. Se não, vai pro Login.
 const PrivateRoute = ({ children }) => {
   return isAuthenticated() ? children : <Navigate to="/" />;
 };
 
-// 2. Rota Pública: Só entra se NÃO estiver logado. Se já estiver, vai pro Dashboard.
-// (É isso que faz o usuário "pular" o login se marcou "Permanecer conectado")
 const PublicRoute = ({ children }) => {
   return isAuthenticated() ? <Navigate to="/dashboard" /> : children;
 };
 
 function App() {
+  
+  // --- EFEITO GLOBAL: CARREGAR PREFERÊNCIAS VISUAIS ---
+  useEffect(() => {
+    // Verifica se existe configuração salva de fonte e aplica no HTML
+    const savedApp = localStorage.getItem('app_settings');
+    if (savedApp) {
+      try {
+        const { fontSize } = JSON.parse(savedApp);
+        if (fontSize) {
+            document.documentElement.setAttribute('data-font-size', fontSize);
+        }
+      } catch (e) {
+        console.error("Erro ao carregar configurações visuais", e);
+      }
+    }
+  }, []);
+
   return (
     <Router>
       <Toaster 
@@ -51,7 +71,7 @@ function App() {
       />
       <Routes>
         
-        {/* Rota de Login (Protegida contra quem já está logado) */}
+        {/* Rota de Login */}
         <Route 
           path="/" 
           element={
@@ -61,7 +81,7 @@ function App() {
           } 
         />
 
-        {/* Rotas do Sistema (Protegidas contra quem NÃO está logado) */}
+        {/* Rotas do Sistema */}
         <Route 
           path="/dashboard" 
           element={
@@ -116,7 +136,26 @@ function App() {
           } 
         />
 
-        {/* Rota Coringa: Redireciona qualquer URL inválida para a raiz */}
+        <Route 
+          path="/pomodoro" 
+          element={
+            <PrivateRoute>
+              <Pomodoro />
+            </PrivateRoute>
+          } 
+        />
+
+        {/* --- ROTA DE CONFIGURAÇÕES --- */}
+        <Route 
+          path="/configuracoes" 
+          element={
+            <PrivateRoute>
+              <Configuracoes />
+            </PrivateRoute>
+          } 
+        />
+
+        {/* Rota Coringa */}
         <Route path="*" element={<Navigate to="/" replace />} />
         
       </Routes>

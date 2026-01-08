@@ -1,10 +1,10 @@
-import { useState } from 'react'; // Importar useState
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Settings, LogOut, Zap, 
   BookMarked, Target, Plus, X, 
-  ChevronUp, ChevronDown, User, // Novos ícones
-  CalendarIcon
+  ChevronUp, ChevronDown, User, 
+  Calendar, Timer // Usei 'Calendar' direto do Lucide
 } from 'lucide-react';
 import { logout, getAuthUser } from '../utils/auth';
 
@@ -12,7 +12,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const user = getAuthUser() || {};
   
-  // --- NOVO ESTADO: Controla o menu do usuário ---
+  // Controla o menu popup do usuário
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const navItems = [
@@ -20,14 +20,16 @@ const Sidebar = ({ isOpen, onClose }) => {
     { icon: BookMarked, label: 'Nova Sessão', path: '/nova-sessao' }, 
     { icon: Target, label: 'Nova Meta', path: '/nova-meta' }, 
     { icon: Plus, label: 'Nova Matéria', path: '/nova-materia' },
-    { icon: CalendarIcon, label: 'Calendário', path: '/calendario' }
+    { icon: Calendar, label: 'Calendário', path: '/calendario' },
+    { icon: Timer, label: 'Pomodoro', path: '/pomodoro'}
   ];
 
-  const isSettingsActive = location.pathname === '/settings';
+  // Verifica se a rota atual é configurações para destacar o ícone
+  const isSettingsActive = location.pathname === '/configuracoes';
 
   return (
     <>
-      {/* Overlay Mobile */}
+      {/* Overlay Mobile (Fundo escuro quando menu abre no celular) */}
       {isOpen && (
         <div 
           onClick={onClose}
@@ -37,28 +39,29 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       <aside 
         className={`
-          fixed top-0 left-0 h-screen w-64 bg-[#1a1a1a] border-r border-gray-800 flex flex-col z-50 transition-transform duration-300 ease-in-out
+          fixed top-0 left-0 h-screen w-64 bg-background border-r border-border flex flex-col z-50 transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        {/* Cabeçalho */}
-        <div className="p-6 flex items-center gap-3 border-b border-gray-800 relative">
-          <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center border border-gray-800 shadow-sm">
-            <Zap className="w-5 h-5 text-white fill-white" strokeWidth={0} />
+        {/* CABEÇALHO */}
+        <div className="p-6 flex items-center gap-3 mb-2 relative">
+          <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+            <Zap className="w-5 h-5 text-text fill-white" strokeWidth={0} />
           </div>
           <div>
-            <h1 className="font-bold text-white text-lg leading-none tracking-tight">StudyPlanner</h1>
+            <h1 className="font-bold text-text text-lg leading-none tracking-tight">StudyPlanner</h1>
           </div>
+          {/* Botão X (Só aparece no mobile) */}
           <button 
             onClick={onClose} 
-            className="absolute right-4 text-gray-500 hover:text-white transition-colors md:hidden"
+            className="absolute right-4 text-text-muted hover:text-text transition-colors md:hidden"
           >
             <X size={20} />
           </button>
         </div>
 
-        {/* Navegação Principal */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        {/* NAVEGAÇÃO PRINCIPAL */}
+        <nav className="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar">
           {navItems.map((item, index) => {
             const isActive = location.pathname === item.path;
             return (
@@ -66,39 +69,41 @@ const Sidebar = ({ isOpen, onClose }) => {
                 key={index}
                 to={item.path}
                 onClick={() => window.innerWidth < 768 && onClose()} 
-                className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium ${
                   isActive 
-                    ? 'bg-blue-600/10 text-blue-500 border border-blue-500/20' 
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                    ? 'bg-blue-600 text-text shadow-lg shadow-blue-900/20' 
+                    : 'text-text-muted hover:bg-surface hover:text-text'
                 }`}
               >
-                <item.icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-text' : 'group-hover:text-text'}`} />
+                <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* --- RODAPÉ COM MENU POPUP --- */}
-        <div className="p-4 border-t border-gray-800 bg-[#151515] relative">
+        {/* RODAPÉ COM MENU POPUP DE USUÁRIO */}
+        <div className="p-4 border-t border-border bg-background relative">
           
-          {/* MENU FLUTUANTE (Aparece apenas se showUserMenu for true) */}
+          {/* POPUP (Abre para cima) */}
           {showUserMenu && (
-            <div className="absolute bottom-full left-4 right-4 mb-2 bg-[#1a1a1a] border border-gray-700 rounded-xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-200">
+            <div className="absolute bottom-full left-4 right-4 mb-2 bg-surface border border-border rounded-xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-200 z-50">
                 <div className="p-1.5 space-y-1">
+                    {/* Link Configurações */}
                     <Link
-                        to="/settings"
+                        to="/configuracoes"
                         onClick={() => { setShowUserMenu(false); if(window.innerWidth < 768) onClose(); }}
                         className={`flex items-center gap-3 p-2.5 rounded-lg transition-all duration-200 w-full ${
                         isSettingsActive 
                             ? 'bg-blue-600/10 text-blue-500' 
-                            : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                            : 'text-text-muted hover:bg-gray-800 hover:text-text'
                         }`}
                     >
                         <Settings className="w-4 h-4" />
                         <span className="font-medium text-sm">Configurações</span>
                     </Link>
 
+                    {/* Botão Sair */}
                     <button
                         onClick={logout}
                         className="w-full flex items-center gap-3 p-2.5 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors text-sm font-medium cursor-pointer"
@@ -110,27 +115,26 @@ const Sidebar = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* ÁREA DO USUÁRIO (CLICÁVEL) */}
+          {/* BOTÃO DO PERFIL (Clicável) */}
           <button 
             onClick={() => setShowUserMenu(!showUserMenu)}
             className={`flex items-center gap-3 w-full p-2 rounded-xl transition-all border cursor-pointer ${
                 showUserMenu  
-                ? 'bg-gray-800 border-gray-700' 
-                : 'border-transparent hover:bg-gray-800 hover:border-gray-700'
+                ? 'bg-surface border-border' 
+                : 'border-transparent hover:bg-surface hover:border-border'
             }`}
           >
-            <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white font-bold border-2 border-[#1a1a1a] shrink-0">
+            <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-text font-bold border border-border shrink-0">
               {user.name ? user.name.charAt(0).toUpperCase() : <User size={20} />}
             </div>
             
             <div className="flex-1 overflow-hidden text-left">
-              <p className="text-sm font-medium text-white truncate">{user.name || 'Usuário'}</p>
-              <p className="text-xs text-gray-500 truncate">{user.email || 'email@exemplo.com'}</p>
+              <p className="text-sm font-bold text-text truncate">{user.name || 'Usuário'}</p>
+              <p className="text-xs text-text-muted truncate">{user.email || '...'}</p>
             </div>
 
-            {/* Ícone da seta que gira */}
-            <div className="text-gray-500">
-                {showUserMenu ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+            <div className="text-text-muted">
+                {showUserMenu ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
             </div>
           </button>
 

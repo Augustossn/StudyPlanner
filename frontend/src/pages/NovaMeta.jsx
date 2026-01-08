@@ -171,33 +171,33 @@ const NovaMeta = () => {
       <div className="max-w-3xl mx-auto">
         <button 
             onClick={() => navigate('/dashboard')}
-            className="flex items-center text-gray-400 hover:text-white mb-6 transition-colors"
+            className="flex items-center text-text-muted hover:text-text mb-6 transition-colors"
         >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar para o Dashboard
         </button>
 
-        <h1 className="text-3xl font-bold text-white mb-2">
+        <h1 className="text-3xl font-bold text-text mb-2">
             {isEditing ? 'Editar Meta' : 'Definir Nova Meta'}
         </h1>
-        <p className="text-gray-400 mb-8">
+        <p className="text-text-muted mb-8">
             {isEditing ? 'Ajuste seus objetivos atuais.' : 'Vincule sua meta a uma matéria para rastreamento automático.'}
         </p>
         
-        <div className="bg-[#121212] border border-gray-800 rounded-2xl p-8 shadow-2xl">
+        <div className="bg-[#121212] border border-border rounded-2xl p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-8">
             
             {/* 1. O Objetivo (Título) */}
             <div>
               <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Qual é o seu objetivo?</label>
               <div className="relative">
-                <Target className="absolute left-4 top-4 w-5 h-5 text-gray-500" />
+                <Target className="absolute left-4 top-4 w-5 h-5 text-text-muted" />
                 <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Ex: Dominar Spring Boot"
-                    className="w-full pl-12 pr-4 py-4 bg-[#0a0a0a] border border-gray-700 rounded-xl text-white text-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
+                    className="w-full pl-12 pr-4 py-4 bg-background border border-border rounded-xl text-text text-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
                     required
                     autoFocus={!isEditing}
                 />
@@ -210,11 +210,11 @@ const NovaMeta = () => {
                     Vincular a uma Matéria (Opcional)
                 </label>
                 <div className="relative">
-                    <Layers className="absolute left-4 top-4 w-5 h-5 text-gray-500 pointer-events-none" />
+                    <Layers className="absolute left-4 top-4 w-5 h-5 text-text-muted pointer-events-none" />
                     <select
                         value={subjectId}
                         onChange={handleSubjectChange}
-                        className="w-full pl-12 pr-4 py-4 bg-[#0a0a0a] border border-gray-700 rounded-xl text-white text-lg focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
+                        className="w-full pl-12 pr-4 py-4 bg-background border border-border rounded-xl text-text text-lg focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
                     >
                         <option value="">Geral (Sem vínculo específico)</option>
                         {subjects.map((subject) => (
@@ -224,7 +224,7 @@ const NovaMeta = () => {
                         ))}
                     </select>
                     {/* Seta customizada */}
-                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-text-muted">
                         <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
                             <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path>
                         </svg>
@@ -240,12 +240,12 @@ const NovaMeta = () => {
                         </label>
                         <div className="relative">
                             {/* Adicionei o ícone aqui para alinhar com o input de cima */}
-                            <Tag className="absolute left-4 top-4 w-5 h-5 text-gray-500 pointer-events-none" />
+                            <Tag className="absolute left-4 top-4 w-5 h-5 text-text-muted pointer-events-none" />
                             <select
                                 value={matters}
                                 onChange={(e) => setMatters(e.target.value)}
                                 // Ajustei para pl-12 (recuo) e py-4 (altura) igual ao de cima
-                                className="w-full pl-12 pr-4 py-4 bg-[#0a0a0a] border border-gray-700 rounded-xl text-white text-lg focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
+                                className="w-full pl-12 pr-4 py-4 bg-background border border-border rounded-xl text-text text-lg focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
                             >
                                 <option value="">Qualquer assunto da matéria</option>
                                 {availableMatters.map((m, index) => (
@@ -254,13 +254,13 @@ const NovaMeta = () => {
                                     </option>
                                 ))}
                             </select>
-                             <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                             <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-text-muted">
                                 <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
                                     <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path>
                                 </svg>
                             </div>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2 ml-1">
+                        <p className="text-xs text-text-muted mt-2 ml-1">
                             A meta só contabilizará sessões deste assunto específico.
                         </p>
                     </div>
@@ -278,34 +278,34 @@ const NovaMeta = () => {
                             className={`cursor-pointer p-4 rounded-xl border-2 transition-all hover:scale-[1.02] ${
                                 goalType === type 
                                 ? 'bg-blue-900/20 border-blue-500' 
-                                : 'bg-[#0a0a0a] border-gray-800 hover:border-gray-600'
+                                : 'bg-background border-border hover:border-gray-600'
                             }`}
                         >
                             <div className="flex items-center justify-between mb-3">
-                                {type === 'Semanal' && <Clock className={`w-6 h-6 ${goalType === type ? 'text-blue-400' : 'text-gray-500'}`} />}
-                                {type === 'Mensal' && <Calendar className={`w-6 h-6 ${goalType === type ? 'text-blue-400' : 'text-gray-500'}`} />}
-                                {type === 'Desafio' && <TrendingUp className={`w-6 h-6 ${goalType === type ? 'text-blue-400' : 'text-gray-500'}`} />}
+                                {type === 'Semanal' && <Clock className={`w-6 h-6 ${goalType === type ? 'text-blue-400' : 'text-text-muted'}`} />}
+                                {type === 'Mensal' && <Calendar className={`w-6 h-6 ${goalType === type ? 'text-blue-400' : 'text-text-muted'}`} />}
+                                {type === 'Desafio' && <TrendingUp className={`w-6 h-6 ${goalType === type ? 'text-blue-400' : 'text-text-muted'}`} />}
                                 
                                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${goalType === type ? 'border-blue-500' : 'border-gray-600'}`}>
                                     {goalType === type && <div className="w-2 h-2 rounded-full bg-blue-500" />}
                                 </div>
                             </div>
-                            <h3 className={`font-bold ${goalType === type ? 'text-white' : 'text-gray-300'}`}>{type}</h3>
+                            <h3 className={`font-bold ${goalType === type ? 'text-text' : 'text-gray-300'}`}>{type}</h3>
                         </div>
                     ))}
                 </div>
             </div>
 
             {/* 3. Slider de Horas + Datas */}
-            <div className="bg-[#0a0a0a] rounded-xl p-6 border border-gray-800">
+            <div className="bg-background rounded-xl p-6 border border-border">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h3 className="text-white font-medium">Carga Horária Alvo</h3>
-                        <p className="text-sm text-gray-500">Quanto você quer estudar?</p>
+                        <h3 className="text-text font-medium">Carga Horária Alvo</h3>
+                        <p className="text-sm text-text-muted">Quanto você quer estudar?</p>
                     </div>
                     <div className="text-right">
                         <span className="block text-2xl font-bold text-blue-500">{targetHours}h</span>
-                        <span className="text-xs font-mono text-gray-400 bg-gray-800 px-2 py-1 rounded">
+                        <span className="text-xs font-mono text-text-muted bg-gray-800 px-2 py-1 rounded">
                              ≈ {dailyEffort() || '...'}
                         </span>
                     </div>
@@ -324,29 +324,29 @@ const NovaMeta = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Data de Início</label>
+                        <label className="block text-xs font-bold text-text-muted uppercase mb-2">Data de Início</label>
                         <input
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="w-full bg-[#151515] border border-gray-700 text-white rounded-lg px-4 py-2 outline-none focus:border-blue-500 transition-colors"
+                            className="w-full bg-[#151515] border border-border text-text rounded-lg px-4 py-2 outline-none focus:border-blue-500 transition-colors"
                             required
                         />
                     </div>
                     
                     {goalType === 'Desafio' ? (
                         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Data Limite</label>
+                            <label className="block text-xs font-bold text-text-muted uppercase mb-2">Data Limite</label>
                             <input
                                 type="date"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
-                                className="w-full bg-[#151515] border border-gray-700 text-white rounded-lg px-4 py-2 outline-none focus:border-blue-500 transition-colors"
+                                className="w-full bg-[#151515] border border-border text-text rounded-lg px-4 py-2 outline-none focus:border-blue-500 transition-colors"
                                 required
                             />
                         </div>
                     ) : (
-                        <div className="flex items-center justify-center border border-dashed border-gray-800 rounded-lg bg-[#151515]/50">
+                        <div className="flex items-center justify-center border border-dashed border-border rounded-lg bg-[#151515]/50">
                             <div className="flex items-center gap-2 text-gray-600 text-sm">
                                 <ArrowRight className="w-4 h-4" />
                                 <span>Meta Recorrente</span>
@@ -357,17 +357,17 @@ const NovaMeta = () => {
             </div>
 
             {/* Botões */}
-            <div className="flex gap-4 pt-4 border-t border-gray-800">
+            <div className="flex gap-4 pt-4 border-t border-border">
                 <button
                     type="button"
                     onClick={() => navigate('/dashboard')}
-                    className="px-8 py-4 bg-transparent border border-gray-700 text-gray-300 hover:bg-gray-800 font-semibold rounded-xl transition-all cursor-pointer"
+                    className="px-8 py-4 bg-transparent border border-border text-gray-300 hover:bg-gray-800 font-semibold rounded-xl transition-all cursor-pointer"
                 >
                     Cancelar
                 </button>
                 <button
                     type="submit"
-                    className="flex-1 py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex-1 py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-text font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                     disabled={loading || !title}
                 >
                     {isEditing ? <Save className="w-5 h-5" /> : null}

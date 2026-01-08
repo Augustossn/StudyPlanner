@@ -66,9 +66,9 @@ const RecuperarSenha = () => {
 
     return (
     <div className="min-h-screen bg-[#121214] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#202024] p-8 rounded-lg border border-gray-800 shadow-xl">
+      <div className="w-full max-w-md bg-[#202024] p-8 rounded-lg border border-border shadow-xl">
         
-        <h2 className="text-2xl font-bold text-white mb-6 text-center">
+        <h2 className="text-2xl font-bold text-text mb-6 text-center">
           {step === 1 && 'Recuperar Senha'}
           {step === 2 && 'Digite o Código'}
           {step === 3 && 'Criar Nova Senha'}
@@ -78,19 +78,19 @@ const RecuperarSenha = () => {
         {step === 1 && (
           <form onSubmit={handleSendEmail} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Email</label>
+              <label className="block text-sm text-text-muted mb-1">Email</label>
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#121214] border border-gray-700 rounded p-3 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#121214] border border-border rounded p-3 text-text focus:outline-none focus:border-blue-500"
                 placeholder="seu@email.com"
                 required
               />
             </div>
             <button 
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded transition duration-200 disabled:opacity-50"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-text font-bold py-3 rounded transition duration-200 disabled:opacity-50"
             >
               {loading ? 'Enviando...' : 'Enviar Código'}
             </button>
@@ -100,16 +100,16 @@ const RecuperarSenha = () => {
         {/* --- FORMULÁRIO ETAPA 2 (CÓDIGO) --- */}
         {step === 2 && (
           <form onSubmit={handleValidateCode} className="space-y-4">
-            <p className="text-sm text-gray-400 text-center">
+            <p className="text-sm text-text-muted text-center">
               Enviamos um código de 6 dígitos para <strong>{email}</strong>
             </p>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Código de Verificação</label>
+              <label className="block text-sm text-text-muted mb-1">Código de Verificação</label>
               <input 
                 type="text" 
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                className="w-full bg-[#121214] border border-gray-700 rounded p-3 text-white text-center text-2xl tracking-widest focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#121214] border border-border rounded p-3 text-text text-center text-2xl tracking-widest focus:outline-none focus:border-blue-500"
                 maxLength={6}
                 placeholder="000000"
                 required
@@ -117,7 +117,7 @@ const RecuperarSenha = () => {
             </div>
             <button 
               disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded transition duration-200 disabled:opacity-50"
+              className="w-full bg-green-600 hover:bg-green-700 text-text font-bold py-3 rounded transition duration-200 disabled:opacity-50"
             >
               {loading ? 'Validando...' : 'Validar Código'}
             </button>
@@ -128,12 +128,12 @@ const RecuperarSenha = () => {
         {step === 3 && (
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Nova Senha</label>
+              <label className="block text-sm text-text-muted mb-1">Nova Senha</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#121214] border border-gray-700 rounded p-3 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#121214] border border-border rounded p-3 text-text focus:outline-none focus:border-blue-500"
                 placeholder="Digite sua nova senha"
                 required
                 minLength={6}
@@ -141,7 +141,7 @@ const RecuperarSenha = () => {
             </div>
             <button 
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded transition duration-200 disabled:opacity-50"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-text font-bold py-3 rounded transition duration-200 disabled:opacity-50"
             >
               {loading ? 'Salvando...' : 'Alterar Senha'}
             </button>
@@ -153,7 +153,7 @@ const RecuperarSenha = () => {
           <button 
             type="button" // Importante: type="button" para não submeter o formulário ao clicar
             onClick={() => navigate('/')}
-            className="text-sm text-gray-500 hover:text-white transition"
+            className="text-sm text-text-muted hover:text-text transition"
           >
             Voltar para Login
           </button>

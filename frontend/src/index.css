@@ -1,5 +1,33 @@
 @import "tailwindcss";
 
+/* Configuração de Fonte Global (do passo anterior) */
+:root[data-font-size="small"] { font-size: 14px; }
+:root[data-font-size="normal"] { font-size: 16px; }
+:root[data-font-size="large"] { font-size: 18px; }
+:root[data-font-size="extra"] { font-size: 20px; }
+
+/* --- PALETA DE CORES (THEMING) --- */
+:root {
+  /* TEMA CLARO (Padrão) */
+  --background: #f3f4f6;       /* Cinza muito claro */
+  --surface: #ffffff;          /* Branco */
+  --surface-hover: #f9fafb;    /* Branco gelo */
+  --border: #e5e7eb;           /* Cinza claro para bordas */
+  --text: #111827;             /* Preto suave */
+  --text-muted: #6b7280;       /* Cinza médio */
+}
+
+.dark {
+  /* TEMA ESCURO (Seus tons atuais) */
+  --background: #09090b;       /* Preto fundo */
+  --surface: #1a1a1a;          /* Cinza escuro cards */
+  --surface-hover: #27272a;    /* Cinza um pouco mais claro */
+  --border: #27272a;           /* Cinza para bordas (gray-800) */
+  --text: #ffffff;             /* Branco */
+  --text-muted: #9ca3af;       /* Cinza texto secundário */
+}
+
+/* --- ESTILOS GLOBAIS --- */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -7,6 +35,16 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #0a0a0a;
-  color: #ffffff;
+  
+  /* Usa as variáveis do Tailwind */
+  background-color: var(--background);
+  color: var(--text);
+  
+  transition: background-color 0.3s, color 0.3s; /* Transição suave ao trocar tema */
 }
+
+/* Scrollbar adaptativa */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--background); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }

@@ -1,47 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { Menu } from 'lucide-react';
 
 const Layout = ({ children }) => {
-  // Estado que controla o menu. Começa fechado (false) para priorizar espaço, ou true se preferir.
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // Começa aberto em telas grandes, fechado em telas pequenas
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
+
+  // Fecha o menu automaticamente se a tela for redimensionada para mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#09090b]">
+    <div className="min-h-screen bg-background">
       
-      {/* BOTÃO FLUTUANTE DE ABRIR O MENU 
-          Só aparece se o menu estiver FECHADO (!isSidebarOpen)
+      {/* BOTÃO FLUTUANTE (Hamburguer)
+          Aparece quando o menu está fechado OU em mobile
       */}
       {!isSidebarOpen && (
         <button 
           onClick={() => setIsSidebarOpen(true)}
-          className="fixed top-4 left-4 z-40 p-2 bg-[#1a1a1a] border border-gray-800 text-white rounded-lg shadow-lg hover:bg-gray-800 transition-colors"
+          className="fixed top-4 left-4 z-40 p-2.5 bg-surface border border-border text-text rounded-xl shadow-lg hover:bg-gray-800 hover:scale-105 transition-all"
           title="Abrir Menu"
         >
           <Menu size={24} />
         </button>
       )}
 
-      {/* O Sidebar recebe o estado e a função para fechar */}
+      {/* Sidebar Controlada */}
       <Sidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
       />
       
       {/* ÁREA DE CONTEÚDO PRINCIPAL 
-         A margem esquerda (ml) muda dinamicamente:
-         - Se menu aberto Desktop: ml-64 (256px)
-         - Se menu aberto Mobile: ml-0 (Overlay)
-         - Se menu fechado: ml-0
+         - Mobile (ml-0): O conteúdo ocupa tudo, o menu passa por cima.
+         - Desktop (md:ml-64): O conteúdo é empurrado para o lado.
       */}
       <main 
         className={`
-            transition-all duration-300 ease-in-out p-4 md:p-8
+            transition-all duration-300 ease-in-out p-4 md:p-8 pb-20
             ${isSidebarOpen ? 'md:ml-64' : 'ml-0'}
         `}
       >
-        {/* Espaço no topo para o botão não ficar em cima do título quando o menu ta fechado */}
-        <div className={`${!isSidebarOpen ? 'mt-12 md:mt-0' : 'mt-12 md:mt-0'}`}>
+        {/* Container para limitar a largura em telas ultra-wide */}
+        <div className="max-w-400 mx-auto mt-14 md:mt-0">
             {children}
         </div>
       </main>
