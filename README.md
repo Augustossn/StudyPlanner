@@ -1,7 +1,7 @@
 # Study Planner Pro 🚀
 
 [![Frontend](https://img.shields.io/badge/React-19.2-blue?logo=react)](https://reactjs.org/)
-[![Backend](https://img.shields.io/badge/Java-21-orange?logo=java)](https://www.java.com/)
+[![Backend](https://img.shields.io/badge/Java-25-orange?logo=java)](https://www.java.com/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.1-green?logo=spring)](https://spring.io/projects/spring-boot)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-Apache%202-blue)](LICENSE)
@@ -169,11 +169,88 @@ spring.jpa.hibernate.ddl-auto=update
 
 ---
 
-## 📸 Screenshots
+## 📸 Screenshots & Features Overview
 
-* **Dashboard (Dark Mode)**: Overview of study stats, streaks, and analytics.
-* **Pomodoro Timer**: Immersive focus timer with circular progress and mode switching.
-* **Settings & Theming**: Light mode with theme and font size customization.
+Below are real screenshots from the application, highlighting the main features and user experience.
+
+### 🔐 Authentication
+
+![Login Screen](./login.png)
+
+Secure authentication with JWT-based login, ensuring user data protection and session control.
+
+---
+
+### 📊 Dashboard & Analytics
+
+![Dashboard](./dashboard.png)
+
+A centralized dashboard showing:
+
+* Study streaks
+* Total focused hours
+* Session statistics
+* Visual analytics and charts
+
+---
+
+### 🍅 Pomodoro Timer
+
+![Pomodoro Timer](./pomodoro.png)
+
+A fully configurable Pomodoro timer featuring:
+
+* Custom focus and break durations
+* Visual circular progress indicator
+* Seamless mode switching
+* Automatic accumulation of study time
+
+---
+
+### 📅 Study Calendar
+
+![Calendar](./calendario.png)
+
+A calendar view to track study sessions over time, making it easy to visualize productivity and consistency.
+
+---
+
+### 📝 Study Sessions & Subjects
+
+![New Session](./novasessao.png)
+
+Create and manage study sessions manually or through the Pomodoro timer.
+
+![New Subject](./novamateria.png)
+
+Organize your studies by subjects with custom color tags for better visual identification.
+
+---
+
+### 🎯 Goals & Planning
+
+![New Goal](./novameta.png)
+
+Set and track:
+
+* Weekly goals
+* Monthly goals
+* Long-term objectives
+
+Progress is updated dynamically based on completed study sessions.
+
+---
+
+### ⚙️ Settings & Customization
+
+![Settings](./configuracoes.png)
+
+Personalize the application with:
+
+* Light, Dark, and System themes
+* Adjustable font sizes
+* Sound effects control
+* Password management
 
 ---
 
@@ -210,4 +287,4 @@ Contributions are welcome!
 
 ---
 
-Made with 💙 by **Augusto Soares**
+Made by **Augusto Soares**
