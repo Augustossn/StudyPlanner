@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { 
-  GraduationCap, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, Check 
+  Zap, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, Check 
 } from 'lucide-react';
 
 function Login() {
@@ -83,9 +83,9 @@ function Login() {
       <div className="w-full max-w-md relative z-10">
         
         {/* Logo Header */}
-        <div className="flex flex-col items-center justify-center mb-8 animate-fade-in-down">
-          <div className="w-16 h-16 bg-linear-to-br from-blue-600 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/20 mb-4 transform hover:scale-105 transition-transform duration-300">
-            <GraduationCap className="w-9 h-9 text-text" />
+        <div className="flex flex-col items-center justify-center mb-8 gap-4 animate-fade-in-down">
+          <div className="w-16 h-16 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+            <Zap className="w-8 h-8 text-text fill-white" strokeWidth={0} />
           </div>
           <h1 className="text-3xl font-bold text-text tracking-tight">
             Study<span className="text-blue-500">Planner</span>

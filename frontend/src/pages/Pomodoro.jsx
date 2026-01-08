@@ -194,7 +194,7 @@ const Pomodoro = () => {
 
         {/* TIMER CIRCULAR */}
         <div className="relative group">
-            <div className="relative w-[380px] h-[380px] md:w-[500px] md:h-[500px] flex items-center justify-center">
+            <div className="relative w-95 h-95 md:w-125 md:h-125 flex items-center justify-center">
                 <svg className="w-full h-full transform -rotate-90 drop-shadow-2xl">
                     <circle cx="50%" cy="50%" r={radius} stroke="#1a1a1a" strokeWidth="8" fill="transparent" />
                     <circle
@@ -231,7 +231,7 @@ const Pomodoro = () => {
                         <Pause size={24} fill="currentColor" />
                      </button>
                 ) : (
-                    <button onClick={toggleTimer} className={`w-20 h-20 rounded-full bg-gradient-to-br ${activeTheme.gradient} text-text flex items-center justify-center hover:scale-110 hover:shadow-xl hover:shadow-${activeTheme.stroke}/20 transition-all shadow-lg`}>
+                    <button onClick={toggleTimer} className={`w-20 h-20 rounded-full bg-linear-to-br ${activeTheme.gradient} text-text flex items-center justify-center hover:scale-110 hover:shadow-xl hover:shadow-${activeTheme.stroke}/20 transition-all shadow-lg`}>
                         <Play size={32} fill="currentColor" className="ml-1" />
                     </button>
                 )}

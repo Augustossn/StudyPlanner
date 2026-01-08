@@ -2,8 +2,19 @@ package com.studyplanner.backend.model;
 
 import java.time.LocalDate;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "goals")
@@ -47,7 +58,7 @@ public class Goal {
     @NotNull(message = "Você deve selecionar uma matéria para a meta")
     private Subject subject;
 
-    @Size(max = 255, message = "A descrição dos assuntos deve ter no máximo 255 caracteres")
+    @Size(max = 255, message = "A descrição dos assuntos deve ter no máximo 255 caracteres")   
     private String matters;
 
     public Goal() {}
