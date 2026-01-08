@@ -1,7 +1,7 @@
 # Study Planner Pro 🚀
 
 [![Frontend](https://img.shields.io/badge/React-19.2-blue?logo=react)](https://reactjs.org/)
-[![Backend](https://img.shields.io/badge/Java-25-orange?logo=java)](https://www.java.com/)
+[![Backend](https://img.shields.io/badge/Java-21-orange?logo=java)](https://www.java.com/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.1-green?logo=spring)](https://spring.io/projects/spring-boot)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-Apache%202-blue)](LICENSE)
