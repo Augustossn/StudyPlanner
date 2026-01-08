@@ -175,7 +175,7 @@ Below are real screenshots from the application, highlighting the main features 
 
 ### 🔐 Authentication
 
-![Login Screen](./login.png)
+![Login Screen](.assets/login.png)
 
 Secure authentication with JWT-based login, ensuring user data protection and session control.
 
@@ -183,7 +183,7 @@ Secure authentication with JWT-based login, ensuring user data protection and se
 
 ### 📊 Dashboard & Analytics
 
-![Dashboard](./dashboard.png)
+![Dashboard](.assets/dashboard.png)
 
 A centralized dashboard showing:
 
@@ -196,7 +196,7 @@ A centralized dashboard showing:
 
 ### 🍅 Pomodoro Timer
 
-![Pomodoro Timer](./pomodoro.png)
+![Pomodoro Timer](.assets/pomodoro.png)
 
 A fully configurable Pomodoro timer featuring:
 
@@ -209,7 +209,7 @@ A fully configurable Pomodoro timer featuring:
 
 ### 📅 Study Calendar
 
-![Calendar](./calendario.png)
+![Calendar](.assets/calendario.png)
 
 A calendar view to track study sessions over time, making it easy to visualize productivity and consistency.
 
@@ -217,11 +217,11 @@ A calendar view to track study sessions over time, making it easy to visualize p
 
 ### 📝 Study Sessions & Subjects
 
-![New Session](./novasessao.png)
+![New Session](.assets/novasessao.png)
 
 Create and manage study sessions manually or through the Pomodoro timer.
 
-![New Subject](./novamateria.png)
+![New Subject](.assets/novamateria.png)
 
 Organize your studies by subjects with custom color tags for better visual identification.
 
@@ -229,7 +229,7 @@ Organize your studies by subjects with custom color tags for better visual ident
 
 ### 🎯 Goals & Planning
 
-![New Goal](./novameta.png)
+![New Goal](.assets/novameta.png)
 
 Set and track:
 
@@ -243,7 +243,7 @@ Progress is updated dynamically based on completed study sessions.
 
 ### ⚙️ Settings & Customization
 
-![Settings](./configuracoes.png)
+![Settings](.assets/configuracoes.png)
 
 Personalize the application with:
 
