@@ -27,7 +27,7 @@ public class StudySession {
     @NotNull(message = "A data e hora da sessão são obrigatórias")
     private LocalDateTime date;
 
-    @Min(value = 1, message = "A sessão deve ter pelo menos 1 minuto")
+    @Min(value = 0, message = "A duração não pode ser negativa")
     @Max(value = 1440, message = "A sessão não pode durar mais de 24 horas (1440 minutos)")
     private int durationMinutes;
     
@@ -46,6 +46,12 @@ public class StudySession {
     @CollectionTable(name = "session_matters", joinColumns = @JoinColumn(name = "session_id"))
     @Column(name = "matter")
     private List<String> matters = new ArrayList<>();
+
+    @Column(name = "total_questions")
+    private Integer totalQuestions;
+
+    @Column(name = "correct_questions")
+    private Integer correctQuestions;
     
     public StudySession() {}
 
@@ -96,4 +102,10 @@ public class StudySession {
 
     public List<String> getMatters() { return matters; }
     public void setMatters(List<String> matters) { this.matters = matters; }
+
+    public Integer getTotalQuestions() { return totalQuestions; }
+    public void setTotalQuestions(Integer totalQuestions) { this.totalQuestions = totalQuestions; }
+    
+    public Integer getCorrectQuestions() { return correctQuestions; }
+    public void setCorrectQuestions(Integer correctQuestions) { this.correctQuestions = correctQuestions; }
 }

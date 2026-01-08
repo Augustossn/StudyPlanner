@@ -42,7 +42,7 @@ public class StudySessionService {
     }
     
     public StudySession createSession(StudySession session) {
-        if (session.getUser() == null || session.getSubject() == null) {
+        if (session.getUser() == null) {
             throw new IllegalArgumentException("Usuário é obrigatório.");
         }
 
@@ -73,6 +73,10 @@ public class StudySessionService {
             existingSession.setDate(sessionDetails.getDate());
             existingSession.setCompleted(sessionDetails.isCompleted());
             existingSession.setMatters(sessionDetails.getMatters());
+            
+            existingSession.setTotalQuestions(sessionDetails.getTotalQuestions());
+            existingSession.setCorrectQuestions(sessionDetails.getCorrectQuestions());
+            // --------------------------------------------------
 
             if (sessionDetails.getSubject() != null && sessionDetails.getSubject().getId() != null) {
                 existingSession.setSubject(sessionDetails.getSubject());
@@ -89,5 +93,4 @@ public class StudySessionService {
             throw new IllegalArgumentException("Sessão não encontrada.");
         }
     }
-
 }
