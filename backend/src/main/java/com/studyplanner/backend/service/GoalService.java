@@ -37,41 +37,43 @@ public class GoalService {
 
         for (Goal goal : goals) {
             Integer totalMinutes = 0;
+            Integer totalQuestions = 0;
+
+            LocalDateTime start = (goal.getStartDate() != null) ? goal.getStartDate().atStartOfDay() : null;
+            
+            LocalDateTime safeMaxDate = LocalDateTime.of(2999, 12, 31, 23, 59, 59);
+
+            LocalDateTime end = (goal.getEndDate() != null) 
+                    ? goal.getEndDate().atTime(23, 59, 59) 
+                    : safeMaxDate; 
 
             if (goal.getSubject() != null && goal.getMatters() != null && !goal.getMatters().trim().isEmpty()) {
-                totalMinutes = studySessionRepository.getTotalMinutesByMatter(
-                    userId, 
-                    goal.getSubject().getId(),
-                    goal.getMatters().trim()
-                );
+                totalMinutes = studySessionRepository.getTotalMinutesByMatter(userId, goal.getSubject().getId(), goal.getMatters().trim());
+                totalQuestions = studySessionRepository.getTotalQuestionsByMatter(userId, goal.getSubject().getId(), goal.getMatters().trim());
             }
             else if (goal.getSubject() != null) {
-                totalMinutes = studySessionRepository.getTotalMinutesBySubject(
-                    userId, 
-                    goal.getSubject().getId()
-                );
+                totalMinutes = studySessionRepository.getTotalMinutesBySubject(userId, goal.getSubject().getId());
+                totalQuestions = studySessionRepository.getTotalQuestionsBySubject(userId, goal.getSubject().getId());
             }
-            else if (goal.getStartDate() != null) {
-                LocalDateTime start = goal.getStartDate().atStartOfDay();
-                LocalDateTime end = (goal.getEndDate() != null)
-                        ? goal.getEndDate().atTime(23, 59, 59)
-                        : LocalDateTime.now();
-
+            else if (start != null) {
                 totalMinutes = studySessionRepository.getTotalMinutesByDateRange(userId, start, end);
+                totalQuestions = studySessionRepository.getTotalQuestionsByDateRange(userId, start, end);
             }
-            if (totalMinutes == null) {
-                totalMinutes = 0;
-            }
+
+            if (totalMinutes == null) totalMinutes = 0;
+            if (totalQuestions == null) totalQuestions = 0;
 
             double hoursDone = totalMinutes / 60.0;
             goal.setCurrentHours(Math.round(hoursDone * 10.0) / 10.0);
+            goal.setCurrentQuestions(totalQuestions);
 
+            int percent = 0;
             if (goal.getTargetHours() != null && goal.getTargetHours() > 0) {
-                int percent = (int) ((hoursDone / goal.getTargetHours()) * 100);
-                goal.setProgressPercentage(Math.min(percent, 100));
-            } else {
-                goal.setProgressPercentage(0);
+                percent = (int) ((hoursDone / goal.getTargetHours()) * 100);
+            } else if (goal.getTargetQuestions() != null && goal.getTargetQuestions() > 0) {
+                percent = (int) (((double) totalQuestions / goal.getTargetQuestions()) * 100);
             }
+            goal.setProgressPercentage(Math.min(percent, 100));
         }
         return goals;
     }
@@ -106,6 +108,10 @@ public class GoalService {
             existingGoal.setTitle(goal.getTitle());
             existingGoal.setGoalType(goal.getGoalType());
             existingGoal.setTargetHours(goal.getTargetHours());
+            
+            // --- NOVO: ATUALIZAR QUESTÕES ALVO ---
+            existingGoal.setTargetQuestions(goal.getTargetQuestions());
+
             existingGoal.setStartDate(goal.getStartDate());
             existingGoal.setEndDate(goal.getEndDate());
             existingGoal.setActive(goal.isActive());

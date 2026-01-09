@@ -18,10 +18,10 @@ public interface StudySessionRepository extends JpaRepository<StudySession, Long
     @Query("SELECT s FROM StudySession s WHERE s.user.id = :userId AND s.date >= :startDate ORDER BY s.date DESC")
     List<StudySession> findRecentSessions(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
 
-    @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId") // Soma total dos min para todos os users
+    @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId")
     Integer getTotalStudyMinutes(@Param("userId") Long userId);
 
-    @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId AND s.date >= :startDate") // Soma total min semana atual
+    @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId AND s.date >= :startDate")
     Integer getWeeklyStudyMinutes(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
     
     @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s WHERE s.user.id = :userId AND s.date >= :startDate AND s.date <= :endDate")
@@ -32,6 +32,15 @@ public interface StudySessionRepository extends JpaRepository<StudySession, Long
 
     @Query("SELECT COALESCE(SUM(s.durationMinutes), 0) FROM StudySession s JOIN s.matters matter WHERE s.user.id = :userId AND s.subject.id = :subjectId AND matter = :matter")
     Integer getTotalMinutesByMatter(@Param("userId") Long userId, @Param("subjectId") Long subjectId, @Param("matter") String matter);
+
+    @Query("SELECT COALESCE(SUM(s.totalQuestions), 0) FROM StudySession s WHERE s.user.id = :userId AND s.subject.id = :subjectId AND :matter MEMBER OF s.matters")
+    Integer getTotalQuestionsByMatter(@Param("userId") Long userId, @Param("subjectId") Long subjectId, @Param("matter") String matter);
+
+    @Query("SELECT COALESCE(SUM(s.totalQuestions), 0) FROM StudySession s WHERE s.user.id = :userId AND s.subject.id = :subjectId")
+    Integer getTotalQuestionsBySubject(@Param("userId") Long userId, @Param("subjectId") Long subjectId);
+
+    @Query("SELECT COALESCE(SUM(s.totalQuestions), 0) FROM StudySession s WHERE s.user.id = :userId AND s.date BETWEEN :start AND :end")
+    Integer getTotalQuestionsByDateRange(@Param("userId") Long userId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("SELECT s FROM StudySession s WHERE s.user.id = :userId AND s.date >= :startDate AND s.date <= :endDate ORDER BY s.date ASC")
     List<StudySession> findSessionsByDateRange(

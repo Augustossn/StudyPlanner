@@ -3,7 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast'; 
 import Layout from '../components/Layout';
 import { goalsAPI, subjectAPI } from '../services/api'; 
-import { Calendar, Clock, Target, ArrowRight, TrendingUp, Save, Layers, Tag, ArrowLeft } from 'lucide-react';
+import { 
+  Calendar, Clock, Target, ArrowRight, TrendingUp, Save, Layers, Tag, ArrowLeft, 
+  HelpCircle, Calculator 
+} from 'lucide-react';
 import { getAuthUser } from '../utils/auth';
 
 const NovaMeta = () => {
@@ -24,8 +27,20 @@ const NovaMeta = () => {
     return `${year}-${month}-${day}`;
   };
 
+  // --- LÓGICA INICIAL DO TIPO DE MÉTRICA ---
+  const getInitialMetricType = () => {
+      if (!goalToEdit) return 'TIME';
+      const hasTime = goalToEdit.targetHours > 0;
+      const hasQuestions = goalToEdit.targetQuestions > 0; 
+      
+      if (hasTime && hasQuestions) return 'BOTH';
+      if (hasQuestions) return 'QUESTIONS';
+      return 'TIME';
+  };
+
   // --- ESTADOS ---
   const [title, setTitle] = useState(goalToEdit?.title || '');
+  const [metricType, setMetricType] = useState(getInitialMetricType); // TIME, QUESTIONS, BOTH
   
   // Matéria Principal
   const [subjectId, setSubjectId] = useState(goalToEdit?.subject?.id || '');
@@ -35,8 +50,11 @@ const NovaMeta = () => {
   const [matters, setMatters] = useState(goalToEdit?.matters || '');
   const [availableMatters, setAvailableMatters] = useState([]); 
 
-  const [goalType, setGoalType] = useState(goalToEdit?.goalType || 'Semanal');
+  const [goalType, setGoalType] = useState(goalToEdit?.goalType || 'Semanal'); // Frequência
+  
+  // Metas (Alvos)
   const [targetHours, setTargetHours] = useState(goalToEdit?.targetHours || 10);
+  const [targetQuestions, setTargetQuestions] = useState(goalToEdit?.targetQuestions || 50);
   
   // Datas
   const [startDate, setStartDate] = useState(
@@ -88,39 +106,49 @@ const NovaMeta = () => {
   };
 
   const dailyEffort = () => {
-    if (!targetHours) return null;
+    let text = [];
     
-    if (goalType === 'Semanal') {
-        const daily = (targetHours / 7).toFixed(1);
-        return `${daily}h / dia`;
-    }
-    if (goalType === 'Mensal') {
-        const daily = (targetHours / 30).toFixed(1);
-        return `${daily}h / dia`;
-    }
-    if (goalType === 'Desafio' && startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const diffTime = Math.abs(end - start);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-        
-        if (diffDays > 0) {
-            const daily = (targetHours / diffDays).toFixed(1);
-            return `${daily}h / dia (${diffDays} dias)`;
+    // Cálculo Horas
+    if (metricType !== 'QUESTIONS' && targetHours > 0) {
+        let dailyH = 0;
+        if (goalType === 'Semanal') dailyH = targetHours / 7;
+        else if (goalType === 'Mensal') dailyH = targetHours / 30;
+        else if (goalType === 'Desafio' && startDate && endDate) {
+            const diff = Math.ceil(Math.abs(new Date(endDate) - new Date(startDate)) / (86400000));
+            if (diff > 0) dailyH = targetHours / diff;
         }
+        if (dailyH > 0) text.push(`${dailyH.toFixed(1)}h/dia`);
     }
-    return null;
+
+    // Cálculo Questões
+    if (metricType !== 'TIME' && targetQuestions > 0) {
+        let dailyQ = 0;
+        if (goalType === 'Semanal') dailyQ = targetQuestions / 7;
+        else if (goalType === 'Mensal') dailyQ = targetQuestions / 30;
+        else if (goalType === 'Desafio' && startDate && endDate) {
+            const diff = Math.ceil(Math.abs(new Date(endDate) - new Date(startDate)) / (86400000));
+            if (diff > 0) dailyQ = targetQuestions / diff;
+        }
+        if (dailyQ > 0) text.push(`${Math.ceil(dailyQ)} quest/dia`);
+    }
+
+    return text.join(' + ') || '...';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
+    // CORREÇÃO AQUI: Enviamos 0 em vez de null para não quebrar o banco de dados
+    const finalHours = (metricType === 'QUESTIONS') ? 0 : Number(targetHours);
+    const finalQuestions = (metricType === 'TIME') ? 0 : Number(targetQuestions);
+
     try {
       const payload = {
         title,
         goalType,
-        targetHours: Number(targetHours),
+        targetHours: finalHours,
+        targetQuestions: finalQuestions,
         startDate, 
         endDate: endDate || null,
         active: true,
@@ -141,10 +169,13 @@ const NovaMeta = () => {
       
     } catch (err) {
       console.error("Erro ao salvar meta:", err);
-      
       if (err.response && err.response.status === 400 && err.response.data) {
           const data = err.response.data;
-          if (typeof data === 'object' && !Array.isArray(data)) {
+          // Se o backend retornar um objeto de erro complexo ou string
+          if (typeof data === 'object' && data.error) {
+             // Caso seja erro de constraint do banco
+             toast.error("Erro nos dados: Verifique se preencheu tudo corretamente.");
+          } else if (typeof data === 'object' && !Array.isArray(data)) {
               const firstErrorKey = Object.keys(data)[0];
               toast.error(data[firstErrorKey]);
           } else {
@@ -173,22 +204,69 @@ const NovaMeta = () => {
             {isEditing ? 'Editar Meta' : 'Definir Nova Meta'}
         </h1>
         <p className="text-text-muted mb-8">
-            {isEditing ? 'Ajuste seus objetivos atuais.' : 'Vincule sua meta a uma matéria para rastreamento automático.'}
+            Defina seus objetivos de tempo ou quantidade de exercícios.
         </p>
         
         <div className="bg-surface border border-border rounded-2xl p-8 shadow-2xl transition-colors duration-300">
           <form onSubmit={handleSubmit} className="space-y-8">
             
-            {/* 1. O Objetivo (Título) */}
+            {/* 0. SELEÇÃO DO TIPO DE MÉTRICA */}
             <div>
-              <label className="block text-sm font-bold text-text-muted mb-3 uppercase tracking-wider">Qual é o seu objetivo?</label>
+                <label className="block text-sm font-bold text-text-muted mb-3 uppercase tracking-wider">
+                    O que você quer alcançar?
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                    <button
+                        type="button"
+                        onClick={() => setMetricType('TIME')}
+                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 ${
+                            metricType === 'TIME' 
+                            ? 'bg-blue-600/10 border-blue-500 text-blue-500 shadow-sm' 
+                            : 'bg-background border-border text-text-muted hover:bg-surface-hover hover:border-text-muted'
+                        }`}
+                    >
+                        <Clock className="w-6 h-6 mb-2" />
+                        <span className="text-xs font-bold uppercase">Tempo</span>
+                    </button>
+                    
+                    <button
+                        type="button"
+                        onClick={() => setMetricType('QUESTIONS')}
+                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 ${
+                            metricType === 'QUESTIONS' 
+                            ? 'bg-emerald-600/10 border-emerald-500 text-emerald-500 shadow-sm' 
+                            : 'bg-background border-border text-text-muted hover:bg-surface-hover hover:border-text-muted'
+                        }`}
+                    >
+                        <HelpCircle className="w-6 h-6 mb-2" />
+                        <span className="text-xs font-bold uppercase">Questões</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setMetricType('BOTH')}
+                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 ${
+                            metricType === 'BOTH' 
+                            ? 'bg-purple-600/10 border-purple-500 text-purple-500 shadow-sm' 
+                            : 'bg-background border-border text-text-muted hover:bg-surface-hover hover:border-text-muted'
+                        }`}
+                    >
+                        <Calculator className="w-6 h-6 mb-2" />
+                        <span className="text-xs font-bold uppercase">Ambos</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* 1. Título da Meta */}
+            <div>
+              <label className="block text-sm font-bold text-text-muted mb-3 uppercase tracking-wider">Nome da Meta</label>
               <div className="relative">
                 <Target className="absolute left-4 top-4 w-5 h-5 text-text-muted" />
                 <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Ex: Dominar Spring Boot"
+                    placeholder={metricType === 'QUESTIONS' ? "Ex: Resolver 100 questões de Java" : "Ex: Dominar Spring Boot"}
                     className="w-full pl-12 pr-4 py-4 bg-background border border-border rounded-xl text-text text-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-500"
                     required
                     autoFocus={!isEditing}
@@ -196,7 +274,7 @@ const NovaMeta = () => {
               </div>
             </div>
 
-            {/* 1.5. Vincular Matéria */}
+            {/* 2. Vincular Matéria */}
             <div>
                 <label className="block text-sm font-bold text-text-muted mb-3 uppercase tracking-wider">
                     Vincular a uma Matéria (Opcional)
@@ -208,25 +286,23 @@ const NovaMeta = () => {
                         onChange={handleSubjectChange}
                         className="w-full pl-12 pr-4 py-4 bg-background border border-border rounded-xl text-text text-lg focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
                     >
-                        <option value="">Geral (Sem vínculo específico)</option>
+                        <option value="" className="bg-surface text-text">Geral (Sem vínculo específico)</option>
                         {subjects.map((subject) => (
-                            <option key={subject.id} value={subject.id}>
+                            <option key={subject.id} value={subject.id} className="bg-surface text-text">
                                 {subject.name}
                             </option>
                         ))}
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-text-muted">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                            <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path>
-                        </svg>
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
                     </div>
                 </div>
                 
-                {/* 1.6. Vincular Submatéria (Condicional) */}
+                {/* Submatéria */}
                 {availableMatters.length > 0 && (
                     <div className="mt-4 animate-in fade-in slide-in-from-top-2">
                         <label className="block text-xs font-bold text-text-muted mb-3 uppercase tracking-wider ml-1">
-                             Especificar Assunto (Opcional)
+                             Especificar Assunto
                         </label>
                         <div className="relative">
                             <Tag className="absolute left-4 top-4 w-5 h-5 text-text-muted pointer-events-none" />
@@ -235,27 +311,20 @@ const NovaMeta = () => {
                                 onChange={(e) => setMatters(e.target.value)}
                                 className="w-full pl-12 pr-4 py-4 bg-background border border-border rounded-xl text-text text-lg focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
                             >
-                                <option value="">Qualquer assunto da matéria</option>
+                                <option value="" className="bg-surface text-text">Qualquer assunto da matéria</option>
                                 {availableMatters.map((m, index) => (
-                                    <option key={index} value={m}>
-                                        {m}
-                                    </option>
+                                    <option key={index} value={m} className="bg-surface text-text">{m}</option>
                                 ))}
                             </select>
                              <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-text-muted">
-                                <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path>
-                                </svg>
+                                <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
                             </div>
                         </div>
-                        <p className="text-xs text-text-muted mt-2 ml-1">
-                            A meta só contabilizará sessões deste assunto específico.
-                        </p>
                     </div>
                 )}
             </div>
 
-            {/* 2. Tipo de Meta */}
+            {/* 3. Frequência */}
             <div>
                 <label className="block text-sm font-bold text-text-muted mb-3 uppercase tracking-wider">Frequência</label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -266,7 +335,7 @@ const NovaMeta = () => {
                             className={`cursor-pointer p-4 rounded-xl border-2 transition-all hover:scale-[1.02] ${
                                 goalType === type 
                                 ? 'bg-blue-600/10 border-blue-500' 
-                                : 'bg-background border-border hover:border-gray-500'
+                                : 'bg-background border-border hover:border-text-muted'
                             }`}
                         >
                             <div className="flex items-center justify-between mb-3">
@@ -284,31 +353,56 @@ const NovaMeta = () => {
                 </div>
             </div>
 
-            {/* 3. Slider de Horas + Datas */}
+            {/* 4. DEFINIÇÃO DOS ALVOS (Horas / Questões) */}
             <div className="bg-background rounded-xl p-6 border border-border">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h3 className="text-text font-medium">Carga Horária Alvo</h3>
-                        <p className="text-sm text-text-muted">Quanto você quer estudar?</p>
+                        <h3 className="text-text font-medium">Metas do Objetivo</h3>
+                        <p className="text-sm text-text-muted">Defina seus alvos para este ciclo.</p>
                     </div>
                     <div className="text-right">
-                        <span className="block text-2xl font-bold text-blue-500">{targetHours}h</span>
                         <span className="text-xs font-mono text-text-muted bg-surface px-2 py-1 rounded border border-border">
-                             ≈ {dailyEffort() || '...'}
+                             ≈ {dailyEffort()}
                         </span>
                     </div>
                 </div>
 
-                <input
-                    type="range"
-                    min="1"
-                    max="100"
-                    value={targetHours}
-                    onChange={(e) => setTargetHours(Number(e.target.value))}
-                    className="w-full h-2 bg-surface rounded-lg appearance-none cursor-pointer accent-blue-500 mb-8 border border-border"
-                />
+                {/* SLIDER DE HORAS */}
+                {(metricType === 'TIME' || metricType === 'BOTH') && (
+                    <div className="mb-8 animate-in fade-in slide-in-from-left-4">
+                        <div className="flex justify-between mb-2">
+                            <label className="text-xs font-bold text-blue-500 uppercase">Horas Alvo</label>
+                            <span className="text-sm font-bold text-text">{targetHours}h</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="1"
+                            max="100"
+                            value={targetHours}
+                            onChange={(e) => setTargetHours(Number(e.target.value))}
+                            className="w-full h-2 bg-surface rounded-lg appearance-none cursor-pointer accent-blue-500 border border-border"
+                        />
+                    </div>
+                )}
 
-                <div className="h-px bg-border w-full mb-6"></div>
+                {/* INPUT DE QUESTÕES */}
+                {(metricType === 'QUESTIONS' || metricType === 'BOTH') && (
+                    <div className="animate-in fade-in slide-in-from-right-4">
+                        <label className="text-xs font-bold text-emerald-500 uppercase mb-2 block">Questões Alvo</label>
+                        <div className="relative">
+                            <input
+                                type="number"
+                                min="1"
+                                value={targetQuestions}
+                                onChange={(e) => setTargetQuestions(Number(e.target.value))}
+                                className="w-full pl-12 pr-4 py-3 bg-surface border border-border rounded-xl text-text font-bold text-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder-gray-500"
+                            />
+                            <HelpCircle className="absolute left-4 top-3.5 w-6 h-6 text-emerald-500 pointer-events-none" />
+                        </div>
+                    </div>
+                )}
+
+                <div className="h-px bg-border w-full my-6"></div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>

@@ -2,6 +2,7 @@ package com.studyplanner.backend.model;
 
 import java.time.LocalDate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,7 +12,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -38,13 +38,17 @@ public class Goal {
 
     private boolean active;
     
-    @NotNull(message = "A meta de horas é obrigatória")
-    @Min(value = 1, message = "A meta deve ser de pelo menos 1 hora")
     @Max(value = 1000, message = "A meta não pode ultrapassar 1000 horas")
     private Double targetHours; 
 
+    @Column(name = "target_questions", nullable = true)
+    private Integer targetQuestions;
+
     @Transient
     private double currentHours;
+
+    @Transient
+    private Integer currentQuestions;
 
     @Transient
     private int progressPercentage;
@@ -55,7 +59,6 @@ public class Goal {
 
     @ManyToOne
     @JoinColumn(name = "subject_id")
-    @NotNull(message = "Você deve selecionar uma matéria para a meta")
     private Subject subject;
 
     @Size(max = 255, message = "A descrição dos assuntos deve ter no máximo 255 caracteres")   
@@ -93,11 +96,17 @@ public class Goal {
     public Double getTargetHours() { return targetHours; }
     public void setTargetHours(Double targetHours) { this.targetHours = targetHours; }
 
+    public Integer getTargetQuestions() { return targetQuestions; }
+    public void setTargetQuestions(Integer targetQuestions) { this.targetQuestions = targetQuestions; } // Corrigido nome do setter
+
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
 
     public double getCurrentHours() { return currentHours; }
     public void setCurrentHours(double currentHours) { this.currentHours = currentHours; }
+
+    public Integer getCurrentQuestions() { return currentQuestions; }
+    public void setCurrentQuestions(Integer currentQuestions) { this.currentQuestions = currentQuestions; }
 
     public int getProgressPercentage() { return progressPercentage; }
     public void setProgressPercentage(int progressPercentage) { this.progressPercentage = progressPercentage; }
