@@ -9,6 +9,7 @@ import { dashboardAPI, studySessionAPI, goalsAPI, subjectAPI } from '../services
 import Layout from '../components/Layout';
 import { getAuthUser } from '../utils/auth';
 import SessionDetailsModal from '../components/SessionDetailsModal';
+import ConfirmModal from '../components/ConfirmModal'; // <--- IMPORTE O NOVO COMPONENTE
 
 // Componentes Gráficos e Cards
 import StudyTimeChart from '../components/charts/StudyTimeChart';
@@ -19,7 +20,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user] = useState(() => getAuthUser());
 
-  // --- ESTADOS ---
+  // --- ESTADOS DE DADOS ---
   const [stats, setStats] = useState({ totalHours: 0, weeklyHours: 0, completedSessions: 0, activeGoals: 0 });
   const [recentSessions, setRecentSessions] = useState([]); 
   const [allSessions, setAllSessions] = useState([]);       
@@ -32,7 +33,17 @@ function Dashboard() {
   const [viewSession, setViewSession] = useState(null);
   const [chartRange, setChartRange] = useState('7days'); 
 
-  // --- LOAD DATA ---
+  // --- ESTADO DO MODAL DE EXCLUSÃO (NOVO) ---
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    type: null, // 'SUBJECT', 'GOAL', 'SESSION'
+    id: null,
+    title: '',
+    message: ''
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // --- LOAD DATA (Igual ao anterior) ---
   const loadDashboardData = useCallback(async (userId) => {
     try {
       const savedApp = localStorage.getItem('app_settings');
@@ -81,7 +92,7 @@ function Dashboard() {
     };
   }, [user, loadDashboardData]);
 
-  // --- CÁLCULOS ---
+  // --- CÁLCULOS (Iguais) ---
   const questionsStats = useMemo(() => {
     let total = 0;
     let correct = 0;
@@ -143,53 +154,17 @@ function Dashboard() {
       return titles[chartRange] || '7 dias';
   };
 
-  // --- HANDLERS ---
-  const handleEditSubject = (s) => navigate('/nova-materia', { state: { subjectToEdit: s } });
-  
-  const handleDeleteSubject = async (id) => {
-    if (!window.confirm("Tem certeza?")) return;
-    try {
-        await subjectAPI.deleteSubject(id);
-        setSubjects(prev => prev.filter(sub => sub.id !== id));
-        toast.success("Matéria excluída!");
-    } catch (error) { toast.error("Erro ao excluir matéria."); }
-  };
-
-  const handleEditGoal = (g) => navigate('/nova-meta', { state: { goalToEdit: g } });
-  
-  const handleDeleteGoal = async (id) => {
-    if (!window.confirm("Tem certeza?")) return;
-    try {
-        await goalsAPI.deleteGoal(id);
-        setGoals(prev => prev.filter(g => g.id !== id));
-        toast.success("Meta excluída!");
-    } catch (error) { toast.error("Erro ao excluir meta."); }
-  };
-  
-  const handleEditSession = (s) => navigate('/nova-sessao', { state: { sessionToEdit: s } });
-  
-  const handleDeleteSession = async (id) => {
-    if (!window.confirm("Tem certeza?")) return;
-    try {
-        await studySessionAPI.deleteSession(id, user.userId);
-        loadDashboardData(user.userId); 
-        toast.success("Sessão excluída.");
-    } catch (error) { toast.error("Erro ao excluir sessão."); }
-  };
-
   const formatDate = (dateString) => {
     if(!dateString) return "--/--";
     return new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   };
 
-  // --- FUNÇÃO AUXILIAR PARA RENDERIZAR PROGRESSO DA META ---
   const renderGoalProgress = (goal) => {
     const showTime = goal.targetHours > 0;
     const showQuestions = goal.targetQuestions > 0;
 
     return (
         <div className="mt-3 space-y-3">
-            {/* Barra de Tempo (Azul) */}
             {showTime && (
                 <div>
                     <div className="flex justify-between items-center text-xs mb-1.5">
@@ -209,8 +184,6 @@ function Dashboard() {
                     </div>
                 </div>
             )}
-
-            {/* Barra de Questões (Verde) */}
             {showQuestions && (
                 <div>
                     <div className="flex justify-between items-center text-xs mb-1.5">
@@ -234,13 +207,69 @@ function Dashboard() {
     );
   };
 
+  // --- NOVAS FUNÇÕES PARA O MODAL ---
+
+  // 1. Função que abre o modal (chamada pelos botões de lixeira)
+  const openDeleteModal = (type, id, name) => {
+    let title = '';
+    let message = '';
+
+    if (type === 'SUBJECT') {
+        title = 'Excluir Matéria';
+        message = `Tem certeza que deseja excluir "${name}"? Todas as sessões e metas vinculadas a ela também podem ser afetadas.`;
+    } else if (type === 'GOAL') {
+        title = 'Excluir Meta';
+        message = `Tem certeza que deseja excluir a meta "${name}"? Essa ação não pode ser desfeita.`;
+    } else if (type === 'SESSION') {
+        title = 'Excluir Sessão';
+        message = 'Tem certeza que deseja apagar este registro de estudo? Os dados estatísticos serão recalculados.';
+    }
+
+    setDeleteModal({ isOpen: true, type, id, title, message });
+  };
+
+  // 2. Função que executa a exclusão (chamada pelo botão "Sim" do modal)
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.id || !deleteModal.type) return;
+
+    setIsDeleting(true);
+    try {
+        if (deleteModal.type === 'SUBJECT') {
+            await subjectAPI.deleteSubject(deleteModal.id);
+            setSubjects(prev => prev.filter(sub => sub.id !== deleteModal.id));
+            toast.success("Matéria excluída!");
+        } 
+        else if (deleteModal.type === 'GOAL') {
+            await goalsAPI.deleteGoal(deleteModal.id);
+            setGoals(prev => prev.filter(g => g.id !== deleteModal.id));
+            toast.success("Meta excluída!");
+        } 
+        else if (deleteModal.type === 'SESSION') {
+            await studySessionAPI.deleteSession(deleteModal.id, user.userId);
+            loadDashboardData(user.userId);
+            toast.success("Sessão excluída.");
+        }
+    } catch (error) {
+        console.error(error);
+        toast.error("Erro ao excluir. Tente novamente.");
+    } finally {
+        setIsDeleting(false);
+        setDeleteModal({ ...deleteModal, isOpen: false }); // Fecha o modal
+    }
+  };
+
+  // Handlers de edição (só navegam)
+  const handleEditSubject = (s) => navigate('/nova-materia', { state: { subjectToEdit: s } });
+  const handleEditGoal = (g) => navigate('/nova-meta', { state: { goalToEdit: g } });
+  const handleEditSession = (s) => navigate('/nova-sessao', { state: { sessionToEdit: s } });
+
   if (!user) return null;
 
   return (
     <Layout>
       <div className="max-w-400 mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
         
-        {/* 1. CABEÇALHO */}
+        {/* ... (Cabeçalho e Stats mantidos iguais) ... */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h1 className="text-2xl font-bold text-text">Visão Geral</h1>
@@ -254,10 +283,9 @@ function Dashboard() {
             </button>
         </div>
 
-        {/* 2. GRID DE ESTATÍSTICAS */}
         <StatsGrid stats={stats} questionsStats={questionsStats} streak={streak} />
 
-        {/* 3. GRÁFICOS */}
+        {/* ... (Gráficos mantidos iguais) ... */}
         <div className="space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-surface p-2 rounded-xl border border-border shadow-sm transition-colors">
                 <div className="flex p-1 bg-background rounded-lg border border-border">
@@ -290,10 +318,10 @@ function Dashboard() {
             </div>
         </div>
 
-        {/* 4. RODAPÉ */}
+        {/* 4. RODAPÉ (Alterado para chamar openDeleteModal) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* --- LISTA DE METAS ATUALIZADA --- */}
+            {/* LISTA DE METAS */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Metas Ativas</h3>
@@ -305,19 +333,16 @@ function Dashboard() {
                                 <div className="flex justify-between items-start gap-3">
                                     <h4 className="font-bold text-text text-sm truncate flex-1" title={goal.title}>{goal.title}</h4>
                                     <div className="flex items-center gap-2 shrink-0">
-                                        <span className="text-[10px] px-2 py-0.5 rounded font-bold uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                                            {goal.goalType}
-                                        </span>
+                                        <span className="text-[10px] px-2 py-0.5 rounded font-bold uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20">{goal.goalType}</span>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                             <button onClick={(e) => { e.stopPropagation(); handleEditGoal(goal); }} className="p-1 bg-surface border border-border rounded text-text-muted hover:bg-blue-600 hover:text-white transition-colors"><Edit2 className="w-3 h-3" /></button>
-                                            <button onClick={(e) => { e.stopPropagation(); handleDeleteGoal(goal.id); }} className="p-1 bg-surface border border-border rounded text-text-muted hover:bg-red-600 hover:text-white transition-colors"><Trash2 className="w-3 h-3" /></button>
+                                            
+                                            {/* ALTERADO AQUI: Chamada do Modal */}
+                                            <button onClick={(e) => { e.stopPropagation(); openDeleteModal('GOAL', goal.id, goal.title); }} className="p-1 bg-surface border border-border rounded text-text-muted hover:bg-red-600 hover:text-white transition-colors"><Trash2 className="w-3 h-3" /></button>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                {/* Chamada da função de renderização dinâmica */}
                                 {renderGoalProgress(goal)}
-
                             </div>
                         ))
                     ) : (
@@ -326,7 +351,7 @@ function Dashboard() {
                 </div>
             </div>
 
-            {/* Matérias e Recentes (Mantidos igual) */}
+            {/* LISTA DE MATÉRIAS */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Matérias</h3>
@@ -337,7 +362,9 @@ function Dashboard() {
                             <div key={subject.id} className="p-3 bg-background border border-border rounded-xl hover:border-text-muted/30 transition-colors relative group">
                                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10">
                                     <button onClick={(e) => { e.stopPropagation(); handleEditSubject(subject); }} className="p-1.5 bg-surface border border-border rounded-lg text-text-muted hover:bg-blue-600 hover:text-white"><Edit2 className="w-3 h-3" /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteSubject(subject.id); }} className="p-1.5 bg-surface border border-border rounded-lg text-text-muted hover:bg-red-600 hover:text-white"><Trash2 className="w-3 h-3" /></button>
+                                    
+                                    {/* ALTERADO AQUI: Chamada do Modal */}
+                                    <button onClick={(e) => { e.stopPropagation(); openDeleteModal('SUBJECT', subject.id, subject.name); }} className="p-1.5 bg-surface border border-border rounded-lg text-text-muted hover:bg-red-600 hover:text-white"><Trash2 className="w-3 h-3" /></button>
                                 </div>
                                 <div className="flex items-center gap-3 mb-2">
                                     <div className="w-3 h-3 rounded-full shadow-sm ring-2 ring-background" style={{ backgroundColor: subject.color }}></div>
@@ -353,6 +380,7 @@ function Dashboard() {
                 </div>
             </div>
 
+            {/* LISTA DE RECENTES */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Recentes</h3>
@@ -368,7 +396,9 @@ function Dashboard() {
                                     </div>
                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0 ml-2">
                                         <button onClick={(e) => { e.stopPropagation(); handleEditSession(session); }} className="p-1.5 bg-surface border border-border rounded-lg text-text-muted hover:bg-blue-600 hover:text-white"><Edit2 className="w-3 h-3" /></button>
-                                        <button onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }} className="p-1.5 bg-surface border border-border rounded-lg text-text-muted hover:bg-red-600 hover:text-white"><Trash2 className="w-3 h-3" /></button>
+                                        
+                                        {/* ALTERADO AQUI: Chamada do Modal */}
+                                        <button onClick={(e) => { e.stopPropagation(); openDeleteModal('SESSION', session.id); }} className="p-1.5 bg-surface border border-border rounded-lg text-text-muted hover:bg-red-600 hover:text-white"><Trash2 className="w-3 h-3" /></button>
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-end pl-11">
@@ -385,7 +415,19 @@ function Dashboard() {
             </div>
         </div>
 
+        {/* MODAL DE DETALHES DA SESSÃO */}
         <SessionDetailsModal isOpen={!!viewSession} onClose={() => setViewSession(null)} session={viewSession} />
+
+        {/* --- NOVO: MODAL DE CONFIRMAÇÃO DE EXCLUSÃO --- */}
+        <ConfirmModal 
+            isOpen={deleteModal.isOpen}
+            onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+            onConfirm={handleConfirmDelete}
+            title={deleteModal.title}
+            message={deleteModal.message}
+            isDeleting={isDeleting}
+        />
+
       </div>
     </Layout>
   );
