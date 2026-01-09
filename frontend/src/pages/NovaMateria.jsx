@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Layout from '../components/Layout';
 import { subjectAPI } from '../services/api';
-// import { getErrorMessage } from '../utils/errorHandler'; // Tratamento local
 import { BookOpen, Check, Layers, Plus, X, Save, ArrowLeft, Palette } from 'lucide-react';
 import { getAuthUser } from '../utils/auth';
 
@@ -31,10 +30,10 @@ const NovaMateria = () => {
   const [name, setName] = useState(editingSubject?.name || '');
   const [selectedColor, setSelectedColor] = useState(editingSubject?.color || COLORS[0].hex);
   
-  // Lista de Assuntos (Backend espera List<String>)
+  // Lista de Assuntos
   const [matters, setMatters] = useState(editingSubject?.matters || []);
   
-  // Input temporário para adicionar assuntos
+  // Input temporário
   const [currentMatter, setCurrentMatter] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -69,7 +68,7 @@ const NovaMateria = () => {
       const payload = {
         name,
         color: selectedColor,
-        matters, // Envia array de strings direto
+        matters, 
         user: { id: user.userId }
       };
 
@@ -85,13 +84,9 @@ const NovaMateria = () => {
 
     } catch (err) {
       console.error("Erro ao salvar matéria:", err);
-
-      // --- TRATAMENTO DE ERRO (Global Exception Handler) ---
       if (err.response && err.response.status === 400 && err.response.data) {
           const data = err.response.data;
-          
           if (typeof data === 'object' && !Array.isArray(data)) {
-              // Pega a primeira mensagem de erro (ex: "name": "O nome é obrigatório")
               const firstErrorKey = Object.keys(data)[0];
               toast.error(data[firstErrorKey]);
           } else {
@@ -107,7 +102,7 @@ const NovaMateria = () => {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto pb-20">
         <button 
             onClick={() => navigate('/dashboard')}
             className="flex items-center text-text-muted hover:text-text mb-6 transition-colors"
@@ -126,12 +121,12 @@ const NovaMateria = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* COLUNA DA ESQUERDA: FORMULÁRIO */}
-          <div className="lg:col-span-2 bg-[#121212] border border-border rounded-2xl p-8 shadow-2xl">
+          <div className="lg:col-span-2 bg-surface border border-border rounded-2xl p-8 shadow-2xl transition-colors duration-300">
             <form onSubmit={handleSubmit} className="space-y-8">
               
               {/* Nome */}
               <div>
-                <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Nome da Matéria</label>
+                <label className="block text-sm font-bold text-text-muted mb-3 uppercase tracking-wider">Nome da Matéria</label>
                 <div className="relative">
                   <BookOpen className="absolute left-4 top-3.5 w-5 h-5 text-text-muted" />
                   <input
@@ -139,7 +134,7 @@ const NovaMateria = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ex: Matemática, Java, Inglês..."
-                    className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-xl text-text focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
+                    className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-xl text-text focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-500"
                     required
                     autoFocus={!isEditing}
                   />
@@ -148,7 +143,7 @@ const NovaMateria = () => {
 
               {/* Seletor de Cores */}
               <div>
-                <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider items-center gap-2">
+                <label className="block text-sm font-bold text-text-muted mb-3 uppercase tracking-wider items-center gap-2">
                     Cor de Identificação
                 </label>
                 <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 bg-background p-4 rounded-xl border border-border">
@@ -159,13 +154,13 @@ const NovaMateria = () => {
                       onClick={() => setSelectedColor(color.hex)}
                       className={`w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 cursor-pointer ${
                         selectedColor === color.hex 
-                        ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0a] scale-110' 
+                        ? 'ring-2 ring-text ring-offset-2 ring-offset-background scale-110' 
                         : 'opacity-70 hover:opacity-100'
                       }`}
                       style={{ backgroundColor: color.hex }}
                       title={color.label}
                     >
-                      {selectedColor === color.hex && <Check className="w-5 h-5 text-text drop-shadow-md" />}
+                      {selectedColor === color.hex && <Check className="w-5 h-5 text-white drop-shadow-md" />}
                     </button>
                   ))}
                 </div>
@@ -173,8 +168,8 @@ const NovaMateria = () => {
 
               {/* Assuntos (Tag Input) */}
               <div>
-                <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">
-                    Tópicos / Assuntos <span className="text-gray-600 text-xs normal-case ml-1 font-normal">(Opcional)</span>
+                <label className="block text-sm font-bold text-text-muted mb-3 uppercase tracking-wider">
+                    Tópicos / Assuntos <span className="text-text-muted/70 text-xs normal-case ml-1 font-normal">(Opcional)</span>
                 </label>
                 <div className="flex gap-2 mb-3">
                     <div className="relative flex-1">
@@ -184,7 +179,7 @@ const NovaMateria = () => {
                             value={currentMatter}
                             onChange={(e) => setCurrentMatter(e.target.value)}
                             placeholder="Ex: Geometria, Verbos, Spring Boot..."
-                            className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-xl text-text focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-600"
+                            className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-xl text-text focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-500"
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();
@@ -197,7 +192,7 @@ const NovaMateria = () => {
                         type="button"
                         onClick={handleAddMatters}
                         disabled={!currentMatter.trim()}
-                        className="bg-gray-800 hover:bg-gray-700 text-text p-3 rounded-xl border border-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-background hover:bg-surface-hover text-text p-3 rounded-xl border border-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Adicionar"
                     >
                         <Plus className="w-6 h-6" />
@@ -206,17 +201,17 @@ const NovaMateria = () => {
                 
                 {/* Lista de Tags */}
                 {matters.length > 0 ? (
-                    <div className="flex flex-wrap gap-2 p-4 bg-background rounded-xl border border-dashed border-border min-h-15">
+                    <div className="flex flex-wrap gap-2 p-4 bg-background rounded-xl border border-dashed border-border min-h-15 transition-colors">
                         {matters.map((matter, index) => (
                             <span 
                                 key={index} 
-                                className="flex items-center gap-1 pl-3 pr-2 py-1.5 bg-gray-800 text-gray-300 text-sm rounded-lg border border-border animate-in fade-in zoom-in duration-200 group hover:border-gray-600"
+                                className="flex items-center gap-1 pl-3 pr-2 py-1.5 bg-surface text-text-muted text-sm rounded-lg border border-border animate-in fade-in zoom-in duration-200 group hover:border-text-muted transition-colors"
                             >
                                 {matter}
                                 <button
                                     type="button"
                                     onClick={() => handleRemoveMatter(matter)}
-                                    className="hover:text-red-400 transition-colors ml-1 p-0.5 rounded-md hover:bg-gray-700"
+                                    className="hover:text-red-500 transition-colors ml-1 p-0.5 rounded-md hover:bg-background"
                                 >
                                     <X className="w-3.5 h-3.5" />
                                 </button>
@@ -224,7 +219,7 @@ const NovaMateria = () => {
                         ))}
                     </div>
                 ) : (
-                    <p className="text-xs text-gray-600 ml-1">
+                    <p className="text-xs text-text-muted ml-1">
                         Adicione subtópicos para detalhar suas sessões de estudo (ex: em 'Inglês', adicione 'Gramática', 'Vocabulário').
                     </p>
                 )}
@@ -235,14 +230,14 @@ const NovaMateria = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/dashboard')}
-                  className="px-6 py-3 bg-transparent border border-border text-gray-300 hover:bg-gray-800 font-semibold rounded-xl transition-all cursor-pointer"
+                  className="px-6 py-3 bg-transparent border border-border text-text-muted hover:bg-background hover:text-text font-semibold rounded-xl transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={loading || !name}
-                  className="flex-1 py-3 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-text font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isEditing ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                   {loading ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Criar Matéria')}
@@ -259,7 +254,7 @@ const NovaMateria = () => {
                 </h3>
                 
                 <div className="bg-surface border border-border rounded-2xl p-6 shadow-xl transition-all duration-300 relative overflow-hidden group">
-                    {/* Efeito de brilho no fundo baseado na cor */}
+                    {/* Efeito de brilho no fundo */}
                     <div 
                         className="absolute top-0 right-0 w-32 h-32 opacity-10 blur-[60px] rounded-full transition-colors duration-300 pointer-events-none"
                         style={{ backgroundColor: selectedColor }}
@@ -270,7 +265,7 @@ const NovaMateria = () => {
                             className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-colors duration-300 shrink-0"
                             style={{ backgroundColor: selectedColor }}
                         >
-                            <BookOpen className="w-6 h-6 text-text" />
+                            <BookOpen className="w-6 h-6 text-white" />
                         </div>
                         <div className="overflow-hidden">
                             <h4 className="font-bold text-text text-lg truncate leading-tight">
@@ -290,16 +285,16 @@ const NovaMateria = () => {
                             <span>Progresso (Exemplo)</span>
                             <span>0%</span>
                         </div>
-                        <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
+                        <div className="h-2 w-full bg-background rounded-full overflow-hidden border border-border/50">
                             <div className="h-full w-0 transition-all duration-300" style={{ backgroundColor: selectedColor }}></div>
                         </div>
                     </div>
 
                     {/* Preview das Tags (Limitado a 3) */}
                     {matters.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 pt-4 border-t border-border/50">
+                        <div className="flex flex-wrap gap-1.5 pt-4 border-t border-border">
                             {matters.slice(0, 3).map((matter, i) => (
-                                <span key={i} className="text-[10px] px-2 py-1 bg-gray-800/50 text-text-muted rounded-md border border-border/50">
+                                <span key={i} className="text-[10px] px-2 py-1 bg-background text-text-muted rounded-md border border-border">
                                     {matter}
                                 </span>
                             ))}
@@ -312,8 +307,8 @@ const NovaMateria = () => {
                     )}
                 </div>
 
-                <div className="mt-6 bg-blue-900/10 border border-blue-500/20 p-4 rounded-xl">
-                    <p className="text-xs text-blue-200 text-center leading-relaxed">
+                <div className="mt-6 bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl">
+                    <p className="text-xs text-blue-500 text-center leading-relaxed font-medium">
                       {isEditing 
                         ? 'Ao salvar, todas as metas e sessões vinculadas a esta matéria serão atualizadas visualmente.' 
                         : 'Você poderá usar esta matéria para categorizar suas metas e sessões de estudo.'}

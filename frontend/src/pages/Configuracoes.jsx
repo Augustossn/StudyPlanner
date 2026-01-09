@@ -4,19 +4,18 @@ import { toast } from 'react-hot-toast';
 import { 
   User, Lock, Bell, Monitor, Clock, Save, 
   Type, Volume2, Trash2, ShieldAlert,
-  Sun, Moon, Laptop // Ícones para o tema
+  Sun, Moon, Laptop, BarChart3 // <--- Adicionei BarChart3
 } from 'lucide-react';
 
 import Layout from '../components/Layout';
 import { authAPI } from '../services/api';
 import { getAuthUser, logout } from '../utils/auth';
-import { useTheme } from '../utils/themeContext'; // Importe o Contexto de Tema
+import { useTheme } from '../utils/themeContext';
 
 const Configuracoes = () => {
   const [user] = useState(() => getAuthUser());
   const [loading, setLoading] = useState(false);
   
-  // Hook do Tema
   const { theme, setTheme } = useTheme();
 
   // --- ESTADOS DE SENHA ---
@@ -31,7 +30,8 @@ const Configuracoes = () => {
 
   const [appearance, setAppearance] = useState({
     fontSize: 'normal', 
-    soundEnabled: true
+    soundEnabled: true,
+    chartRange: '7days' // <--- Padrão inicial
   });
 
   // --- CARREGAR PREFERÊNCIAS AO INICIAR ---
@@ -40,7 +40,10 @@ const Configuracoes = () => {
     if (savedPomo) setPomodoroSettings(JSON.parse(savedPomo));
 
     const savedApp = localStorage.getItem('app_settings');
-    if (savedApp) setAppearance(JSON.parse(savedApp));
+    if (savedApp) {
+        // Combina o salvo com o estado atual para garantir que chartRange exista
+        setAppearance(prev => ({ ...prev, ...JSON.parse(savedApp) }));
+    }
   }, []);
 
   // --- HANDLERS ---
@@ -78,9 +81,16 @@ const Configuracoes = () => {
   const handleSaveAppearance = (newSettings) => {
     const updated = { ...appearance, ...newSettings };
     setAppearance(updated);
+    
+    // Salva no LocalStorage
     localStorage.setItem('app_settings', JSON.stringify(updated));
-    document.documentElement.setAttribute('data-font-size', updated.fontSize);
-    toast.success("Preferências visuais salvas.");
+    
+    // Aplica fonte se mudou
+    if (newSettings.fontSize) {
+        document.documentElement.setAttribute('data-font-size', updated.fontSize);
+    }
+    
+    toast.success("Preferências salvas.");
   };
 
   return (
@@ -148,12 +158,12 @@ const Configuracoes = () => {
                 <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500">
                     <Monitor size={20} />
                 </div>
-                <h2 className="text-lg font-bold text-text">Aparência & Sons</h2>
+                <h2 className="text-lg font-bold text-text">Aparência & Preferências</h2>
             </div>
 
             <div className="space-y-6">
                 
-                {/* 1. Seletor de Tema (NOVO) */}
+                {/* 1. Seletor de Tema */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-background rounded-xl border border-border transition-colors">
                     <div className="flex items-center gap-3">
                         {theme === 'dark' ? <Moon size={20} className="text-purple-500" /> : <Sun size={20} className="text-orange-500" />}
@@ -163,27 +173,9 @@ const Configuracoes = () => {
                         </div>
                     </div>
                     <div className="flex bg-surface p-1 rounded-lg border border-border">
-                        <button
-                            onClick={() => setTheme('light')}
-                            className={`p-2 rounded-md transition-all ${theme === 'light' ? 'bg-background text-orange-500 shadow-sm' : 'text-text-muted hover:text-text'}`}
-                            title="Claro"
-                        >
-                            <Sun size={18} />
-                        </button>
-                        <button
-                            onClick={() => setTheme('dark')}
-                            className={`p-2 rounded-md transition-all ${theme === 'dark' ? 'bg-background text-purple-500 shadow-sm' : 'text-text-muted hover:text-text'}`}
-                            title="Escuro"
-                        >
-                            <Moon size={18} />
-                        </button>
-                        <button
-                            onClick={() => setTheme('system')}
-                            className={`p-2 rounded-md transition-all ${theme === 'system' ? 'bg-background text-blue-500 shadow-sm' : 'text-text-muted hover:text-text'}`}
-                            title="Sistema"
-                        >
-                            <Laptop size={18} />
-                        </button>
+                        <button onClick={() => setTheme('light')} className={`p-2 rounded-md transition-all ${theme === 'light' ? 'bg-background text-orange-500 shadow-sm' : 'text-text-muted hover:text-text'}`} title="Claro"><Sun size={18} /></button>
+                        <button onClick={() => setTheme('dark')} className={`p-2 rounded-md transition-all ${theme === 'dark' ? 'bg-background text-purple-500 shadow-sm' : 'text-text-muted hover:text-text'}`} title="Escuro"><Moon size={18} /></button>
+                        <button onClick={() => setTheme('system')} className={`p-2 rounded-md transition-all ${theme === 'system' ? 'bg-background text-blue-500 shadow-sm' : 'text-text-muted hover:text-text'}`} title="Sistema"><Laptop size={18} /></button>
                     </div>
                 </div>
 
@@ -213,7 +205,33 @@ const Configuracoes = () => {
                     </div>
                 </div>
 
-                {/* 3. Sons */}
+                {/* 3. Período do Gráfico (NOVO) */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-background rounded-xl border border-border transition-colors">
+                    <div className="flex items-center gap-3">
+                        <BarChart3 className="text-text-muted" size={20} />
+                        <div>
+                            <p className="text-text font-medium">Período do Gráfico</p>
+                            <p className="text-xs text-text-muted">Intervalo padrão exibido no Dashboard.</p>
+                        </div>
+                    </div>
+                    <div className="relative">
+                        <select 
+                            value={appearance.chartRange}
+                            onChange={(e) => handleSaveAppearance({ chartRange: e.target.value })}
+                            className="bg-surface text-text border border-border rounded-lg p-2 pr-8 text-sm focus:border-purple-500 outline-none appearance-none cursor-pointer min-w-[150px]"
+                        >
+                            <option value="7days">Última Semana</option>
+                            <option value="30days">Último Mês</option>
+                            <option value="90days">Últimos 3 Meses</option>
+                            <option value="year">Último Ano</option>
+                        </select>
+                         <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-text-muted">
+                            <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 4. Sons */}
                 <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border transition-colors">
                     <div className="flex items-center gap-3">
                         <Volume2 className="text-text-muted" size={20} />
@@ -235,7 +253,7 @@ const Configuracoes = () => {
             </div>
         </section>
 
-        {/* --- SEÇÃO 3: SEGURANÇA (TROCAR SENHA) --- */}
+        {/* --- SEÇÃO 3: SEGURANÇA --- */}
         <section className="bg-surface border border-border rounded-2xl p-6 md:p-8 transition-colors">
             <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
@@ -243,48 +261,24 @@ const Configuracoes = () => {
                 </div>
                 <h2 className="text-lg font-bold text-text">Segurança</h2>
             </div>
-
+            {/* ... restante do formulário de senha igual ... */}
             <form onSubmit={handleChangePassword} className="max-w-md space-y-4">
                 <div>
                     <label className="block text-xs font-bold text-text-muted uppercase mb-2">Senha Atual</label>
-                    <input 
-                        type="password" 
-                        value={passData.current}
-                        onChange={(e) => setPassData({...passData, current: e.target.value})}
-                        className="w-full bg-background border border-border rounded-xl p-3 text-text focus:border-blue-500 focus:outline-none transition-colors"
-                        placeholder="••••••••"
-                    />
+                    <input type="password" value={passData.current} onChange={(e) => setPassData({...passData, current: e.target.value})} className="w-full bg-background border border-border rounded-xl p-3 text-text focus:border-blue-500 focus:outline-none transition-colors" placeholder="••••••••" />
                 </div>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-xs font-bold text-text-muted uppercase mb-2">Nova Senha</label>
-                        <input 
-                            type="password" 
-                            value={passData.new}
-                            onChange={(e) => setPassData({...passData, new: e.target.value})}
-                            className="w-full bg-background border border-border rounded-xl p-3 text-text focus:border-blue-500 focus:outline-none transition-colors"
-                            placeholder="••••••••"
-                        />
+                        <input type="password" value={passData.new} onChange={(e) => setPassData({...passData, new: e.target.value})} className="w-full bg-background border border-border rounded-xl p-3 text-text focus:border-blue-500 focus:outline-none transition-colors" placeholder="••••••••" />
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-text-muted uppercase mb-2">Confirmar</label>
-                        <input 
-                            type="password" 
-                            value={passData.confirm}
-                            onChange={(e) => setPassData({...passData, confirm: e.target.value})}
-                            className="w-full bg-background border border-border rounded-xl p-3 text-text focus:border-blue-500 focus:outline-none transition-colors"
-                            placeholder="••••••••"
-                        />
+                        <input type="password" value={passData.confirm} onChange={(e) => setPassData({...passData, confirm: e.target.value})} className="w-full bg-background border border-border rounded-xl p-3 text-text focus:border-blue-500 focus:outline-none transition-colors" placeholder="••••••••" />
                     </div>
                 </div>
-
                 <div className="pt-2">
-                    <button 
-                        type="submit" 
-                        disabled={loading}
-                        className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-text rounded-xl font-bold text-sm flex items-center gap-2 transition-all disabled:opacity-50"
-                    >
+                    <button type="submit" disabled={loading} className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-text rounded-xl font-bold text-sm flex items-center gap-2 transition-all disabled:opacity-50">
                         {loading ? 'Salvando...' : <><Save size={16} /> Atualizar Senha</>}
                     </button>
                 </div>
@@ -293,28 +287,15 @@ const Configuracoes = () => {
 
         {/* --- SEÇÃO 4: ZONA DE PERIGO --- */}
         <section className="border border-red-500/20 bg-red-500/5 rounded-2xl p-6 md:p-8 transition-colors">
-            <div className="flex items-center gap-3 mb-4">
+             {/* ... igual ao anterior ... */}
+             <div className="flex items-center gap-3 mb-4">
                 <ShieldAlert className="text-red-500" size={24} />
                 <h2 className="text-lg font-bold text-red-500">Zona de Perigo</h2>
             </div>
-            <p className="text-text-muted text-sm mb-6">
-                Ações aqui são irreversíveis. Tenha cuidado.
-            </p>
-            
+            <p className="text-text-muted text-sm mb-6">Ações aqui são irreversíveis. Tenha cuidado.</p>
             <div className="flex gap-4">
-                 <button 
-                    onClick={logout}
-                    className="px-5 py-2 border border-border hover:border-text-muted text-text-muted hover:text-text rounded-xl font-bold text-sm transition-all"
-                >
-                    Sair da Conta
-                </button>
-                
-                <button 
-                    onClick={() => toast.error("Funcionalidade indisponível no momento.")}
-                    className="px-5 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-text border border-red-500/20 rounded-xl font-bold text-sm flex items-center gap-2 transition-all"
-                >
-                    <Trash2 size={16} /> Excluir Conta
-                </button>
+                 <button onClick={logout} className="px-5 py-2 border border-border hover:border-text-muted text-text-muted hover:text-text rounded-xl font-bold text-sm transition-all">Sair da Conta</button>
+                 <button onClick={() => toast.error("Funcionalidade indisponível no momento.")} className="px-5 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-text border border-red-500/20 rounded-xl font-bold text-sm flex items-center gap-2 transition-all"><Trash2 size={16} /> Excluir Conta</button>
             </div>
         </section>
 

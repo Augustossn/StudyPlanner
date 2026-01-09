@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Configuração de Fonte Global (do passo anterior) */
+/* Configuração de Fonte Global */
 :root[data-font-size="small"] { font-size: 14px; }
 :root[data-font-size="normal"] { font-size: 16px; }
 :root[data-font-size="large"] { font-size: 18px; }
@@ -18,11 +18,11 @@
 }
 
 .dark {
-  /* TEMA ESCURO (Seus tons atuais) */
+  /* TEMA ESCURO */
   --background: #09090b;       /* Preto fundo */
   --surface: #1a1a1a;          /* Cinza escuro cards */
   --surface-hover: #27272a;    /* Cinza um pouco mais claro */
-  --border: #27272a;           /* Cinza para bordas (gray-800) */
+  --border: #27272a;           /* Cinza para bordas */
   --text: #ffffff;             /* Branco */
   --text-muted: #9ca3af;       /* Cinza texto secundário */
 }
@@ -41,6 +41,13 @@ body {
   color: var(--text);
   
   transition: background-color 0.3s, color 0.3s; /* Transição suave ao trocar tema */
+}
+
+/* --- CORREÇÃO DE INPUTS NATIVOS (SELECT) --- */
+/* Isso força as opções do dropdown a usarem as cores do tema */
+select option {
+  background-color: var(--surface);
+  color: var(--text);
 }
 
 /* Scrollbar adaptativa */
