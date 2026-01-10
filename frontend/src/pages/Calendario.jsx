@@ -8,7 +8,7 @@ import ptBR from 'date-fns/locale/pt-BR';
 import isSameDay from 'date-fns/isSameDay';
 import endOfDay from 'date-fns/endOfDay';
 import subMonths from 'date-fns/subMonths';
-import isSameMonth from 'date-fns/isSameMonth'; // Importante para a comparação
+import isSameMonth from 'date-fns/isSameMonth';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 import Layout from '../components/Layout';
@@ -30,33 +30,26 @@ const Calendario = () => {
   const [user] = useState(() => getAuthUser());
   const [events, setEvents] = useState([]);
   
-  // Data atual (hoje) para servir de referência máxima
   const today = useMemo(() => new Date(), []);
-
-  // --- ESTADO DA DATA ATUAL DO CALENDÁRIO ---
   const [currentDate, setCurrentDate] = useState(today);
 
   // --- ESTADOS DO MODAL ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [daySessions, setDaySessions] = useState([]);
-
   const [viewSession, setViewSession] = useState(null);
 
-  // --- GERA OS ÚLTIMOS 12 MESES PARA O SELECT ---
+  // --- NAVEGAÇÃO ---
   const monthsOptions = useMemo(() => {
     const options = [];
     for (let i = 0; i < 12; i++) {
         options.push(subMonths(today, i));
     }
-    return options; // [Hoje, Mês Passado, ... , 11 meses atrás]
+    return options;
   }, [today]);
 
-  // Limites para navegação
-  const maxDate = monthsOptions[0]; // Mês atual
-  const minDate = monthsOptions[monthsOptions.length - 1]; // 1 ano atrás
-
-  // Verifica se deve bloquear os botões
+  const maxDate = monthsOptions[0];
+  const minDate = monthsOptions[monthsOptions.length - 1];
   const isNextDisabled = isSameMonth(currentDate, maxDate);
   const isPrevDisabled = isSameMonth(currentDate, minDate);
 
@@ -66,7 +59,6 @@ const Calendario = () => {
     const loadSessions = async () => {
       try {
         const response = await studySessionAPI.getRecentSessions(user.userId);
-
         const formattedEvents = response.data.map(session => {
           const startDate = new Date(session.date);
           let endDate = new Date(startDate.getTime() + session.durationMinutes * 60000);
@@ -83,7 +75,6 @@ const Calendario = () => {
             resource: session,
           };
         });
-
         setEvents(formattedEvents);
       } catch (error) {
         console.error("Erro ao carregar calendário", error);
@@ -93,25 +84,11 @@ const Calendario = () => {
     loadSessions();
   }, [user?.userId]);
 
-  // --- HANDLERS DE NAVEGAÇÃO ---
-  const handleMonthChange = (e) => {
-      const newDate = new Date(e.target.value);
-      setCurrentDate(newDate);
-  };
+  // --- HANDLERS ---
+  const handleMonthChange = (e) => setCurrentDate(new Date(e.target.value));
+  const goToPreviousMonth = () => !isPrevDisabled && setCurrentDate(prev => subMonths(prev, 1));
+  const goToNextMonth = () => !isNextDisabled && setCurrentDate(prev => subMonths(prev, -1));
 
-  const goToPreviousMonth = () => {
-      if (!isPrevDisabled) {
-          setCurrentDate(prev => subMonths(prev, 1));
-      }
-  };
-  
-  const goToNextMonth = () => {
-      if (!isNextDisabled) {
-          setCurrentDate(prev => subMonths(prev, -1)); 
-      }
-  };
-
-  // --- HANDLERS DO CALENDÁRIO ---
   const handleShowMore = (events, date) => {
       setSelectedDate(date);
       setDaySessions(events);
@@ -143,7 +120,7 @@ const Calendario = () => {
               border: '0px',
               fontSize: '0.85rem',
               fontWeight: '500',
-              cursor: 'pointer' // Adicionado cursor pointer nos eventos
+              cursor: 'pointer'
           }
       };
   };
@@ -151,81 +128,184 @@ const Calendario = () => {
   return (
     <Layout>
         <style>{`
-            .rbc-calendar { color: #9ca3af; font-family: inherit; }
-            .rbc-month-view { border-color: #374151; background-color: #0f0f0f; }
-            .rbc-header { border-bottom-color: #374151; padding: 12px 0; font-weight: 700; text-transform: uppercase; font-size: 0.8rem; color: #6b7280; }
-            .rbc-day-bg + .rbc-day-bg { border-left-color: #374151; }
-            .rbc-off-range-bg { background-color: #050505; opacity: 1; }
-            .rbc-today { background-color: #1e3a8a20; }
-            .rbc-event { box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
-            /* Link "+ ver mais" com cursor pointer */
-            .rbc-show-more { background-color: #1f2937; color: #93c5fd; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-top: 2px; cursor: pointer; }
-            .rbc-show-more:hover { text-decoration: none; background-color: #374151; color: white; }
-            /* Cursor pointer nos dias */
-            .rbc-day-bg { cursor: pointer; } 
-            .rbc-day-bg:hover { background-color: #1f1f1f; transition: background-color 0.2s; }
+            /* --- LIGHT MODE (Bordas Escurecidas para Contraste) --- */
+            
+            .rbc-calendar { 
+                font-family: inherit; 
+                color: #374151; /* Texto mais escuro */
+            }
+            
+            /* Container Principal */
+            .rbc-month-view {
+                border: 1px solid #9ca3af; /* Gray-400: Borda bem visível */
+                background-color: #ffffff;
+                border-radius: 0.75rem;
+                overflow: hidden;
+            }
+            
+            /* Cabeçalho */
+            .rbc-header {
+                padding: 12px 0;
+                font-weight: 700;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+                color: #4b5563;
+                background-color: #f3f4f6; /* Gray-100: Fundo leve */
+                border-bottom: 1px solid #9ca3af; /* Borda visível */
+            }
+            .rbc-header + .rbc-header {
+                border-left: 1px solid #9ca3af; /* Divisória vertical visível */
+            }
+            
+            /* Células dos Dias */
+            .rbc-day-bg {
+                background-color: #ffffff;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+            .rbc-day-bg + .rbc-day-bg {
+                border-left: 1px solid #9ca3af; /* Divisória Vertical Escura */
+            }
+            .rbc-day-bg:hover {
+                background-color: #f3f4f6;
+            }
+            
+            /* Dias fora do mês (Off-range) */
+            .rbc-off-range-bg {
+                background-color: #f9fafb;
+                opacity: 1;
+            }
+            
+            /* Linhas Horizontais */
+            .rbc-month-row + .rbc-month-row {
+                border-top: 1px solid #9ca3af; /* Divisória Horizontal Escura */
+            }
+
+            /* Dia Atual */
+            .rbc-today {
+                background-color: #eff6ff !important; /* Azul bem claro */
+            }
+
+            .rbc-date-cell {
+                padding: 4px 8px;
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: #1f2937; /* Quase preto */
+            }
+            .rbc-off-range .rbc-date-cell {
+                color: #9ca3af;
+            }
+
+            .rbc-show-more {
+                background-color: #e5e7eb;
+                color: #374151;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                margin: 2px;
+                display: inline-block;
+                cursor: pointer;
+            }
+            .rbc-show-more:hover {
+                background-color: #d1d5db;
+                color: #111827;
+                text-decoration: none;
+            }
+
+            /* --- DARK MODE OVERRIDES (.dark class) --- */
+            
+            .dark .rbc-calendar { color: #9ca3af; }
+            
+            .dark .rbc-month-view {
+                border-color: #27272a; 
+                background-color: #09090b;
+            }
+            
+            .dark .rbc-header {
+                background-color: #18181b;
+                border-bottom-color: #27272a;
+                color: #a1a1aa;
+            }
+            .dark .rbc-header + .rbc-header { border-left-color: #27272a; }
+            
+            .dark .rbc-day-bg { background-color: #09090b; }
+            .dark .rbc-day-bg + .rbc-day-bg { border-left-color: #27272a; }
+            .dark .rbc-day-bg:hover { background-color: #27272a; }
+            
+            .dark .rbc-off-range-bg { background-color: #18181b; opacity: 0.5; }
+            
+            .dark .rbc-month-row + .rbc-month-row { border-top-color: #27272a; }
+            
+            .dark .rbc-today { background-color: rgba(59, 130, 246, 0.15) !important; }
+            
+            .dark .rbc-date-cell { color: #f3f4f6; }
+            .dark .rbc-off-range .rbc-date-cell { color: #52525b; }
+            
+            .dark .rbc-show-more {
+                background-color: #27272a;
+                color: #d4d4d8;
+            }
+            .dark .rbc-show-more:hover {
+                background-color: #3f3f46;
+                color: #ffffff;
+            }
         `}</style>
 
-        <div className="h-[80vh] p-6 bg-surface border border-border rounded-2xl shadow-xl flex flex-col antialiased">
+        <div className="h-[80vh] p-6 bg-surface border border-border rounded-2xl shadow-xl flex flex-col antialiased transition-colors duration-300">
             
-            {/* --- HEADER CUSTOMIZADO --- */}
+            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                
                 <div className="flex items-center gap-4">
                     <div className="p-2 bg-blue-500/10 rounded-lg">
                         <CalendarIcon className="text-blue-500 w-6 h-6" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-text leading-none">
+                        <h1 className="text-xl font-bold text-text leading-none capitalize">
                             {format(currentDate, "MMMM yyyy", { locale: ptBR })}
                         </h1>
                         <p className="text-sm text-text-muted mt-1">Histórico de Sessões</p>
                     </div>
                 </div>
 
-                {/* Controles de Navegação */}
-                <div className="flex items-center gap-3 bg-[#0f0f0f] p-1.5 rounded-xl border border-border">
-                    
-                    {/* Botão Anterior */}
+                <div className="flex items-center gap-3 bg-background p-1.5 rounded-xl border border-border shadow-inner">
                     <button 
                         onClick={goToPreviousMonth}
                         disabled={isPrevDisabled}
                         className={`p-2 rounded-lg transition-colors ${
                             isPrevDisabled 
-                            ? 'text-gray-600 cursor-not-allowed opacity-50' // Estilo Bloqueado
-                            : 'text-text-muted hover:bg-gray-800 hover:text-text cursor-pointer' // Estilo Ativo
+                            ? 'text-text-muted/50 cursor-not-allowed' 
+                            : 'text-text-muted hover:bg-surface-hover hover:text-text cursor-pointer'
                         }`}
                         title={isPrevDisabled ? "Limite de histórico alcançado" : "Mês anterior"}
                     >
                         <ChevronLeft size={20} />
                     </button>
 
-                    {/* Select de Meses */}
                     <div className="relative">
                         <select 
                             value={currentDate.toISOString()} 
                             onChange={handleMonthChange}
-                            className="bg-gray-800 text-text text-sm font-medium py-2 pl-4 pr-8 rounded-lg outline-none border border-border focus:border-blue-500 appearance-none cursor-pointer hover:bg-gray-700 transition-colors capitalize"
+                            className="bg-background text-text text-sm font-medium py-2 pl-4 pr-8 rounded-lg outline-none border border-border focus:border-blue-500 appearance-none cursor-pointer hover:bg-surface-hover transition-colors capitalize"
                         >
                             {monthsOptions.map((date, idx) => (
-                                <option key={idx} value={date.toISOString()}>
+                                <option key={idx} value={date.toISOString()} className="bg-surface text-text">
                                     {format(date, "MMMM yyyy", { locale: ptBR })}
                                 </option>
                             ))}
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
-                           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                           <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         </div>
                     </div>
 
-                    {/* Botão Próximo */}
                     <button 
                         onClick={goToNextMonth}
                         disabled={isNextDisabled}
                         className={`p-2 rounded-lg transition-colors ${
                             isNextDisabled 
-                            ? 'text-gray-600 cursor-not-allowed opacity-50' // Estilo Bloqueado
-                            : 'text-text-muted hover:bg-gray-800 hover:text-text cursor-pointer' // Estilo Ativo
+                            ? 'text-text-muted/50 cursor-not-allowed' 
+                            : 'text-text-muted hover:bg-surface-hover hover:text-text cursor-pointer'
                         }`}
                         title={isNextDisabled ? "Você está no mês atual" : "Próximo mês"}
                     >
@@ -234,8 +314,9 @@ const Calendario = () => {
                 </div>
             </div>
             
-            {/* --- CALENDÁRIO --- */}
-            <Calendar
+            {/* Calendário */}
+            <div className="flex-1 min-h-0">
+                <Calendar
                     localizer={localizer}
                     events={events}
                     date={currentDate}
@@ -251,93 +332,85 @@ const Calendario = () => {
                     selectable={true}
                     onSelectSlot={handleSelectSlot}
                     onShowMore={handleShowMore}
-                    
-                    // 3. AJUSTE: Conecta o clique do calendário ao modal de detalhes
                     onSelectEvent={handleSelectEvent}
-                    
                     popup={false}
                 />
             </div>
 
             {/* MODAL DE LISTAGEM DO DIA */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 antialiased animate-in fade-in duration-200">
-                    {/* Adicionado stopPropagation no container para fechar ao clicar fora */}
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
                     <div 
-                        className="bg-black border border-border w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                        className="bg-white dark:bg-[#18181b] border border-border w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                         onClick={(e) => e.stopPropagation()} 
                     >
-                        <div className="p-5 border-b border-border flex justify-between items-center bg-[#151515]">
+                        <div className="p-5 border-b border-border flex justify-between items-center bg-gray-50 dark:bg-[#27272a]">
                             <div>
-                                <h2 className="text-xl font-bold text-text capitalize">
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white capitalize">
                                     {selectedDate && format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
                                 </h2>
-                                <p className="text-sm text-text-muted mt-1">
-                                    {daySessions.length} sessões registradas
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                    {daySessions.length} {daySessions.length === 1 ? 'sessão registrada' : 'sessões registradas'}
                                 </p>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-800 rounded-lg text-text-muted hover:text-text cursor-pointer">
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white cursor-pointer transition-colors">
                                 <X size={24} />
                             </button>
                         </div>
 
-                        <div className="p-5 overflow-y-auto space-y-4 custom-scrollbar">
+                        <div className="p-5 overflow-y-auto space-y-4 custom-scrollbar bg-white dark:bg-[#18181b]">
                             {daySessions.length > 0 ? (
                                 daySessions.map((event, idx) => (
                                     <div 
                                         key={idx} 
-                                        // 4. AJUSTE: Clique na lista abre o modal de detalhes
                                         onClick={() => setViewSession(event.resource || event)}
-                                        // Adicionado cursor-pointer e hover
-                                        className="p-4 bg-background border border-border rounded-xl flex gap-4 items-start cursor-pointer hover:border-gray-600 transition-colors group"
+                                        className="p-4 bg-gray-50 dark:bg-[#09090b] border border-gray-200 dark:border-[#27272a] rounded-xl flex gap-4 items-start cursor-pointer hover:border-blue-300 dark:hover:border-gray-500 hover:shadow-md transition-all group"
                                     >
-                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-text shadow-md shrink-0 text-xl" style={{ backgroundColor: event.resource.subject?.color || '#333' }}>
+                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white shadow-md shrink-0 text-xl" style={{ backgroundColor: event.resource.subject?.color || '#333' }}>
                                             <BookOpen size={24} />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-start">
-                                                <h4 className="text-lg font-bold text-text truncate pr-2 group-hover:text-blue-400 transition-colors">{event.title}</h4>
-                                                <span className="flex items-center gap-1.5 text-xs font-mono bg-gray-800 text-gray-300 px-2 py-1 rounded-md border border-border">
+                                                <h4 className="text-lg font-bold text-gray-800 dark:text-gray-200 truncate pr-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{event.title}</h4>
+                                                <span className="flex items-center gap-1.5 text-xs font-mono bg-white dark:bg-[#27272a] text-gray-500 dark:text-gray-400 px-2 py-1 rounded-md border border-gray-200 dark:border-[#3f3f46] transition-colors">
                                                     <Clock size={12} />
                                                     {event.resource.durationMinutes} min
                                                 </span>
                                             </div>
-                                            <p className="text-text-muted text-sm mt-0.5">{event.resource.subject?.name || 'Geral'}</p>
-                                            {event.resource.matters?.length > 0 && (
-                                                <div className="mt-3 flex flex-wrap gap-2">
-                                                    {event.resource.matters.map((matter, mIdx) => (
-                                                        <span key={mIdx} className="text-xs font-medium px-2.5 py-1 bg-gray-800/50 text-blue-200 rounded-md border border-blue-500/20">{matter}</span>
-                                                    ))}
-                                                </div>
-                                            )}
+                                            <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{event.resource.subject?.name || 'Geral'}</p>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-center py-12 text-text-muted">
+                                <div className="text-center py-12 text-gray-400 dark:text-gray-600">
                                     <Clock className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                    <p className="text-lg">Dia livre!</p>
+                                    <p className="text-lg font-medium">Dia livre!</p>
+                                    <p className="text-sm">Nenhum estudo registrado nesta data.</p>
                                 </div>
                             )}
                         </div>
                         
-                        <div className="p-5 border-t border-border bg-[#151515]">
-                             <button onClick={() => setIsModalOpen(false)} className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-text rounded-xl font-bold shadow-lg cursor-pointer transition-colors">Fechar</button>
+                        <div className="p-5 border-t border-border bg-gray-50 dark:bg-[#27272a]">
+                             <button 
+                                onClick={() => setIsModalOpen(false)} 
+                                className="w-full py-3 bg-white dark:bg-[#18181b] hover:bg-gray-100 dark:hover:bg-[#3f3f46] text-gray-900 dark:text-white border border-gray-300 dark:border-[#3f3f46] rounded-xl font-bold shadow-sm cursor-pointer transition-colors"
+                             >
+                                Fechar
+                             </button>
                         </div>
                     </div>
-                    {/* Fecha o modal ao clicar no fundo escuro */}
                     <div className="fixed inset-0 -z-10" onClick={() => setIsModalOpen(false)}></div>
                 </div>
             )}
 
-            {/* 5. NOVO: Renderiza o Modal de Detalhes */}
             <SessionDetailsModal 
                 isOpen={!!viewSession} 
                 onClose={() => setViewSession(null)} 
                 session={viewSession} 
             />
-        </Layout>
-    );
+        </div>
+    </Layout>
+  );
 };
 
 export default Calendario;

@@ -218,7 +218,7 @@ const Configuracoes = () => {
                         <select 
                             value={appearance.chartRange}
                             onChange={(e) => handleSaveAppearance({ chartRange: e.target.value })}
-                            className="bg-surface text-text border border-border rounded-lg p-2 pr-8 text-sm focus:border-purple-500 outline-none appearance-none cursor-pointer min-w-[150px]"
+                            className="bg-surface text-text border border-border rounded-lg p-2 pr-8 text-sm focus:border-purple-500 outline-none appearance-none cursor-pointer min-w-37.5"
                         >
                             <option value="7days">Última Semana</option>
                             <option value="30days">Último Mês</option>
