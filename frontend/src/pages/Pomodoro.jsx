@@ -88,10 +88,8 @@ const Pomodoro = () => {
 
   // Título da aba
   useEffect(() => {
-    const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-    const secs = (timeLeft % 60).toString().padStart(2, '0');
-    document.title = `${mins}:${secs} - ${isActive ? 'Focando' : 'Pausado'} | StudyPlanner`;
-  }, [timeLeft, isActive]);
+    document.title = "StudyPlanner";
+  }, []);
 
   // --- FUNÇÃO PARA CAPTURAR TEMPO PARCIAL ---
   const capturePartialTime = () => {
