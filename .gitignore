@@ -1,0 +1,57 @@
+# --- ARQUIVOS DE SISTEMA E IDE ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+.sts4-cache/
+
+# --- SEGURANÇA (CRÍTICO) ---
+# Ignora arquivos de variáveis de ambiente em QUALQUER pasta
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.key
+*.pfx
+
+# --- DOCKER ---
+# Ignora overrides locais (caso você use para não mudar o oficial)
+docker-compose.override.yml
+
+# --- BACKEND (JAVA / SPRING) ---
+target/
+*.class
+*.jar
+*.war
+*.ear
+# Logs de aplicação Java
+*.log
+# Ignora a pasta .mvn wrapper (opcional, mas comum ignorar se não usar wrapper no CI)
+# .mvn/ 
+
+# --- FRONTEND (NODE / REACT) ---
+node_modules/
+# Pastas de build de produção
+dist/
+build/
+# Logs do NPM/Yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+# Diretórios de cobertura de testes
+coverage/
+# Cache do eslint/prettier
+.eslintcache
+
+# --- ARQUIVOS TEMPORÁRIOS GERAIS ---
+*.swp
+*.swo
+*~
