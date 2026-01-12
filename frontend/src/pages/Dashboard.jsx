@@ -2,13 +2,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus, Filter, Rocket, BookCheck, Edit2, Trash2, BookOpen, Target, BarChart3, Clock, HelpCircle } from 'lucide-react'; 
+import { Plus, Filter, Rocket, BookCheck, Edit2, Trash2, BookOpen, BarChart3, Clock, HelpCircle } from 'lucide-react'; 
 
 import { dashboardAPI, studySessionAPI, goalsAPI, subjectAPI } from '../services/api';
 import Layout from '../components/Layout';
 import { getAuthUser } from '../utils/auth';
 import SessionDetailsModal from '../components/SessionDetailsModal';
-import ConfirmModal from '../components/ConfirmModal'; // <--- IMPORTE O NOVO COMPONENTE
+import ConfirmModal from '../components/ConfirmModal';
 
 // Componentes Gráficos e Cards
 import StudyTimeChart from '../components/charts/StudyTimeChart';
@@ -19,12 +19,22 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user] = useState(() => getAuthUser());
 
-  // --- ESTADOS DE DADOS ---
-  const [stats, setStats] = useState({ totalHours: 0, weeklyHours: 0, completedSessions: 0, activeGoals: 0 });
-  const [recentSessions, setRecentSessions] = useState([]); 
-  const [allSessions, setAllSessions] = useState([]);       
-  const [subjects, setSubjects] = useState([]);
-  const [goals, setGoals] = useState([]);
+  // --- FUNÇÃO AUXILIAR DE CACHE (Para carregar instantâneo) ---
+  const loadFromCache = (key, defaultValue) => {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved ? JSON.parse(saved) : defaultValue;
+    } catch (error) {
+      return defaultValue;
+    }
+  };
+
+  // --- ESTADOS DE DADOS (Iniciam com o Cache) ---
+  const [stats, setStats] = useState(() => loadFromCache('dash_stats', { totalHours: 0, weeklyHours: 0, completedSessions: 0, activeGoals: 0 }));
+  const [recentSessions, setRecentSessions] = useState(() => loadFromCache('dash_recent', [])); 
+  const [allSessions, setAllSessions] = useState(() => loadFromCache('dash_all', []));       
+  const [subjects, setSubjects] = useState(() => loadFromCache('dash_subjects', []));
+  const [goals, setGoals] = useState(() => loadFromCache('dash_goals', []));
 
   // --- UI ---
   const [selectedSubjectId, setSelectedSubjectId] = useState('all'); 
@@ -32,7 +42,7 @@ function Dashboard() {
   const [viewSession, setViewSession] = useState(null);
   const [chartRange, setChartRange] = useState('7days'); 
 
-  // --- ESTADO DO MODAL DE EXCLUSÃO (NOVO) ---
+  // --- ESTADO DO MODAL DE EXCLUSÃO ---
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     type: null, // 'SUBJECT', 'GOAL', 'SESSION'
@@ -42,7 +52,7 @@ function Dashboard() {
   });
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // --- LOAD DATA (Igual ao anterior) ---
+  // --- LOAD DATA (Atualiza o Cache) ---
   const loadDashboardData = useCallback(async (userId) => {
     try {
       const savedApp = localStorage.getItem('app_settings');
@@ -58,17 +68,31 @@ function Dashboard() {
         subjectAPI.getUserSubjects(userId)
       ]);
 
-      setStats(statsRes.data);
       const fullList = sessionsRes.data || [];
+      // Ordena por data (mais recente primeiro)
       fullList.sort((a, b) => new Date(b.date) - new Date(a.date));
+      const recentList = fullList.slice(0, 5);
+
+      // Atualiza Estado
+      setStats(statsRes.data);
       setAllSessions(fullList); 
-      setRecentSessions(fullList.slice(0, 5)); 
+      setRecentSessions(recentList); 
       setSubjects(subjectsRes.data || []);
       setGoals(goalsRes.data || []); 
 
+      // SALVA NO CACHE (Para a próxima vez ser instantâneo)
+      localStorage.setItem('dash_stats', JSON.stringify(statsRes.data));
+      localStorage.setItem('dash_all', JSON.stringify(fullList));
+      localStorage.setItem('dash_recent', JSON.stringify(recentList));
+      localStorage.setItem('dash_subjects', JSON.stringify(subjectsRes.data || []));
+      localStorage.setItem('dash_goals', JSON.stringify(goalsRes.data || []));
+
     } catch (error) {
       console.error(error);
-      toast.error("Ops! Tivemos um problema ao carregar seus dados.");
+      // Se der erro e não tiver cache, avisa. Se tiver cache, o usuário nem percebe.
+      if(!localStorage.getItem('dash_stats')) {
+         toast.error("Ops! Tivemos um problema ao atualizar seus dados.");
+      }
     }
   }, []);
 
@@ -91,7 +115,7 @@ function Dashboard() {
     };
   }, [user, loadDashboardData]);
 
-  // --- CÁLCULOS (Iguais) ---
+  // --- CÁLCULOS ---
   const questionsStats = useMemo(() => {
     let total = 0;
     let correct = 0;
@@ -108,20 +132,32 @@ function Dashboard() {
     if (!allSessions || allSessions.length === 0) return 0;
     const dailyMinutes = {};
     allSessions.forEach(session => {
-        const dateKey = session.date.split('T')[0];
+        // Pega só a data YYYY-MM-DD para ignorar horário
+        const dateKey = typeof session.date === 'string' ? session.date.split('T')[0] : new Date(session.date).toISOString().split('T')[0];
         dailyMinutes[dateKey] = (dailyMinutes[dateKey] || 0) + session.durationMinutes;
     });
     let currentStreak = 0;
     const checkDate = new Date();
-    checkDate.setHours(0, 0, 0, 0);
+    checkDate.setHours(0, 0, 0, 0); // Zera hora para comparar dias inteiros
+
+    // Checa até 365 dias para trás
     for (let i = 0; i < 365; i++) { 
         const year = checkDate.getFullYear();
         const month = String(checkDate.getMonth() + 1).padStart(2, '0');
         const day = String(checkDate.getDate()).padStart(2, '0');
         const dateString = `${year}-${month}-${day}`;
+        
         const minutesStudied = dailyMinutes[dateString] || 0;
-        if (minutesStudied >= 1) currentStreak++;
-        else if (i > 0) break;
+        
+        // Se estudou hoje ou ontem conta pro streak
+        if (minutesStudied >= 1) {
+            currentStreak++;
+        } else if (i === 0 && minutesStudied === 0) {
+            // Se hoje não estudou, não quebra o streak ainda (pode estudar mais tarde)
+            // Apenas continua checando ontem
+        } else {
+            break; // Quebrou a sequência
+        }
         checkDate.setDate(checkDate.getDate() - 1);
     }
     return currentStreak;
@@ -133,13 +169,20 @@ function Dashboard() {
         : allSessions.filter(s => s.subject?.id === Number(selectedSubjectId));
 
       const now = new Date();
-      const cutoffDate = new Date(); 
+      const cutoffDate = new Date();
+      // Importante: Zerar a hora do cutoff para pegar o dia inteiro do limite
+      cutoffDate.setHours(0,0,0,0); 
+
       if (chartRange === '7days') cutoffDate.setDate(now.getDate() - 7);
       else if (chartRange === '30days') cutoffDate.setDate(now.getDate() - 30);
       else if (chartRange === '90days') cutoffDate.setDate(now.getDate() - 90);
       else if (chartRange === 'year') cutoffDate.setFullYear(now.getFullYear() - 1);
       
-      return sessions.filter(s => new Date(s.date) >= cutoffDate);
+      return sessions.filter(s => {
+          // Garante que a data da sessão seja tratada como data local/utc corretamente
+          const sDate = new Date(s.date); 
+          return sDate >= cutoffDate;
+      });
   }, [allSessions, selectedSubjectId, chartRange]);
 
   const activeColor = useMemo(() => {
@@ -155,7 +198,10 @@ function Dashboard() {
 
   const formatDate = (dateString) => {
     if(!dateString) return "--/--";
-    return new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    // Força interpretação da data evitando cair no dia anterior
+    const datePart = dateString.toString().split('T')[0];
+    const [y, m, d] = datePart.split('-');
+    return `${d}/${m}`;
   };
 
   const renderGoalProgress = (goal) => {
@@ -206,9 +252,7 @@ function Dashboard() {
     );
   };
 
-  // --- NOVAS FUNÇÕES PARA O MODAL ---
-
-  // 1. Função que abre o modal (chamada pelos botões de lixeira)
+  // --- FUNÇÕES DO MODAL ---
   const openDeleteModal = (type, id, name) => {
     let title = '';
     let message = '';
@@ -227,7 +271,6 @@ function Dashboard() {
     setDeleteModal({ isOpen: true, type, id, title, message });
   };
 
-  // 2. Função que executa a exclusão (chamada pelo botão "Sim" do modal)
   const handleConfirmDelete = async () => {
     if (!deleteModal.id || !deleteModal.type) return;
 
@@ -235,16 +278,22 @@ function Dashboard() {
     try {
         if (deleteModal.type === 'SUBJECT') {
             await subjectAPI.deleteSubject(deleteModal.id);
-            setSubjects(prev => prev.filter(sub => sub.id !== deleteModal.id));
+            // Atualiza localmente e no cache
+            const newSubjects = subjects.filter(sub => sub.id !== deleteModal.id);
+            setSubjects(newSubjects);
+            localStorage.setItem('dash_subjects', JSON.stringify(newSubjects));
             toast.success("Matéria excluída!");
         } 
         else if (deleteModal.type === 'GOAL') {
             await goalsAPI.deleteGoal(deleteModal.id);
-            setGoals(prev => prev.filter(g => g.id !== deleteModal.id));
+            const newGoals = goals.filter(g => g.id !== deleteModal.id);
+            setGoals(newGoals);
+            localStorage.setItem('dash_goals', JSON.stringify(newGoals));
             toast.success("Meta excluída!");
         } 
         else if (deleteModal.type === 'SESSION') {
             await studySessionAPI.deleteSession(deleteModal.id, user.userId);
+            // Recarrega tudo para recalcular estatísticas
             loadDashboardData(user.userId);
             toast.success("Sessão excluída.");
         }
@@ -253,11 +302,10 @@ function Dashboard() {
         toast.error("Erro ao excluir. Tente novamente.");
     } finally {
         setIsDeleting(false);
-        setDeleteModal({ ...deleteModal, isOpen: false }); // Fecha o modal
+        setDeleteModal({ ...deleteModal, isOpen: false });
     }
   };
 
-  // Handlers de edição (só navegam)
   const handleEditSubject = (s) => navigate('/nova-materia', { state: { subjectToEdit: s } });
   const handleEditGoal = (g) => navigate('/nova-meta', { state: { goalToEdit: g } });
   const handleEditSession = (s) => navigate('/nova-sessao', { state: { sessionToEdit: s } });
@@ -268,7 +316,6 @@ function Dashboard() {
     <Layout>
       <div className="max-w-400 mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
         
-        {/* ... (Cabeçalho e Stats mantidos iguais) ... */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h1 className="text-2xl font-bold text-text">Visão Geral</h1>
@@ -284,7 +331,6 @@ function Dashboard() {
 
         <StatsGrid stats={stats} questionsStats={questionsStats} streak={streak} />
 
-        {/* ... (Gráficos mantidos iguais) ... */}
         <div className="space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-surface p-2 rounded-xl border border-border shadow-sm transition-colors">
                 <div className="flex p-1 bg-background rounded-lg border border-border">
@@ -317,10 +363,9 @@ function Dashboard() {
             </div>
         </div>
 
-        {/* 4. RODAPÉ (Alterado para chamar openDeleteModal) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* LISTA DE METAS */}
+            {/* METAS ATIVAS */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Metas Ativas</h3>
@@ -335,7 +380,6 @@ function Dashboard() {
                                         <span className="text-[10px] px-2 py-0.5 rounded font-bold uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20">{goal.goalType}</span>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                             <button onClick={(e) => { e.stopPropagation(); handleEditGoal(goal); }} className="p-1 bg-surface border border-border rounded text-text-muted hover:bg-blue-600 hover:text-white transition-colors"><Edit2 className="w-3 h-3" /></button>
-                                            
                                             <button onClick={(e) => { e.stopPropagation(); openDeleteModal('GOAL', goal.id, goal.title); }} className="p-1 bg-surface border border-border rounded text-text-muted hover:bg-red-600 hover:text-white transition-colors"><Trash2 className="w-3 h-3" /></button>
                                         </div>
                                     </div>
@@ -344,7 +388,6 @@ function Dashboard() {
                             </div>
                         ))
                     ) : (
-                        /* AQUI: Mantive o componente, mas tirei o link e o linkText */
                         <EmptyState 
                             icon={Rocket} 
                             text="Nenhuma meta ativa." 
@@ -354,7 +397,7 @@ function Dashboard() {
                 </div>
             </div>
 
-            {/* LISTA DE MATÉRIAS */}
+            {/* MATÉRIAS */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Matérias</h3>
@@ -365,8 +408,6 @@ function Dashboard() {
                             <div key={subject.id} className="p-3 bg-background border border-border rounded-xl hover:border-text-muted/30 transition-colors relative group">
                                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10">
                                     <button onClick={(e) => { e.stopPropagation(); handleEditSubject(subject); }} className="p-1.5 bg-surface border border-border rounded-lg text-text-muted hover:bg-blue-600 hover:text-white"><Edit2 className="w-3 h-3" /></button>
-                                    
-                                    {/* ALTERADO AQUI: Chamada do Modal */}
                                     <button onClick={(e) => { e.stopPropagation(); openDeleteModal('SUBJECT', subject.id, subject.name); }} className="p-1.5 bg-surface border border-border rounded-lg text-text-muted hover:bg-red-600 hover:text-white"><Trash2 className="w-3 h-3" /></button>
                                 </div>
                                 <div className="flex items-center gap-3 mb-2">
@@ -389,7 +430,7 @@ function Dashboard() {
                 </div>
             </div>
 
-            {/* LISTA DE RECENTES */}
+            {/* RECENTES */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Recentes</h3>
@@ -405,8 +446,6 @@ function Dashboard() {
                                     </div>
                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0 ml-2">
                                         <button onClick={(e) => { e.stopPropagation(); handleEditSession(session); }} className="p-1.5 bg-surface border border-border rounded-lg text-text-muted hover:bg-blue-600 hover:text-white"><Edit2 className="w-3 h-3" /></button>
-                                        
-                                        {/* ALTERADO AQUI: Chamada do Modal */}
                                         <button onClick={(e) => { e.stopPropagation(); openDeleteModal('SESSION', session.id); }} className="p-1.5 bg-surface border border-border rounded-lg text-text-muted hover:bg-red-600 hover:text-white"><Trash2 className="w-3 h-3" /></button>
                                     </div>
                                 </div>
@@ -430,10 +469,9 @@ function Dashboard() {
             </div>
         </div>
 
-        {/* MODAL DE DETALHES DA SESSÃO */}
         <SessionDetailsModal isOpen={!!viewSession} onClose={() => setViewSession(null)} session={viewSession} />
 
-        {/* --- NOVO: MODAL DE CONFIRMAÇÃO DE EXCLUSÃO --- */}
+        {/* MODAL DE EXCLUSÃO */}
         <ConfirmModal 
             isOpen={deleteModal.isOpen}
             onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
@@ -448,11 +486,11 @@ function Dashboard() {
   );
 }
 
-const EmptyState = ({ icon: Icon, text, description, link, linkText }) => (
+// Componente EmptyState sem os Links
+const EmptyState = ({ icon: Icon, text, description }) => (
     <div className="h-full flex flex-col items-center justify-center text-center text-text-muted space-y-3 px-4 py-8">
         <div className="p-3 bg-surface border border-border rounded-full mb-1"><Icon className="w-6 h-6 text-text-muted" /></div>
         <div><p className="text-sm font-semibold text-text-muted">{text}</p>{description && <p className="text-xs text-text-muted/70 mt-1">{description}</p>}</div>
-        {link && (<button onClick={() => window.location.href = link} className="text-xs text-blue-500 hover:text-blue-400 font-medium transition-colors cursor-pointer">{linkText}</button>)}
     </div>
 );
 
