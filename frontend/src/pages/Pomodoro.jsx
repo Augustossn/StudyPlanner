@@ -97,7 +97,6 @@ const Pomodoro = () => {
   }, [timeLeft, isActive]);
 
   // --- FUNÇÃO PARA CAPTURAR TEMPO PARCIAL ---
-  // Chamada antes de trocar de modo ou resetar, para não perder o que já foi estudado
   const capturePartialTime = () => {
       if (currentMode === 'pomodoro') {
           const timeSpent = initialTime - timeLeft;
@@ -108,7 +107,7 @@ const Pomodoro = () => {
   };
 
   const switchMode = (modeKey) => {
-    capturePartialTime(); // <--- Salva o progresso atual antes de mudar
+    capturePartialTime(); 
     setIsActive(false);
     setCurrentMode(modeKey);
     setTimeLeft(MODES[modeKey].time);
@@ -120,7 +119,6 @@ const Pomodoro = () => {
   const resetTimer = () => {
     setIsActive(false);
     setTimeLeft(initialTime);
-    // Resetar o timer atual NÃO apaga o accumulatedTime (histórico da sessão)
   };
 
   const clearAccumulated = () => {
@@ -132,7 +130,6 @@ const Pomodoro = () => {
   // --- CÁLCULO DO TOTAL PARA SALVAR ---
   const getTotalSeconds = () => {
       let currentSessionSeconds = 0;
-      // Se estivermos no modo foco agora, soma o tempo parcial atual
       if (currentMode === 'pomodoro') {
           currentSessionSeconds = initialTime - timeLeft;
       }
@@ -143,7 +140,6 @@ const Pomodoro = () => {
     const totalSeconds = getTotalSeconds();
     let minutesStudied = Math.round(totalSeconds / 60);
     
-    // Regra de arredondamento mínimo
     if (totalSeconds > 30 && minutesStudied === 0) minutesStudied = 1;
 
     if (minutesStudied === 0) {
@@ -173,7 +169,6 @@ const Pomodoro = () => {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-  // Valor para exibir na barra inferior
   const totalMinutesDisplay = Math.floor(getTotalSeconds() / 60);
 
   return (
@@ -196,7 +191,7 @@ const Pomodoro = () => {
         <div className="relative group">
             <div className="relative w-95 h-95 md:w-125 md:h-125 flex items-center justify-center">
                 <svg className="w-full h-full transform -rotate-90 drop-shadow-2xl">
-                    <circle cx="50%" cy="50%" r={radius} stroke="#1a1a1a" strokeWidth="8" fill="transparent" />
+                    <circle cx="50%" cy="50%" r={radius} stroke="var(--surface)" strokeWidth="8" fill="transparent" />
                     <circle
                         cx="50%" cy="50%" r={radius}
                         stroke={activeTheme.stroke}
@@ -227,31 +222,32 @@ const Pomodoro = () => {
         <div className="flex flex-col items-center gap-8 w-full max-w-lg">
             <div className="flex items-center gap-4">
                 {isActive ? (
-                     <button onClick={toggleTimer} className="w-16 h-16 rounded-full bg-surface border border-border text-text flex items-center justify-center hover:bg-gray-800 hover:scale-105 transition-all shadow-lg">
+                     <button onClick={toggleTimer} className="w-16 h-16 rounded-full bg-surface border border-border text-text flex items-center justify-center hover:bg-surface-hover hover:scale-105 transition-all shadow-lg">
                         <Pause size={24} fill="currentColor" />
                      </button>
                 ) : (
-                    <button onClick={toggleTimer} className={`w-20 h-20 rounded-full bg-linear-to-br ${activeTheme.gradient} text-text flex items-center justify-center hover:scale-110 hover:shadow-xl hover:shadow-${activeTheme.stroke}/20 transition-all shadow-lg`}>
+                    <button onClick={toggleTimer} className={`w-20 h-20 rounded-full bg-linear-to-br ${activeTheme.gradient} text-white flex items-center justify-center hover:scale-110 hover:shadow-xl transition-all shadow-lg`}>
                         <Play size={32} fill="currentColor" className="ml-1" />
                     </button>
                 )}
                 
                 {timeLeft !== initialTime && (
-                    <button onClick={resetTimer} className="w-12 h-12 rounded-full bg-surface text-text-muted hover:text-text flex items-center justify-center hover:bg-gray-800 transition-all" title="Reiniciar">
+                    <button onClick={resetTimer} className="w-12 h-12 rounded-full bg-surface text-text-muted hover:text-text flex items-center justify-center hover:bg-surface-hover transition-all" title="Reiniciar">
                         <RotateCcw size={18} />
                     </button>
                 )}
             </div>
 
-            <div className="flex p-1 bg-[#151515] border border-border rounded-xl">
+            {/* --- AQUI ESTAVA O PROBLEMA: CORES CORRIGIDAS PARA LIGHT/DARK MODE --- */}
+            <div className="flex p-1 bg-surface border border-border rounded-xl shadow-xs">
                 {Object.values(MODES).map((mode) => (
                     <button
                         key={mode.id}
                         onClick={() => switchMode(mode.id)}
                         className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
                             currentMode === mode.id 
-                            ? 'bg-[#2a2a2a] text-text shadow-sm' 
-                            : 'text-text-muted hover:text-gray-300'
+                            ? 'bg-background text-text shadow-sm border border-border/50' 
+                            : 'text-text-muted hover:text-text hover:bg-background/50'
                         }`}
                     >
                         {mode.label}
@@ -260,8 +256,7 @@ const Pomodoro = () => {
             </div>
         </div>
 
-        {/* BARRA INFERIOR (MOSTRA O TOTAL ACUMULADO) */}
-        {/* Aparece se houver tempo acumulado OU se o timer atual já rodou um pouco */}
+        {/* BARRA INFERIOR */}
         <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-md px-4 transition-all duration-500 ${(totalMinutesDisplay > 0 || (currentMode === 'pomodoro' && timeLeft !== initialTime)) ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
              <div className="bg-surface/90 backdrop-blur-md border border-border p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4">
                 <div className="flex flex-col">
@@ -272,11 +267,10 @@ const Pomodoro = () => {
                 </div>
                 
                 <div className="flex gap-2">
-                    {/* Botão Lixeira: Para limpar se o usuário quiser recomeçar */}
                     {accumulatedTime > 0 && (
                         <button 
                             onClick={clearAccumulated}
-                            className="p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-text transition-colors"
+                            className="p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
                             title="Descartar tempo acumulado"
                         >
                             <Trash2 size={20} />
@@ -285,7 +279,7 @@ const Pomodoro = () => {
 
                     <button 
                         onClick={handleSaveSession}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-text px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20"
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20"
                     >
                         <Save size={18} />
                         <span>Salvar Tudo</span>
