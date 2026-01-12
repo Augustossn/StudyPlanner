@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.PATCH, RequestMethod.DELETE}) 
 public class UserController {
 
     private final UserService userService;
@@ -16,14 +17,14 @@ public class UserController {
         this.userService = userService;
     }
 
-    @Operation(summary = "Obter dados do usuário", description = "Retorna os detalhes do perfil do usuário pelo ID.")
+    @Operation(summary = "Obter perfil do usuário", description = "Retorna os dados do usuário logado.")
     @GetMapping("/{id}")
     public ResponseEntity<User> getUser(@PathVariable Long id) {
         User user = userService.findById(id);
         return ResponseEntity.ok(user);
     }
 
-    @Operation(summary = "Alterar senha", description = "Permite que um usuário logado troque sua própria senha.")
+    @Operation(summary = "Alterar senha", description = "Permite a troca de senha mediante confirmação da senha atual.")
     @PatchMapping("/{id}/password")
     public ResponseEntity<?> changePassword(
             @PathVariable Long id, 
