@@ -218,7 +218,7 @@ const NovaSessao = () => {
         </button>
 
         <h1 className="text-3xl font-bold text-text mb-2">
-            {isEditing ? 'Editar Sessão' : 'Registrar Sessão'}
+            {isEditing && 'Editar Sessão'}
         </h1>
         <p className="text-text-muted mb-8">
             {isEditing ? 'Atualize os detalhes da sua sessão.' : 'Registre o que você estudou para acompanhar seu progresso.'}

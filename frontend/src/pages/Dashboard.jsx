@@ -326,27 +326,23 @@ function Dashboard() {
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Metas Ativas</h3>
                 </div>
                 <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                    {goals.length > 0 ? (
-                        goals.filter(g => g.active).map((goal) => (
-                            <div key={goal.id} className="p-4 bg-background border border-border rounded-xl hover:border-text-muted/30 transition-colors group">
-                                <div className="flex justify-between items-start gap-3">
-                                    <h4 className="font-bold text-text text-sm truncate flex-1" title={goal.title}>{goal.title}</h4>
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <span className="text-[10px] px-2 py-0.5 rounded font-bold uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20">{goal.goalType}</span>
-                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                            <button onClick={(e) => { e.stopPropagation(); handleEditGoal(goal); }} className="p-1 bg-surface border border-border rounded text-text-muted hover:bg-blue-600 hover:text-white transition-colors"><Edit2 className="w-3 h-3" /></button>
+                    {goals.filter(g => g.active).map((goal) => (
+                        <div key={goal.id} className="p-4 bg-background border border-border rounded-xl hover:border-text-muted/30 transition-colors group">
+                            <div className="flex justify-between items-start gap-3">
+                                <h4 className="font-bold text-text text-sm truncate flex-1" title={goal.title}>{goal.title}</h4>
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <span className="text-[10px] px-2 py-0.5 rounded font-bold uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20">{goal.goalType}</span>
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                        <button onClick={(e) => { e.stopPropagation(); handleEditGoal(goal); }} className="p-1 bg-surface border border-border rounded text-text-muted hover:bg-blue-600 hover:text-white transition-colors"><Edit2 className="w-3 h-3" /></button>
                                             
-                                            {/* ALTERADO AQUI: Chamada do Modal */}
-                                            <button onClick={(e) => { e.stopPropagation(); openDeleteModal('GOAL', goal.id, goal.title); }} className="p-1 bg-surface border border-border rounded text-text-muted hover:bg-red-600 hover:text-white transition-colors"><Trash2 className="w-3 h-3" /></button>
-                                        </div>
+                                    {/* ALTERADO AQUI: Chamada do Modal */}
+                                    <button onClick={(e) => { e.stopPropagation(); openDeleteModal('GOAL', goal.id, goal.title); }} className="p-1 bg-surface border border-border rounded text-text-muted hover:bg-red-600 hover:text-white transition-colors"><Trash2 className="w-3 h-3" /></button>
                                     </div>
                                 </div>
-                                {renderGoalProgress(goal)}
                             </div>
-                        ))
-                    ) : (
-                        <EmptyState icon={Rocket} text="Nenhuma meta ativa." description="Crie uma meta para começar!" link="/nova-meta" linkText="Criar Meta" />
-                    )}
+                            {renderGoalProgress(goal)}
+                        </div>
+                    ))}
                 </div>
             </div>
 

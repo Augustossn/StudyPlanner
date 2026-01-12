@@ -112,7 +112,7 @@ const NovaMateria = () => {
         </button>
 
         <h1 className="text-3xl font-bold text-text mb-2">
-            {isEditing ? 'Editar Matéria' : 'Criar Nova Matéria'}
+            {isEditing && 'Editar Matéria'}
         </h1>
         <p className="text-text-muted mb-8">
             {isEditing ? 'Atualize as informações e tópicos de estudo.' : 'Organize seus estudos criando categorias (disciplinas).'}
