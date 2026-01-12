@@ -38,6 +38,9 @@ export const authAPI = {
   resetPassword: (email, code, newPassword) =>
     api.post('/auth/reset-password', { email, code, newPassword }),
 
+  changePassword: (userId, currentPassword, newPassword) => 
+    api.patch(`/users/${userId}/password`, { currentPassword, newPassword }),
+
 };
 
 // Dashboard API

@@ -61,7 +61,7 @@ const Configuracoes = () => {
 
     setLoading(true);
     try {
-      await authAPI.changePassword(passData.current, passData.new);
+      await authAPI.changePassword(user.userId, passData.current, passData.new);
       toast.success("Senha alterada com sucesso!");
       setPassData({ current: '', new: '', confirm: '' });
     } catch (error) {
