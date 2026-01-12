@@ -29,6 +29,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
+      JAVA_TOOL_OPTIONS: "-XX:TieredStopAtLevel=1"
 
   web:
     build: ./frontend  # <--- AQUI ESTAVA O ERRO (agora aponta para a pasta certa)
