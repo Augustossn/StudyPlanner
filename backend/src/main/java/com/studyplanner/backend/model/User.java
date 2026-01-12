@@ -2,6 +2,7 @@ package com.studyplanner.backend.model;
 
 import jakarta.persistence.*; 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty; // Import opcional se usar WRITE_ONLY
 import java.util.List;
 import java.time.LocalDateTime; 
 
@@ -14,7 +15,11 @@ public class User {
     private Long id;
 
     private String name;
+    
+    @Column(unique = true) 
     private String email;
+
+    @JsonIgnore 
     private String password;
 
     @OneToMany(mappedBy = "user")

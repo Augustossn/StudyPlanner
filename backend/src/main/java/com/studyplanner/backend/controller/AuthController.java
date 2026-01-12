@@ -23,10 +23,10 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @Operation(summary = "Registrar novo usuário", description = "Cria uma nova conta no sistema. Se bem sucedido, retorna o token JWT para login imediato.")
+    @Operation(summary = "Registrar novo usuário", description = "Cria uma nova conta e retorna o token JWT.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Usuário registrado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Erro de validação (ex: email já existe, senha curta)")
+        @ApiResponse(responseCode = "200", description = "Registrado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Erro de validação ou email duplicado")
     })
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody AuthDTO.RegisterRequest request) {
@@ -38,10 +38,10 @@ public class AuthController {
         }
     }
 
-    @Operation(summary = "Realizar login", description = "Autentica o usuário com email e senha e retorna um token JWT válido.")
+    @Operation(summary = "Realizar login", description = "Autentica e retorna token JWT.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
-        @ApiResponse(responseCode = "401", description = "Credenciais inválidas (senha incorreta ou usuário inexistente)")
+        @ApiResponse(responseCode = "200", description = "Login com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
     })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthDTO.LoginRequest request) {
@@ -53,11 +53,7 @@ public class AuthController {
         }
     }
 
-    @Operation(summary = "Solicitar recuperação de senha", description = "Gera um código de 6 dígitos e envia para o e-mail informado. Se o e-mail não existir, retorna sucesso mesmo assim por segurança.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Solicitação processada (verifique o e-mail)"),
-        @ApiResponse(responseCode = "400", description = "Erro no envio do e-mail")
-    })
+    @Operation(summary = "Esqueci minha senha", description = "Envia código de recuperação por email.")
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody RecoveryDTO.ForgotRequest request){
         try {
@@ -68,21 +64,14 @@ public class AuthController {
         }
     }
 
-    @Operation(summary = "Validar código de recuperação", description = "Verifica se o código informado pelo usuário é válido e não expirou.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Retorna true se o código for válido, false caso contrário")
-    })
+    @Operation(summary = "Validar código", description = "Verifica se o código de recuperação é válido.")
     @PostMapping("/validate-code")
     public ResponseEntity<?> validateCode(@RequestBody RecoveryDTO.ValidateRequest request) {
         boolean isValid = authService.validateCode(request.email(), request.code());
         return ResponseEntity.ok(isValid); 
     }
 
-    @Operation(summary = "Redefinir senha", description = "Altera a senha do usuário. Requer o código de recuperação válido e a nova senha.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Senha alterada com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Código inválido, expirado ou senha fora do padrão")
-    })
+    @Operation(summary = "Redefinir senha", description = "Troca a senha usando o código de recuperação.")
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody RecoveryDTO.ResetRequest request){
         try {

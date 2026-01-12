@@ -28,6 +28,7 @@ public class AuthService {
         this.emailService = emailService;
     }
 
+    // --- REGISTRO ---
     public AuthDTO.AuthResponse register(AuthDTO.RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email já cadastrado");
@@ -49,6 +50,7 @@ public class AuthService {
         );
     }
     
+    // --- LOGIN ---
     public AuthDTO.AuthResponse login(AuthDTO.LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -67,20 +69,24 @@ public class AuthService {
         );
     }
 
+    // --- ESQUECI A SENHA (Gera código) ---
     public void forgotPassword(String email){
+        // Busca usuário, se não achar lança erro (ou não faz nada por segurança, mas aqui lançamos erro)
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
+        // Gera código de 6 dígitos
         String code = String.format("%06d", new Random().nextInt(999999));
 
         user.setRecoveryCode(code);
-        user.setRecoveryExpiration(LocalDateTime.now().plusMinutes(15));
+        user.setRecoveryExpiration(LocalDateTime.now().plusMinutes(15)); // Válido por 15 min
 
         userRepository.save(user);
 
         emailService.sendRecoveryEmail(email, code);
     }
 
+    // --- VALIDAR CÓDIGO (Só checa se é válido) ---
     public boolean validateCode(String email, String code){
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -92,6 +98,7 @@ public class AuthService {
         return !user.getRecoveryExpiration().isBefore(LocalDateTime.now());
     }
 
+    // --- REDEFINIR SENHA (Usa o código para trocar a senha) ---
     public void resetPassword(String email, String code, String newPassword){
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -101,6 +108,8 @@ public class AuthService {
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
+        
+        // Limpa o código para não ser usado novamente
         user.setRecoveryCode(null);
         user.setRecoveryExpiration(null);
 
