@@ -85,7 +85,7 @@ function Login() {
         
         {/* Logo Header */}
         <div className="flex flex-col items-center justify-center mb-8 animate-in fade-in zoom-in duration-500">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 mb-6">
+          <div className="w-16 h-16 bg-linear-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 mb-6">
             <Zap className="w-8 h-8 text-white fill-white" strokeWidth={0} />
           </div>
           <h1 className="text-3xl font-bold text-text tracking-tight">
@@ -218,7 +218,7 @@ function Login() {
             <button 
                 type="submit" 
                 disabled={loading} 
-                className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-6"
+                className="w-full py-4 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-6"
             >
               {loading 
                 ? <Loader2 className="w-5 h-5 animate-spin" /> 

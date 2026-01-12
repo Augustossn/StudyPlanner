@@ -237,7 +237,7 @@ const NovaMateria = () => {
                 <button
                   type="submit"
                   disabled={loading || !name}
-                  className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="flex-1 py-3 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isEditing ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                   {loading ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Criar Matéria')}
