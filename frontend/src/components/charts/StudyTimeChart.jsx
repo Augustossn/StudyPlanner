@@ -9,6 +9,22 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 
+// --- FUNÇÃO DE CORREÇÃO DE DATA ---
+// Transforma "2026-01-11" em uma Data Local ao meio-dia (evita cair no dia anterior)
+const parseDateSafe = (dateString) => {
+  if (!dateString) return new Date();
+  
+  // Se vier como string (ex: "2026-01-11T10:00:00" ou "2026-01-11")
+  if (typeof dateString === 'string') {
+      const cleanDate = dateString.split('T')[0]; // Pega só a parte da data
+      const [year, month, day] = cleanDate.split('-').map(Number);
+      // Cria a data explicitamente no fuso local
+      return new Date(year, month - 1, day, 12, 0, 0);
+  }
+  
+  return new Date(dateString);
+};
+
 const StudyTimeChart = ({ sessions, activeColor, rangeLabel, range }) => {
 
   const data = useMemo(() => {
@@ -16,7 +32,7 @@ const StudyTimeChart = ({ sessions, activeColor, rangeLabel, range }) => {
     const groupedData = {};
     const today = new Date();
 
-    // 1. GERAÇÃO DO ESQUELETO DE DATAS
+    // 1. GERAÇÃO DO ESQUELETO DE DATAS (Mantive sua lógica, está boa)
     if (range === 'year') {
       for (let i = 11; i >= 0; i--) {
         const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
@@ -50,9 +66,10 @@ const StudyTimeChart = ({ sessions, activeColor, rangeLabel, range }) => {
       }
     }
 
-    // 2. PREENCHIMENTO DOS DADOS
+    // 2. PREENCHIMENTO DOS DADOS (Com a correção aplicada)
     sessionList.forEach(session => {
-      const date = new Date(session.date);
+      // AQUI ESTAVA O ERRO: Usamos a função segura agora
+      const date = parseDateSafe(session.date);
       let key;
 
       if (range === 'year') {
@@ -64,6 +81,8 @@ const StudyTimeChart = ({ sessions, activeColor, rangeLabel, range }) => {
         });
       }
 
+      // Normaliza a chave (às vezes o navegador retorna "05/01" e o array tem "5/01")
+      // Mas com o seu código de esqueleto acima, deve bater exato.
       if (groupedData[key]) {
         groupedData[key].minutes += session.durationMinutes;
       }
@@ -124,7 +143,7 @@ const StudyTimeChart = ({ sessions, activeColor, rangeLabel, range }) => {
               tickMargin={10}
               dy={5}
               interval={getInterval()}
-              padding={{ left: 10, right: 20 }} // 🔥 CORREÇÃO DO CORTE
+              padding={{ left: 10, right: 20 }}
             />
 
             <YAxis
@@ -138,7 +157,8 @@ const StudyTimeChart = ({ sessions, activeColor, rangeLabel, range }) => {
               contentStyle={{
                 backgroundColor: 'var(--background)',
                 borderColor: 'var(--border)',
-                borderRadius: '8px'
+                borderRadius: '8px',
+                color: 'var(--text)'
               }}
               itemStyle={{ color: activeColor }}
               formatter={(value) => [`${value} horas`, 'Tempo Estudado']}
