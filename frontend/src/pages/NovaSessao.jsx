@@ -70,6 +70,20 @@ const NovaSessao = () => {
   const [loading, setLoading] = useState(false);
    
   useEffect(() => {
+    if (automaticDuration) {
+      // Força a atualização do estado com o valor que veio do Pomodoro
+      setDuration(automaticDuration);
+      
+      // Garante que o tipo de sessão seja 'TIME' para mostrar o input correto
+      setSessionType('TIME'); 
+    }
+
+    if (automaticTitle) {
+      setTitle(automaticTitle);
+    }
+  }, [automaticDuration, automaticTitle]);
+
+  useEffect(() => {
     if (user.userId) {
       subjectAPI.getUserSubjects(user.userId)
         .then(res => {
