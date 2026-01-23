@@ -64,7 +64,7 @@ const Pomodoro = () => {
   const [sessionTitle, setSessionTitle] = useState('');
   const [initialTime, setInitialTime] = useState(MODES.pomodoro.time);
   
-  // --- NOVO: ESTADO PARA ACUMULAR O TEMPO ---
+  // --- ESTADO PARA ACUMULAR O TEMPO ---
   const [accumulatedTime, setAccumulatedTime] = useState(0);
 
   const audioRef = useRef(new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg'));
@@ -96,11 +96,13 @@ const Pomodoro = () => {
     document.title = `${mins}:${secs} - ${isActive ? 'Focando' : 'Pausado'} | StudyPlanner`;
   }, [timeLeft, isActive]);
 
-  // --- FUNÇÃO PARA CAPTURAR TEMPO PARCIAL ---
+  // --- CORREÇÃO 1: CAPTURAR TEMPO PARCIAL ---
   const capturePartialTime = () => {
       if (currentMode === 'pomodoro') {
-          const timeSpent = initialTime - timeLeft;
-          if (timeSpent > 0) {
+          // Só captura se o tempo NÃO acabou (timeLeft > 0).
+          // Se for 0, o useEffect lá em cima já salvou.
+          if (timeLeft > 0 && timeLeft < initialTime) {
+              const timeSpent = initialTime - timeLeft;
               setAccumulatedTime(prev => prev + timeSpent);
           }
       }
@@ -127,19 +129,25 @@ const Pomodoro = () => {
       toast.success("Histórico limpo.");
   };
 
-  // --- CÁLCULO DO TOTAL PARA SALVAR ---
+  // --- CORREÇÃO 2: CÁLCULO DO TOTAL PARA SALVAR ---
   const getTotalSeconds = () => {
       let currentSessionSeconds = 0;
-      if (currentMode === 'pomodoro') {
+      
+      // Só considera o tempo da sessão atual se o timer ainda estiver rodando ou pausado.
+      // Se timeLeft for 0, significa que o tempo já foi para 'accumulatedTime' via useEffect.
+      if (currentMode === 'pomodoro' && timeLeft > 0) {
           currentSessionSeconds = initialTime - timeLeft;
       }
+      
       return accumulatedTime + currentSessionSeconds;
   };
 
   const handleSaveSession = () => {
     const totalSeconds = getTotalSeconds();
+    // Arredonda para garantir precisão
     let minutesStudied = Math.round(totalSeconds / 60);
     
+    // Se estudou mais de 30 segundos, conta como 1 minuto
     if (totalSeconds > 30 && minutesStudied === 0) minutesStudied = 1;
 
     if (minutesStudied === 0) {
@@ -238,7 +246,6 @@ const Pomodoro = () => {
                 )}
             </div>
 
-            {/* --- AQUI ESTAVA O PROBLEMA: CORES CORRIGIDAS PARA LIGHT/DARK MODE --- */}
             <div className="flex p-1 bg-surface border border-border rounded-xl shadow-xs">
                 {Object.values(MODES).map((mode) => (
                     <button
