@@ -54,15 +54,43 @@ const Calendario = () => {
   const isPrevDisabled = isSameMonth(currentDate, minDate);
 
   useEffect(() => {
+    // Se não tiver usuário, nem tenta buscar
     if (!user?.userId) return;
 
     const loadSessions = async () => {
       try {
+        console.log("1. Buscando sessões para o usuário:", user.userId);
+        
+        // Busca TODAS as sessões (não só as recentes)
         const response = await studySessionAPI.getUserSessions(user.userId);
-        const formattedEvents = response.data.map(session => {
-          const startDate = new Date(session.date);
-          let endDate = new Date(startDate.getTime() + session.durationMinutes * 60000);
+        
+        console.log("2. Dados brutos do Backend:", response.data);
 
+        const formattedEvents = response.data.map(session => {
+          let startDate;
+
+          // --- CORREÇÃO DE FORMATO DE DATA ---
+          // Se o Java mandar uma lista [2026, 1, 25, 14, 30]
+          if (Array.isArray(session.date)) {
+             const [ano, mes, dia, hora, min] = session.date;
+             // Note: No Javascript, Janeiro é 0, mas no Java é 1. Por isso "mes - 1".
+             startDate = new Date(ano, mes - 1, dia, hora || 0, min || 0);
+          } 
+          // Se o Java mandar texto "2026-01-25T14:30:00"
+          else {
+             startDate = new Date(session.date);
+          }
+
+          // Se a data for inválida, ignora essa sessão para não quebrar o calendário
+          if (isNaN(startDate.getTime())) {
+             console.error("❌ Data inválida ignorada:", session.date);
+             return null;
+          }
+
+          // Calcula o fim da sessão (Duração ou padrão de 1h)
+          let endDate = new Date(startDate.getTime() + (session.durationMinutes || 60) * 60000);
+
+          // Ajuste visual para não "vazar" o dia no calendário
           if (!isSameDay(startDate, endDate)) {
              endDate = endOfDay(startDate);
           }
@@ -74,10 +102,13 @@ const Calendario = () => {
             end: endDate,
             resource: session,
           };
-        });
+        }).filter(Boolean); // Remove os nulos (erros)
+
+        console.log("3. Eventos formatados para o calendário:", formattedEvents);
         setEvents(formattedEvents);
+
       } catch (error) {
-        console.error("Erro ao carregar calendário", error);
+        console.error("Erro fatal ao carregar calendário:", error);
       }
     };
 
