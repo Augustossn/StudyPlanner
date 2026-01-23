@@ -24,12 +24,19 @@ const NovaSessao = () => {
   const sessionToEdit = location.state?.sessionToEdit;
   const isEditing = !!sessionToEdit;
 
+  // 👇 CORREÇÃO: Recupera os dados vindos do Pomodoro
+  const automaticDuration = location.state?.automaticDuration;
+  const automaticTitle = location.state?.title;
+
   // --- ESTADOS ---
-  const [title, setTitle] = useState(sessionToEdit?.title || '');
+
+  // 1. Título: Usa o da edição OU o do Pomodoro OU vazio
+  const [title, setTitle] = useState(sessionToEdit?.title || automaticTitle || '');
+  
   const [subjectId, setSubjectId] = useState(sessionToEdit?.subject?.id || '');
   const [description, setDescription] = useState(sessionToEdit?.description || '');
   const [completed, setCompleted] = useState(sessionToEdit?.completed ?? true);
-  
+   
   // Data
   const [date, setDate] = useState(
     sessionToEdit?.date ? new Date(sessionToEdit.date) : new Date()
@@ -47,18 +54,21 @@ const NovaSessao = () => {
   };
   const [sessionType, setSessionType] = useState(getInitialType);
 
-  // Estados de Tempo e Questões
-  const [duration, setDuration] = useState(sessionToEdit?.durationMinutes || 60);
+  // 2. Duração: Usa a da edição OU a automática do Pomodoro OU 60
+  const [duration, setDuration] = useState(
+    sessionToEdit?.durationMinutes || automaticDuration || 60
+  );
+
   const [correctCount, setCorrectCount] = useState(sessionToEdit?.correctQuestions || 0);
   const [wrongCount, setWrongCount] = useState(
     (sessionToEdit?.totalQuestions || 0) - (sessionToEdit?.correctQuestions || 0)
   );
-  
+   
   const [subjects, setSubjects] = useState([]); 
   const [availableMatters, setAvailableMatters] = useState([]); 
   const [selectedMatters, setSelectedMatters] = useState(sessionToEdit?.matters || []); 
   const [loading, setLoading] = useState(false);
-  
+   
   useEffect(() => {
     if (user.userId) {
       subjectAPI.getUserSubjects(user.userId)
@@ -413,7 +423,6 @@ const NovaSessao = () => {
                     <div className="relative group">
                         <CalendarIcon className="absolute left-3 top-3.5 w-5 h-5 text-text-muted group-focus-within:text-blue-500 z-10 pointer-events-none transition-colors" />
                         
-                        {/* Removi a propriedade maxDate para liberar todas as datas */}
                         <DatePicker 
                             selected={date} 
                             onChange={(date) => setDate(date)} 
