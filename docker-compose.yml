@@ -4,13 +4,14 @@ services:
     container_name: studyplanner-db
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: studyplanner
+      POSTGRES_HOST_AUTH_METHOD: trust  # <--- MUDANÇA 1: Aceita conexão sem frescura
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_new:/var/lib/postgresql/data # <--- MUDANÇA 2: Nome novo para forçar limpeza
 
   api:
     build: ./backend
@@ -32,13 +33,13 @@ services:
       JAVA_TOOL_OPTIONS: "-XX:TieredStopAtLevel=1"
 
   web:
-    build: ./frontend  # <--- AQUI ESTAVA O ERRO (agora aponta para a pasta certa)
+    build: ./frontend
     container_name: studyplanner-web
     restart: always
     ports:
-      - "3000:80" # Tenta a porta 3000 primeiro (padrão React)
+      - "3000:80"
     depends_on:
       - api
 
 volumes:
-  postgres_data:
+  postgres_data_new: # <--- MUDANÇA 3: Criando o volume novo

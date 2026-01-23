@@ -58,7 +58,7 @@ const Calendario = () => {
 
     const loadSessions = async () => {
       try {
-        const response = await studySessionAPI.getRecentSessions(user.userId);
+        const response = await studySessionAPI.getUserSessions(user.userId);
         const formattedEvents = response.data.map(session => {
           const startDate = new Date(session.date);
           let endDate = new Date(startDate.getTime() + session.durationMinutes * 60000);
