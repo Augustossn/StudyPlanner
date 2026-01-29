@@ -164,6 +164,8 @@ const Pomodoro = () => {
     // Se estudou mais de 30 segundos, conta como 1 minuto
     if (totalSeconds > 30 && minutesStudied === 0) minutesStudied = 1;
 
+    console.log("Tempo calculado:", minutesStudied, "minutos");
+
     if (minutesStudied === 0) {
       toast.error("Estude pelo menos 1 minuto para salvar.");
       return;

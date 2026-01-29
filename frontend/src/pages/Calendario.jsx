@@ -58,10 +58,25 @@ const Calendario = () => {
 
     const loadSessions = async () => {
       try {
-        const response = await studySessionAPI.getRecentSessions(user.userId);
+        
+        const response = await studySessionAPI.getUserSessions(user.userId);
+
         const formattedEvents = response.data.map(session => {
-          const startDate = new Date(session.date);
-          let endDate = new Date(startDate.getTime() + session.durationMinutes * 60000);
+          let startDate;
+
+          if (Array.isArray(session.date)) {
+             const [ano, mes, dia, hora, min] = session.date;
+             startDate = new Date(ano, mes - 1, dia, hora || 0, min || 0);
+          } 
+          else {
+             startDate = new Date(session.date);
+          }
+
+          if (isNaN(startDate.getTime())) {
+             return null;
+          }
+
+          let endDate = new Date(startDate.getTime() + (session.durationMinutes || 60) * 60000);
 
           if (!isSameDay(startDate, endDate)) {
              endDate = endOfDay(startDate);
@@ -74,10 +89,12 @@ const Calendario = () => {
             end: endDate,
             resource: session,
           };
-        });
+        }).filter(Boolean);
+
         setEvents(formattedEvents);
+
       } catch (error) {
-        console.error("Erro ao carregar calendário", error);
+        console.error("Erro fatal ao carregar calendário:", error);
       }
     };
 
