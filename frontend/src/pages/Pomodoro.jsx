@@ -96,7 +96,7 @@ const Pomodoro = () => {
     document.title = `${mins}:${secs} - ${isActive ? 'Focando' : 'Pausado'} | StudyPlanner`;
   }, [timeLeft, isActive]);
 
-  // --- CORREÇÃO 1: CAPTURAR TEMPO PARCIAL ---
+  // --- CAPTURAR TEMPO PARCIAL ---
   const capturePartialTime = () => {
       if (currentMode === 'pomodoro') {
           // Só captura se o tempo NÃO acabou (timeLeft > 0).
@@ -116,7 +116,21 @@ const Pomodoro = () => {
     setInitialTime(MODES[modeKey].time);
   };
 
-  const toggleTimer = () => setIsActive(!isActive);
+  // --- CORREÇÃO AQUI: TOGGLE TIMER INTELIGENTE ---
+  const toggleTimer = () => {
+    if (timeLeft === 0) {
+        // Se o tempo acabou (está zerado) e o usuário deu play:
+        // 1. Reinicia o tempo para o valor inicial
+        setTimeLeft(initialTime);
+        // 2. Ativa o timer
+        setIsActive(true);
+        // Observação: Não adicionamos nada ao acumulado aqui, 
+        // pois o useEffect já fez isso quando chegou a zero.
+    } else {
+        // Comportamento normal (Pausar/Continuar)
+        setIsActive(!isActive);
+    }
+  };
 
   const resetTimer = () => {
     setIsActive(false);
@@ -129,12 +143,12 @@ const Pomodoro = () => {
       toast.success("Histórico limpo.");
   };
 
-  // --- CORREÇÃO 2: CÁLCULO DO TOTAL PARA SALVAR ---
+  // --- CÁLCULO DO TOTAL PARA SALVAR ---
   const getTotalSeconds = () => {
       let currentSessionSeconds = 0;
       
-      // Só considera o tempo da sessão atual se o timer ainda estiver rodando ou pausado.
-      // Se timeLeft for 0, significa que o tempo já foi para 'accumulatedTime' via useEffect.
+      // Só considera o tempo da sessão atual se o timer ainda estiver rodando ou pausado com tempo restante.
+      // Se timeLeft for 0, o tempo já foi salvo no 'accumulatedTime' pelo useEffect.
       if (currentMode === 'pomodoro' && timeLeft > 0) {
           currentSessionSeconds = initialTime - timeLeft;
       }
