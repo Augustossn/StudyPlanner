@@ -10,7 +10,6 @@ import { getAuthUser } from '../utils/auth';
 import SessionDetailsModal from '../components/SessionDetailsModal';
 import ConfirmModal from '../components/ConfirmModal';
 
-// Componentes Gráficos e Cards
 import StudyTimeChart from '../components/charts/StudyTimeChart';
 import QuestionsChart from '../components/charts/QuestionsChart';
 import StatsGrid from '../components/cards/StatsGrid'; 
@@ -19,7 +18,6 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user] = useState(() => getAuthUser());
 
-  // --- FUNÇÃO AUXILIAR DE CACHE (Para carregar instantâneo) ---
   const loadFromCache = (key, defaultValue) => {
     try {
       const saved = localStorage.getItem(key);
@@ -29,30 +27,20 @@ function Dashboard() {
     }
   };
 
-  // --- ESTADOS DE DADOS (Iniciam com o Cache) ---
   const [stats, setStats] = useState(() => loadFromCache('dash_stats', { totalHours: 0, weeklyHours: 0, completedSessions: 0, activeGoals: 0 }));
   const [recentSessions, setRecentSessions] = useState(() => loadFromCache('dash_recent', [])); 
   const [allSessions, setAllSessions] = useState(() => loadFromCache('dash_all', []));       
   const [subjects, setSubjects] = useState(() => loadFromCache('dash_subjects', []));
   const [goals, setGoals] = useState(() => loadFromCache('dash_goals', []));
 
-  // --- UI ---
   const [selectedSubjectId, setSelectedSubjectId] = useState('all'); 
   const [chartMode, setChartMode] = useState('TIME'); 
   const [viewSession, setViewSession] = useState(null);
   const [chartRange, setChartRange] = useState('7days'); 
 
-  // --- ESTADO DO MODAL DE EXCLUSÃO ---
-  const [deleteModal, setDeleteModal] = useState({
-    isOpen: false,
-    type: null, // 'SUBJECT', 'GOAL', 'SESSION'
-    id: null,
-    title: '',
-    message: ''
-  });
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: null, id: null, title: '', message: '' });
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // --- LOAD DATA (Atualiza o Cache) ---
   const loadDashboardData = useCallback(async (userId) => {
     try {
       const savedApp = localStorage.getItem('app_settings');
@@ -69,18 +57,15 @@ function Dashboard() {
       ]);
 
       const fullList = sessionsRes.data || [];
-      // Ordena por data (mais recente primeiro)
       fullList.sort((a, b) => new Date(b.date) - new Date(a.date));
       const recentList = fullList.slice(0, 5);
 
-      // Atualiza Estado
       setStats(statsRes.data);
       setAllSessions(fullList); 
       setRecentSessions(recentList); 
       setSubjects(subjectsRes.data || []);
       setGoals(goalsRes.data || []); 
 
-      // SALVA NO CACHE (Para a próxima vez ser instantâneo)
       localStorage.setItem('dash_stats', JSON.stringify(statsRes.data));
       localStorage.setItem('dash_all', JSON.stringify(fullList));
       localStorage.setItem('dash_recent', JSON.stringify(recentList));
@@ -89,41 +74,18 @@ function Dashboard() {
 
     } catch (error) {
       console.error(error);
-      // Se der erro e não tiver cache, avisa. Se tiver cache, o usuário nem percebe.
-      if(!localStorage.getItem('dash_stats')) {
-         toast.error("Ops! Tivemos um problema ao atualizar seus dados.");
-      }
+      if(!localStorage.getItem('dash_stats')) toast.error("Erro ao atualizar dados.");
     }
   }, []);
 
   useEffect(() => {
     if (user) loadDashboardData(user.userId);
-
-    const handleStorageChange = () => {
-        const savedApp = localStorage.getItem('app_settings');
-        if (savedApp) {
-            const parsed = JSON.parse(savedApp);
-            if (parsed.chartRange) setChartRange(parsed.chartRange);
-        }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('local-storage', handleStorageChange);
-
-    return () => {
-        window.removeEventListener('storage', handleStorageChange);
-        window.removeEventListener('local-storage', handleStorageChange);
-    };
   }, [user, loadDashboardData]);
 
-  // --- CÁLCULOS ---
   const questionsStats = useMemo(() => {
-    let total = 0;
-    let correct = 0;
+    let total = 0; let correct = 0;
     allSessions.forEach(session => {
-        if (session.totalQuestions) {
-            total += session.totalQuestions;
-            correct += (session.correctQuestions || 0);
-        }
+        if (session.totalQuestions) { total += session.totalQuestions; correct += (session.correctQuestions || 0); }
     });
     return { total, correct };
   }, [allSessions]);
@@ -132,57 +94,36 @@ function Dashboard() {
     if (!allSessions || allSessions.length === 0) return 0;
     const dailyMinutes = {};
     allSessions.forEach(session => {
-        // Pega só a data YYYY-MM-DD para ignorar horário
         const dateKey = typeof session.date === 'string' ? session.date.split('T')[0] : new Date(session.date).toISOString().split('T')[0];
         dailyMinutes[dateKey] = (dailyMinutes[dateKey] || 0) + session.durationMinutes;
     });
     let currentStreak = 0;
     const checkDate = new Date();
-    checkDate.setHours(0, 0, 0, 0); // Zera hora para comparar dias inteiros
-
-    // Checa até 365 dias para trás
+    checkDate.setHours(0, 0, 0, 0); 
     for (let i = 0; i < 365; i++) { 
         const year = checkDate.getFullYear();
         const month = String(checkDate.getMonth() + 1).padStart(2, '0');
         const day = String(checkDate.getDate()).padStart(2, '0');
         const dateString = `${year}-${month}-${day}`;
-        
         const minutesStudied = dailyMinutes[dateString] || 0;
-        
-        // Se estudou hoje ou ontem conta pro streak
-        if (minutesStudied >= 1) {
-            currentStreak++;
-        } else if (i === 0 && minutesStudied === 0) {
-            // Se hoje não estudou, não quebra o streak ainda (pode estudar mais tarde)
-            // Apenas continua checando ontem
-        } else {
-            break; // Quebrou a sequência
-        }
+        if (minutesStudied >= 1) { currentStreak++; } 
+        else if (i === 0 && minutesStudied === 0) { } 
+        else { break; }
         checkDate.setDate(checkDate.getDate() - 1);
     }
     return currentStreak;
   }, [allSessions]);
 
   const filteredSessionsForChart = useMemo(() => {
-      let sessions = selectedSubjectId === 'all' 
-        ? allSessions 
-        : allSessions.filter(s => s.subject?.id === Number(selectedSubjectId));
-
+      let sessions = selectedSubjectId === 'all' ? allSessions : allSessions.filter(s => s.subject?.id === Number(selectedSubjectId));
       const now = new Date();
       const cutoffDate = new Date();
-      // Importante: Zerar a hora do cutoff para pegar o dia inteiro do limite
       cutoffDate.setHours(0,0,0,0); 
-
       if (chartRange === '7days') cutoffDate.setDate(now.getDate() - 7);
       else if (chartRange === '30days') cutoffDate.setDate(now.getDate() - 30);
       else if (chartRange === '90days') cutoffDate.setDate(now.getDate() - 90);
       else if (chartRange === 'year') cutoffDate.setFullYear(now.getFullYear() - 1);
-      
-      return sessions.filter(s => {
-          // Garante que a data da sessão seja tratada como data local/utc corretamente
-          const sDate = new Date(s.date); 
-          return sDate >= cutoffDate;
-      });
+      return sessions.filter(s => { const sDate = new Date(s.date); return sDate >= cutoffDate; });
   }, [allSessions, selectedSubjectId, chartRange]);
 
   const activeColor = useMemo(() => {
@@ -198,13 +139,68 @@ function Dashboard() {
 
   const formatDate = (dateString) => {
     if(!dateString) return "--/--";
-    // Força interpretação da data evitando cair no dia anterior
     const datePart = dateString.toString().split('T')[0];
     const [y, m, d] = datePart.split('-');
     return `${d}/${m}`;
   };
+  
+  const calculateGoalProgress = (goal) => {
+    const now = new Date();
+    let startDate, endDate;
+
+    if (goal.goalType === 'Semanal') {
+        startDate = new Date(now);
+        const day = startDate.getDay(); 
+        startDate.setDate(now.getDate() - day);
+        startDate.setHours(0, 0, 0, 0);
+
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
+        endDate.setHours(23, 59, 59, 999);
+    } 
+    else if (goal.goalType === 'Mensal') {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        startDate.setHours(0, 0, 0, 0);
+        
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        endDate.setHours(23, 59, 59, 999);
+    } 
+    else {
+        startDate = goal.startDate ? new Date(goal.startDate) : new Date('2000-01-01');
+        endDate = goal.endDate ? new Date(goal.endDate) : new Date('2100-01-01');
+        startDate.setHours(0,0,0,0);
+        endDate.setHours(23,59,59,999);
+    }
+
+    const relevantSessions = allSessions.filter(session => {
+        const sessionDate = new Date(session.date);
+        
+        const isWithinDate = sessionDate >= startDate && sessionDate <= endDate;
+        if (!isWithinDate) return false;
+
+        if (goal.subject && goal.subject.id) {
+            if (session.subject?.id !== goal.subject.id) return false;
+            
+            if (goal.matters) {
+                if (!session.matters || !session.matters.includes(goal.matters)) return false;
+            }
+        }
+
+        return true;
+    });
+
+    const totalMinutes = relevantSessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
+    const totalQuestions = relevantSessions.reduce((acc, s) => acc + (s.totalQuestions || 0), 0);
+
+    return {
+        currentHours: parseFloat((totalMinutes / 60).toFixed(1)),
+        currentQuestions: totalQuestions
+    };
+  };
 
   const renderGoalProgress = (goal) => {
+    const progress = calculateGoalProgress(goal);
+    
     const showTime = goal.targetHours > 0;
     const showQuestions = goal.targetQuestions > 0;
 
@@ -215,16 +211,16 @@ function Dashboard() {
                     <div className="flex justify-between items-center text-xs mb-1.5">
                         <div className="flex items-center gap-1.5 text-text-muted">
                             <Clock className="w-3 h-3" />
-                            <span>Tempo</span>
+                            <span>Tempo ({goal.goalType})</span>
                         </div>
                         <span className="text-text-muted">
-                            <strong className="text-text">{goal.currentHours || 0}h</strong> / {goal.targetHours}h
+                            <strong className="text-text">{progress.currentHours}h</strong> / {goal.targetHours}h
                         </span>
                     </div>
                     <div className="w-full bg-surface-hover border border-border h-2 rounded-full overflow-hidden">
                         <div 
                             className="h-full bg-blue-600 rounded-full transition-all duration-1000" 
-                            style={{ width: `${Math.min(100, ((goal.currentHours || 0) / goal.targetHours) * 100)}%` }}
+                            style={{ width: `${Math.min(100, (progress.currentHours / goal.targetHours) * 100)}%` }}
                         ></div>
                     </div>
                 </div>
@@ -234,16 +230,16 @@ function Dashboard() {
                     <div className="flex justify-between items-center text-xs mb-1.5">
                         <div className="flex items-center gap-1.5 text-text-muted">
                             <HelpCircle className="w-3 h-3" />
-                            <span>Questões</span>
+                            <span>Questões ({goal.goalType})</span>
                         </div>
                         <span className="text-text-muted">
-                            <strong className="text-text">{goal.currentQuestions || 0}</strong> / {goal.targetQuestions}
+                            <strong className="text-text">{progress.currentQuestions}</strong> / {goal.targetQuestions}
                         </span>
                     </div>
                     <div className="w-full bg-surface-hover border border-border h-2 rounded-full overflow-hidden">
                         <div 
                             className="h-full bg-emerald-500 rounded-full transition-all duration-1000" 
-                            style={{ width: `${Math.min(100, ((goal.currentQuestions || 0) / goal.targetQuestions) * 100)}%` }}
+                            style={{ width: `${Math.min(100, (progress.currentQuestions / goal.targetQuestions) * 100)}%` }}
                         ></div>
                     </div>
                 </div>
@@ -252,33 +248,20 @@ function Dashboard() {
     );
   };
 
-  // --- FUNÇÕES DO MODAL ---
   const openDeleteModal = (type, id, name) => {
-    let title = '';
-    let message = '';
-
-    if (type === 'SUBJECT') {
-        title = 'Excluir Matéria';
-        message = `Tem certeza que deseja excluir "${name}"? Todas as sessões e metas vinculadas a ela também podem ser afetadas.`;
-    } else if (type === 'GOAL') {
-        title = 'Excluir Meta';
-        message = `Tem certeza que deseja excluir a meta "${name}"? Essa ação não pode ser desfeita.`;
-    } else if (type === 'SESSION') {
-        title = 'Excluir Sessão';
-        message = 'Tem certeza que deseja apagar este registro de estudo? Os dados estatísticos serão recalculados.';
-    }
-
+    let title = ''; let message = '';
+    if (type === 'SUBJECT') { title = 'Excluir Matéria'; message = `Tem certeza que deseja excluir "${name}"? Todas as sessões e metas vinculadas a ela também podem ser afetadas.`; } 
+    else if (type === 'GOAL') { title = 'Excluir Meta'; message = `Tem certeza que deseja excluir a meta "${name}"? Essa ação não pode ser desfeita.`; } 
+    else if (type === 'SESSION') { title = 'Excluir Sessão'; message = 'Tem certeza que deseja apagar este registro de estudo?'; }
     setDeleteModal({ isOpen: true, type, id, title, message });
   };
 
   const handleConfirmDelete = async () => {
     if (!deleteModal.id || !deleteModal.type) return;
-
     setIsDeleting(true);
     try {
         if (deleteModal.type === 'SUBJECT') {
             await subjectAPI.deleteSubject(deleteModal.id);
-            // Atualiza localmente e no cache
             const newSubjects = subjects.filter(sub => sub.id !== deleteModal.id);
             setSubjects(newSubjects);
             localStorage.setItem('dash_subjects', JSON.stringify(newSubjects));
@@ -293,13 +276,12 @@ function Dashboard() {
         } 
         else if (deleteModal.type === 'SESSION') {
             await studySessionAPI.deleteSession(deleteModal.id, user.userId);
-            // Recarrega tudo para recalcular estatísticas
             loadDashboardData(user.userId);
             toast.success("Sessão excluída.");
         }
     } catch (error) {
         console.error(error);
-        toast.error("Erro ao excluir. Tente novamente.");
+        toast.error("Erro ao excluir.");
     } finally {
         setIsDeleting(false);
         setDeleteModal({ ...deleteModal, isOpen: false });
@@ -315,7 +297,6 @@ function Dashboard() {
   return (
     <Layout>
       <div className="max-w-400 mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
-        
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h1 className="text-2xl font-bold text-text">Visão Geral</h1>
@@ -364,8 +345,6 @@ function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* METAS ATIVAS */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Metas Ativas</h3>
@@ -388,16 +367,11 @@ function Dashboard() {
                             </div>
                         ))
                     ) : (
-                        <EmptyState 
-                            icon={Rocket} 
-                            text="Nenhuma meta ativa." 
-                            description="Crie uma meta para começar!" 
-                        />
+                        <EmptyState icon={Rocket} text="Nenhuma meta ativa." description="Crie uma meta para começar!" />
                     )}
                 </div>
             </div>
 
-            {/* MATÉRIAS */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Matérias</h3>
@@ -421,16 +395,12 @@ function Dashboard() {
                             </div>
                         ))
                     ) : (
-                        <EmptyState 
-                            icon={BookOpen} 
-                            text="Nenhuma matéria." 
-                            description="Cadastre matérias para organizar." 
-                        />
+                        <EmptyState icon={BookOpen} text="Nenhuma matéria." description="Cadastre matérias para organizar." />
                     )}
                 </div>
             </div>
 
-            {/* RECENTES */}
+            {/* RECENTES (Mantido igual) */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Recentes</h3>
@@ -459,11 +429,7 @@ function Dashboard() {
                             </div>
                         ))
                     ) : (
-                        <EmptyState 
-                            icon={BookCheck} 
-                            text="Sem sessões." 
-                            description="Registre o que estudou hoje!" 
-                        />
+                        <EmptyState icon={BookCheck} text="Sem sessões." description="Registre o que estudou hoje!" />
                     )}
                 </div>
             </div>
@@ -471,7 +437,6 @@ function Dashboard() {
 
         <SessionDetailsModal isOpen={!!viewSession} onClose={() => setViewSession(null)} session={viewSession} />
 
-        {/* MODAL DE EXCLUSÃO */}
         <ConfirmModal 
             isOpen={deleteModal.isOpen}
             onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
@@ -486,7 +451,6 @@ function Dashboard() {
   );
 }
 
-// Componente EmptyState sem os Links
 const EmptyState = ({ icon: Icon, text, description }) => (
     <div className="h-full flex flex-col items-center justify-center text-center text-text-muted space-y-3 px-4 py-8">
         <div className="p-3 bg-surface border border-border rounded-full mb-1"><Icon className="w-6 h-6 text-text-muted" /></div>
