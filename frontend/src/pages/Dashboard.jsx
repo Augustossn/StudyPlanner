@@ -2,7 +2,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus, Filter, Rocket, BookCheck, Edit2, Trash2, BookOpen, BarChart3, Clock, HelpCircle } from 'lucide-react'; 
+import { 
+    Plus, Filter, Rocket, BookCheck, Edit2, Trash2, 
+    BookOpen, BarChart3, Clock, HelpCircle, Brain 
+} from 'lucide-react'; 
 
 import { dashboardAPI, studySessionAPI, goalsAPI, subjectAPI } from '../services/api';
 import Layout from '../components/Layout';
@@ -10,6 +13,7 @@ import { getAuthUser } from '../utils/auth';
 import SessionDetailsModal from '../components/SessionDetailsModal';
 import ConfirmModal from '../components/ConfirmModal';
 
+// Componentes Gráficos e Cards
 import StudyTimeChart from '../components/charts/StudyTimeChart';
 import QuestionsChart from '../components/charts/QuestionsChart';
 import StatsGrid from '../components/cards/StatsGrid'; 
@@ -18,6 +22,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user] = useState(() => getAuthUser());
 
+  // --- FUNÇÃO AUXILIAR DE CACHE ---
   const loadFromCache = (key, defaultValue) => {
     try {
       const saved = localStorage.getItem(key);
@@ -27,20 +32,24 @@ function Dashboard() {
     }
   };
 
+  // --- ESTADOS ---
   const [stats, setStats] = useState(() => loadFromCache('dash_stats', { totalHours: 0, weeklyHours: 0, completedSessions: 0, activeGoals: 0 }));
   const [recentSessions, setRecentSessions] = useState(() => loadFromCache('dash_recent', [])); 
   const [allSessions, setAllSessions] = useState(() => loadFromCache('dash_all', []));       
   const [subjects, setSubjects] = useState(() => loadFromCache('dash_subjects', []));
   const [goals, setGoals] = useState(() => loadFromCache('dash_goals', []));
 
+  // --- UI ---
   const [selectedSubjectId, setSelectedSubjectId] = useState('all'); 
   const [chartMode, setChartMode] = useState('TIME'); 
   const [viewSession, setViewSession] = useState(null);
   const [chartRange, setChartRange] = useState('7days'); 
 
+  // --- MODAL DELETE ---
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: null, id: null, title: '', message: '' });
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // --- LOAD DATA ---
   const loadDashboardData = useCallback(async (userId) => {
     try {
       const savedApp = localStorage.getItem('app_settings');
@@ -80,8 +89,19 @@ function Dashboard() {
 
   useEffect(() => {
     if (user) loadDashboardData(user.userId);
+    
+    const handleStorageChange = () => {
+        const savedApp = localStorage.getItem('app_settings');
+        if (savedApp) {
+            const parsed = JSON.parse(savedApp);
+            if (parsed.chartRange) setChartRange(parsed.chartRange);
+        }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [user, loadDashboardData]);
 
+  // --- CÁLCULOS GERAIS ---
   const questionsStats = useMemo(() => {
     let total = 0; let correct = 0;
     allSessions.forEach(session => {
@@ -114,6 +134,7 @@ function Dashboard() {
     return currentStreak;
   }, [allSessions]);
 
+  // --- FILTRO DE GRÁFICOS ---
   const filteredSessionsForChart = useMemo(() => {
       let sessions = selectedSubjectId === 'all' ? allSessions : allSessions.filter(s => s.subject?.id === Number(selectedSubjectId));
       const now = new Date();
@@ -143,7 +164,72 @@ function Dashboard() {
     const [y, m, d] = datePart.split('-');
     return `${d}/${m}`;
   };
-  
+
+  // =================================================================================
+  // 🧠 ALGORITMO DE SUGESTÃO INTELIGENTE (ADAPTATIVE LEARNING)
+  // =================================================================================
+  const smartSuggestions = useMemo(() => {
+    if (!allSessions.length) return [];
+
+    // 1. Agrupar dados por matéria
+    const subjectStats = {};
+
+    allSessions.forEach(session => {
+        // Ignora se não tem matéria ou se não foi uma sessão de questões
+        if (!session.subject || !session.totalQuestions || session.totalQuestions === 0) return;
+        
+        const subId = session.subject.id;
+        if (!subjectStats[subId]) {
+            subjectStats[subId] = { 
+                id: subId, 
+                name: session.subject.name, 
+                color: session.subject.color, 
+                total: 0, 
+                correct: 0 
+            };
+        }
+        subjectStats[subId].total += session.totalQuestions;
+        subjectStats[subId].correct += (session.correctQuestions || 0);
+    });
+
+    // 2. Filtrar apenas matérias que tenham histórico de questões
+    const statsArray = Object.values(subjectStats).filter(stat => stat.total > 0);
+
+    if (statsArray.length === 0) return [];
+
+    // 3. Calcular Peso de Prioridade (Baseado no Erro)
+    let totalWeightScore = 0;
+    
+    const weightedStats = statsArray.map(stat => {
+        const accuracy = (stat.correct / stat.total) * 100;
+        
+        // Lógica: Taxa de Erro (100 - acerto) + 10 (manutenção mínima)
+        let errorScore = (100 - accuracy) + 10; 
+
+        totalWeightScore += errorScore;
+
+        return { ...stat, accuracy, errorScore };
+    });
+
+    // 4. Distribuir meta de 100 questões proporcionalmente ao erro
+    const TARGET_QUESTIONS = 100; 
+
+    return weightedStats.map(stat => {
+        const share = totalWeightScore > 0 ? (stat.errorScore / totalWeightScore) : 0;
+        const suggested = Math.round(share * TARGET_QUESTIONS);
+        
+        return {
+            ...stat,
+            suggestedCount: suggested,
+            priority: stat.accuracy < 60 ? 'Alta' : (stat.accuracy < 85 ? 'Média' : 'Baixa')
+        };
+    }).sort((a, b) => b.suggestedCount - a.suggestedCount); // Ordena: quem precisa de mais atenção primeiro
+
+  }, [allSessions]);
+
+  // =================================================================================
+  // 📅 CÁLCULO DE PROGRESSO DAS METAS (Reset Automático)
+  // =================================================================================
   const calculateGoalProgress = (goal) => {
     const now = new Date();
     let startDate, endDate;
@@ -200,7 +286,6 @@ function Dashboard() {
 
   const renderGoalProgress = (goal) => {
     const progress = calculateGoalProgress(goal);
-    
     const showTime = goal.targetHours > 0;
     const showQuestions = goal.targetQuestions > 0;
 
@@ -248,11 +333,12 @@ function Dashboard() {
     );
   };
 
+  // --- HANDLERS DO MODAL DELETE ---
   const openDeleteModal = (type, id, name) => {
     let title = ''; let message = '';
-    if (type === 'SUBJECT') { title = 'Excluir Matéria'; message = `Tem certeza que deseja excluir "${name}"? Todas as sessões e metas vinculadas a ela também podem ser afetadas.`; } 
-    else if (type === 'GOAL') { title = 'Excluir Meta'; message = `Tem certeza que deseja excluir a meta "${name}"? Essa ação não pode ser desfeita.`; } 
-    else if (type === 'SESSION') { title = 'Excluir Sessão'; message = 'Tem certeza que deseja apagar este registro de estudo?'; }
+    if (type === 'SUBJECT') { title = 'Excluir Matéria'; message = `Tem certeza que deseja excluir "${name}"?`; } 
+    else if (type === 'GOAL') { title = 'Excluir Meta'; message = `Tem certeza que deseja excluir a meta "${name}"?`; } 
+    else if (type === 'SESSION') { title = 'Excluir Sessão'; message = 'Tem certeza que deseja apagar este registro?'; }
     setDeleteModal({ isOpen: true, type, id, title, message });
   };
 
@@ -297,6 +383,8 @@ function Dashboard() {
   return (
     <Layout>
       <div className="max-w-400 mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
+        
+        {/* CABEÇALHO */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h1 className="text-2xl font-bold text-text">Visão Geral</h1>
@@ -310,8 +398,80 @@ function Dashboard() {
             </button>
         </div>
 
+        {/* ESTATÍSTICAS PRINCIPAIS */}
         <StatsGrid stats={stats} questionsStats={questionsStats} streak={streak} />
 
+        {/* --- 🧠 SUGESTÃO INTELIGENTE (NOVO) --- */}
+        <div className="bg-surface border border-border rounded-2xl p-6 shadow-lg shadow-purple-500/5 relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Fundo Decorativo */}
+            <div className="absolute top-[-20px] right-[-20px] p-4 opacity-5 pointer-events-none">
+                <Brain className="w-40 h-40 text-purple-500 transform rotate-12" />
+            </div>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 relative z-10">
+                <div className="p-3 bg-purple-500/10 rounded-xl text-purple-500 shadow-inner">
+                    <Rocket className="w-6 h-6" />
+                </div>
+                <div>
+                    <h3 className="text-lg font-bold text-text flex items-center gap-2">
+                        Sugestão Inteligente
+                        <span className="text-[10px] bg-purple-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wide font-bold">Beta AI</span>
+                    </h3>
+                    <p className="text-sm text-text-muted">
+                        Algoritmo de repetição espaçada: Baseado nos seus erros, aqui está seu treino ideal de <strong>100 questões</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+                {smartSuggestions.length > 0 ? (
+                    smartSuggestions.map((sug) => (
+                        <div key={sug.id} className="bg-background border border-border rounded-xl p-4 flex flex-col justify-between hover:border-purple-500/30 hover:shadow-md transition-all group">
+                            <div className="flex justify-between items-start mb-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: sug.color }}></div>
+                                    <span className="text-xs font-bold text-text-muted">
+                                        {sug.accuracy.toFixed(0)}% Acerto
+                                    </span>
+                                </div>
+                                {sug.priority === 'Alta' && (
+                                    <span className="text-[9px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 animate-pulse">
+                                        FOCAR AGORA
+                                    </span>
+                                )}
+                            </div>
+                            
+                            <div className="mb-4">
+                                <h4 className="font-bold text-text text-lg truncate group-hover:text-purple-500 transition-colors" title={sug.name}>
+                                    {sug.name}
+                                </h4>
+                                <p className="text-xs text-text-muted">Base: {sug.total} questões</p>
+                            </div>
+
+                            <div className="pt-3 border-t border-border mt-auto flex justify-between items-end">
+                                <span className="text-xs text-text-muted font-medium mb-1">Meta Hoje:</span>
+                                <div className="text-right">
+                                    <span className="text-2xl font-bold text-purple-600 dark:text-purple-400 leading-none">{sug.suggestedCount}</span>
+                                    <span className="text-[10px] text-text-muted block font-medium uppercase">Questões</span>
+                                </div>
+                            </div>
+                            
+                            {/* Barra de Progresso Visual */}
+                            <div className="w-full bg-gray-100 dark:bg-gray-800 h-1 mt-3 rounded-full overflow-hidden">
+                                <div className="bg-purple-500 h-full" style={{ width: `${Math.min(100, (sug.suggestedCount / 50) * 100)}%` }}></div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="col-span-4 flex flex-col items-center justify-center py-10 border-2 border-dashed border-border rounded-xl text-text-muted bg-surface/50">
+                        <Brain className="w-10 h-10 mb-2 opacity-50" />
+                        <p>Realize algumas sessões de questões para a IA gerar recomendações!</p>
+                    </div>
+                )}
+            </div>
+        </div>
+
+        {/* GRÁFICOS */}
         <div className="space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-surface p-2 rounded-xl border border-border shadow-sm transition-colors">
                 <div className="flex p-1 bg-background rounded-lg border border-border">
@@ -345,6 +505,8 @@ function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* METAS ATIVAS */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Metas Ativas</h3>
@@ -372,6 +534,7 @@ function Dashboard() {
                 </div>
             </div>
 
+            {/* MATÉRIAS */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Matérias</h3>
@@ -400,7 +563,7 @@ function Dashboard() {
                 </div>
             </div>
 
-            {/* RECENTES (Mantido igual) */}
+            {/* RECENTES */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col h-100 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-text-muted text-xs uppercase tracking-wider">Recentes</h3>
