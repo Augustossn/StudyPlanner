@@ -31,7 +31,8 @@ const Configuracoes = () => {
     fontSize: 'normal', 
     soundEnabled: true,
     chartRange: '7days', // <--- Padrão inicial
-    suggestionMode: 'per_subject'
+    suggestionMode: 'per_subject',
+    suggestionUseWeeklyGoals: true
   });
 
   // --- CARREGAR PREFERÊNCIAS AO INICIAR ---
@@ -253,6 +254,25 @@ const Configuracoes = () => {
                             <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
                         </div>
                     </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border transition-colors">
+                    <div className="flex items-center gap-3">
+                        <BarChart3 className="text-text-muted" size={20} />
+                        <div>
+                            <p className="text-text font-medium">Usar Metas Semanais de Questões</p>
+                            <p className="text-xs text-text-muted">Quando houver metas semanais por matéria, a sugestão usa esse total como base da próxima semana.</p>
+                        </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={appearance.suggestionUseWeeklyGoals ?? true}
+                            onChange={(e) => handleSaveAppearance({ suggestionUseWeeklyGoals: e.target.checked })}
+                        />
+                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
                 </div>
 
                 {/* 5. Sons */}

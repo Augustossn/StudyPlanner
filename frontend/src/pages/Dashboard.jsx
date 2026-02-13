@@ -45,6 +45,7 @@ function Dashboard() {
   const [viewSession, setViewSession] = useState(null);
   const [chartRange, setChartRange] = useState('7days'); 
   const [suggestionMode, setSuggestionMode] = useState('per_subject');
+  const [suggestionUseWeeklyGoals, setSuggestionUseWeeklyGoals] = useState(true);
 
   // --- MODAL DELETE ---
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: null, id: null, title: '', message: '' });
@@ -58,6 +59,9 @@ function Dashboard() {
           const parsed = JSON.parse(savedApp);
           if (parsed.chartRange) setChartRange(parsed.chartRange);
           if (parsed.suggestionMode) setSuggestionMode(parsed.suggestionMode);
+          if (typeof parsed.suggestionUseWeeklyGoals === 'boolean') {
+            setSuggestionUseWeeklyGoals(parsed.suggestionUseWeeklyGoals);
+          }
       }
 
       const [statsRes, sessionsRes, goalsRes, subjectsRes] = await Promise.all([
@@ -98,6 +102,9 @@ function Dashboard() {
             const parsed = JSON.parse(savedApp);
             if (parsed.chartRange) setChartRange(parsed.chartRange);
             if (parsed.suggestionMode) setSuggestionMode(parsed.suggestionMode);
+            if (typeof parsed.suggestionUseWeeklyGoals === 'boolean') {
+              setSuggestionUseWeeklyGoals(parsed.suggestionUseWeeklyGoals);
+            }
         }
     };
     window.addEventListener('storage', handleStorageChange);
@@ -172,36 +179,11 @@ function Dashboard() {
   const smartSuggestions = useMemo(() => {
     if (!allSessions.length) return [];
 
-    // 1. Agrupar dados por matéria
-    const subjectStats = {};
-
-    allSessions.forEach((session) => {
-        // Ignora se não tem matéria ou se não foi uma sessão de questões
-        if (!session.subject || !session.totalQuestions || session.totalQuestions === 0) return;
-
-        const subId = session.subject.id;
-        if (!subjectStats[subId]) {
-            subjectStats[subId] = {
-                id: subId,
-                name: session.subject.name,
-                color: session.subject.color,
-                total: 0,
-                correct: 0
-            };
-        }
-        subjectStats[subId].total += session.totalQuestions;
-        subjectStats[subId].correct += (session.correctQuestions || 0);
-    });
-
-    // 2. Filtrar apenas matérias que tenham histórico de questões
-    const statsArray = Object.values(subjectStats).filter((stat) => stat.total > 0);
-
-    if (statsArray.length === 0) return [];
-
-    const getDifficultyMultiplier = (accuracy) => {
-      if (accuracy >= 85) return 0.4;
+    const getDifficultyMultiplier = (accuracy, hasHistory) => {
+      if (!hasHistory) return 1;
+      if (accuracy >= 80) return 0.5;
       if (accuracy >= 70) return 0.8;
-      if (accuracy >= 50) return 1.2;
+      if (accuracy >= 60) return 1.25;
       return 1.6;
     };
 
@@ -240,18 +222,89 @@ function Dashboard() {
       }));
     };
 
-    const totalQuestionsAllSubjects = statsArray.reduce((sum, stat) => sum + stat.total, 0);
-    const averageQuestions = Math.round(totalQuestionsAllSubjects / statsArray.length);
-    const useGeneralBase = suggestionMode === 'general';
+    const questionSessions = allSessions.filter((session) => (
+      session.subject && session.totalQuestions && session.totalQuestions > 0
+    ));
 
-    const weightedStats = statsArray.map((stat) => {
-      const accuracy = (stat.correct / stat.total) * 100;
-      const difficultyMultiplier = getDifficultyMultiplier(accuracy);
-      const baseQuestions = useGeneralBase ? averageQuestions : stat.total;
+    const subjectStats = {};
+    questionSessions.forEach((session) => {
+      const subId = session.subject.id;
+      if (!subjectStats[subId]) {
+        subjectStats[subId] = {
+          id: subId,
+          name: session.subject.name,
+          color: session.subject.color,
+          total: 0,
+          correct: 0
+        };
+      }
+      subjectStats[subId].total += session.totalQuestions;
+      subjectStats[subId].correct += (session.correctQuestions || 0);
+    });
+
+    const weeklyGoalBySubject = goals
+      .filter((goal) => (
+        goal.active &&
+        goal.goalType === 'Semanal' &&
+        goal.targetQuestions > 0 &&
+        goal.subject?.id
+      ))
+      .reduce((acc, goal) => {
+        const subId = goal.subject.id;
+        acc[subId] = (acc[subId] || 0) + goal.targetQuestions;
+        return acc;
+      }, {});
+
+    const hasWeeklyGoals = Object.keys(weeklyGoalBySubject).length > 0;
+    const useWeeklyGoalsAsBase = suggestionUseWeeklyGoals && hasWeeklyGoals;
+
+    const subjectsForSuggestion = useWeeklyGoalsAsBase
+      ? Object.keys(weeklyGoalBySubject).map((id) => Number(id))
+      : Object.keys(subjectStats).map((id) => Number(id));
+
+    if (subjectsForSuggestion.length === 0) return [];
+
+    const totalFromHistory = Object.values(subjectStats).reduce((sum, stat) => sum + stat.total, 0);
+    const averageFromHistory = Object.keys(subjectStats).length > 0
+      ? Math.round(totalFromHistory / Object.keys(subjectStats).length)
+      : 0;
+
+    const weightedStats = subjectsForSuggestion.map((subjectId) => {
+      const stat = subjectStats[subjectId];
+      const hasHistory = Boolean(stat && stat.total > 0);
+      const accuracy = hasHistory ? (stat.correct / stat.total) * 100 : 0;
+      const difficultyMultiplier = getDifficultyMultiplier(accuracy, hasHistory);
+
+      let baseQuestions = 0;
+      if (useWeeklyGoalsAsBase) {
+        baseQuestions = weeklyGoalBySubject[subjectId] || 0;
+      } else if (suggestionMode === 'general') {
+        baseQuestions = averageFromHistory;
+      } else {
+        baseQuestions = stat?.total || 0;
+      }
+
+      const name = stat?.name || goals.find((g) => g.subject?.id === subjectId)?.subject?.name || `Matéria ${subjectId}`;
+      const color = stat?.color || goals.find((g) => g.subject?.id === subjectId)?.subject?.color || '#3b82f6';
+      const total = stat?.total || 0;
+      const correct = stat?.correct || 0;
       const rawSuggestion = baseQuestions * difficultyMultiplier;
 
-      return { ...stat, accuracy, difficultyMultiplier, baseQuestions, rawSuggestion };
-    });
+      return {
+        id: subjectId,
+        name,
+        color,
+        total,
+        correct,
+        accuracy,
+        baseQuestions,
+        rawSuggestion,
+        hasHistory,
+        baseType: useWeeklyGoalsAsBase ? 'weekly_goal' : (suggestionMode === 'general' ? 'general' : 'per_subject')
+      };
+    }).filter((stat) => stat.baseQuestions > 0);
+
+    if (weightedStats.length === 0) return [];
 
     const targetTotal = weightedStats.reduce((sum, stat) => sum + stat.baseQuestions, 0);
     const normalized = normalizeAndRoundSuggestions(weightedStats, targetTotal);
@@ -259,11 +312,11 @@ function Dashboard() {
     return normalized
       .map((stat) => ({
         ...stat,
-        priority: stat.accuracy < 60 ? 'Alta' : (stat.accuracy < 85 ? 'Média' : 'Baixa')
+        priority: !stat.hasHistory ? 'Média' : (stat.accuracy < 60 ? 'Alta' : (stat.accuracy < 80 ? 'Média' : 'Baixa'))
       }))
       .sort((a, b) => b.suggestedCount - a.suggestedCount);
 
-  }, [allSessions, suggestionMode]);
+  }, [allSessions, goals, suggestionMode, suggestionUseWeeklyGoals]);
 
   // =================================================================================
   // 📅 CÁLCULO DE PROGRESSO DAS METAS (Reset Automático)
@@ -459,7 +512,7 @@ function Dashboard() {
                         Baseado no seu desempenho, a sugestão redistribui sua carga para reduzir onde você acerta mais e aumentar onde erra mais.
                     </p>
                     <p className="text-xs text-text-muted mt-1">
-                        Modo: <strong>{suggestionMode === 'general' ? 'Base geral (média por matéria)' : 'Base por matéria (histórico individual)'}</strong>
+                        Modo: <strong>{suggestionUseWeeklyGoals ? 'Tentando usar metas semanais de questões como base' : (suggestionMode === 'general' ? 'Base geral (média por matéria)' : 'Base por matéria (histórico individual)')}</strong>
                     </p>
                 </div>
             </div>
@@ -486,11 +539,11 @@ function Dashboard() {
                                 <h4 className="font-bold text-text text-lg truncate group-hover:text-purple-500 transition-colors" title={sug.name}>
                                     {sug.name}
                                 </h4>
-                                <p className="text-xs text-text-muted">Base: {sug.total} questões</p>
+                                <p className="text-xs text-text-muted">Base: {sug.baseQuestions} questões</p>
                             </div>
 
                             <div className="pt-3 border-t border-border mt-auto flex justify-between items-end">
-                                <span className="text-xs text-text-muted font-medium mb-1">Meta Hoje:</span>
+                                <span className="text-xs text-text-muted font-medium mb-1">Próx. Semana:</span>
                                 <div className="text-right">
                                     <span className="text-2xl font-bold text-purple-600 dark:text-purple-400 leading-none">{sug.suggestedCount}</span>
                                     <span className="text-[10px] text-text-muted block font-medium uppercase">Questões</span>
