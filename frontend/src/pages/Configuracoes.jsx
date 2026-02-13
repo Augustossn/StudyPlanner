@@ -30,7 +30,8 @@ const Configuracoes = () => {
   const [appearance, setAppearance] = useState({
     fontSize: 'normal', 
     soundEnabled: true,
-    chartRange: '7days' // <--- Padrão inicial
+    chartRange: '7days', // <--- Padrão inicial
+    suggestionMode: 'per_subject'
   });
 
   // --- CARREGAR PREFERÊNCIAS AO INICIAR ---
@@ -230,7 +231,31 @@ const Configuracoes = () => {
                     </div>
                 </div>
 
-                {/* 4. Sons */}
+                {/* 4. Base da Sugestão Inteligente */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-background rounded-xl border border-border transition-colors">
+                    <div className="flex items-center gap-3">
+                        <BarChart3 className="text-text-muted" size={20} />
+                        <div>
+                            <p className="text-text font-medium">Base da Sugestão Inteligente</p>
+                            <p className="text-xs text-text-muted">Escolha se a IA usa histórico por matéria ou média geral.</p>
+                        </div>
+                    </div>
+                    <div className="relative">
+                        <select 
+                            value={appearance.suggestionMode}
+                            onChange={(e) => handleSaveAppearance({ suggestionMode: e.target.value })}
+                            className="bg-surface text-text border border-border rounded-lg p-2 pr-8 text-sm focus:border-purple-500 outline-none appearance-none cursor-pointer min-w-52"
+                        >
+                            <option value="per_subject">Base por Matéria</option>
+                            <option value="general">Base Geral (média)</option>
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-text-muted">
+                            <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 5. Sons */}
                 <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border transition-colors">
                     <div className="flex items-center gap-3">
                         <Volume2 className="text-text-muted" size={20} />

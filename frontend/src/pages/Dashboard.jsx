@@ -44,6 +44,7 @@ function Dashboard() {
   const [chartMode, setChartMode] = useState('TIME'); 
   const [viewSession, setViewSession] = useState(null);
   const [chartRange, setChartRange] = useState('7days'); 
+  const [suggestionMode, setSuggestionMode] = useState('per_subject');
 
   // --- MODAL DELETE ---
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: null, id: null, title: '', message: '' });
@@ -56,6 +57,7 @@ function Dashboard() {
       if (savedApp) {
           const parsed = JSON.parse(savedApp);
           if (parsed.chartRange) setChartRange(parsed.chartRange);
+          if (parsed.suggestionMode) setSuggestionMode(parsed.suggestionMode);
       }
 
       const [statsRes, sessionsRes, goalsRes, subjectsRes] = await Promise.all([
@@ -95,6 +97,7 @@ function Dashboard() {
         if (savedApp) {
             const parsed = JSON.parse(savedApp);
             if (parsed.chartRange) setChartRange(parsed.chartRange);
+            if (parsed.suggestionMode) setSuggestionMode(parsed.suggestionMode);
         }
     };
     window.addEventListener('storage', handleStorageChange);
@@ -165,27 +168,25 @@ function Dashboard() {
     return `${d}/${m}`;
   };
 
-  // =================================================================================
-  // 🧠 ALGORITMO DE SUGESTÃO INTELIGENTE (ADAPTATIVE LEARNING)
-  // =================================================================================
+  // Adaptive study suggestion algorithm
   const smartSuggestions = useMemo(() => {
     if (!allSessions.length) return [];
 
     // 1. Agrupar dados por matéria
     const subjectStats = {};
 
-    allSessions.forEach(session => {
+    allSessions.forEach((session) => {
         // Ignora se não tem matéria ou se não foi uma sessão de questões
         if (!session.subject || !session.totalQuestions || session.totalQuestions === 0) return;
-        
+
         const subId = session.subject.id;
         if (!subjectStats[subId]) {
-            subjectStats[subId] = { 
-                id: subId, 
-                name: session.subject.name, 
-                color: session.subject.color, 
-                total: 0, 
-                correct: 0 
+            subjectStats[subId] = {
+                id: subId,
+                name: session.subject.name,
+                color: session.subject.color,
+                total: 0,
+                correct: 0
             };
         }
         subjectStats[subId].total += session.totalQuestions;
@@ -193,39 +194,76 @@ function Dashboard() {
     });
 
     // 2. Filtrar apenas matérias que tenham histórico de questões
-    const statsArray = Object.values(subjectStats).filter(stat => stat.total > 0);
+    const statsArray = Object.values(subjectStats).filter((stat) => stat.total > 0);
 
     if (statsArray.length === 0) return [];
 
-    // 3. Calcular Peso de Prioridade (Baseado no Erro)
-    let totalWeightScore = 0;
-    
-    const weightedStats = statsArray.map(stat => {
-        const accuracy = (stat.correct / stat.total) * 100;
-        
-        // Lógica: Taxa de Erro (100 - acerto) + 10 (manutenção mínima)
-        let errorScore = (100 - accuracy) + 10; 
+    const getDifficultyMultiplier = (accuracy) => {
+      if (accuracy >= 85) return 0.4;
+      if (accuracy >= 70) return 0.8;
+      if (accuracy >= 50) return 1.2;
+      return 1.6;
+    };
 
-        totalWeightScore += errorScore;
+    const normalizeAndRoundSuggestions = (items, targetTotal) => {
+      if (!items.length || targetTotal <= 0) {
+        return items.map((item) => ({ ...item, suggestedCount: 0 }));
+      }
 
-        return { ...stat, accuracy, errorScore };
+      const rawTotal = items.reduce((sum, item) => sum + item.rawSuggestion, 0);
+      if (rawTotal <= 0) {
+        const even = Math.floor(targetTotal / items.length);
+        let rest = targetTotal - (even * items.length);
+        return items.map((item) => {
+          const bump = rest > 0 ? 1 : 0;
+          if (rest > 0) rest -= 1;
+          return { ...item, suggestedCount: even + bump };
+        });
+      }
+
+      const withExact = items.map((item) => {
+        const exact = (item.rawSuggestion / rawTotal) * targetTotal;
+        return { ...item, suggestedCount: Math.floor(exact), decimalPart: exact - Math.floor(exact) };
+      });
+
+      let remaining = targetTotal - withExact.reduce((sum, item) => sum + item.suggestedCount, 0);
+      const byDecimal = [...withExact].sort((a, b) => b.decimalPart - a.decimalPart);
+
+      for (let i = 0; i < byDecimal.length && remaining > 0; i += 1) {
+        byDecimal[i].suggestedCount += 1;
+        remaining -= 1;
+      }
+
+      return withExact.map((item) => ({
+        ...item,
+        suggestedCount: byDecimal.find((row) => row.id === item.id)?.suggestedCount ?? item.suggestedCount
+      }));
+    };
+
+    const totalQuestionsAllSubjects = statsArray.reduce((sum, stat) => sum + stat.total, 0);
+    const averageQuestions = Math.round(totalQuestionsAllSubjects / statsArray.length);
+    const useGeneralBase = suggestionMode === 'general';
+
+    const weightedStats = statsArray.map((stat) => {
+      const accuracy = (stat.correct / stat.total) * 100;
+      const difficultyMultiplier = getDifficultyMultiplier(accuracy);
+      const baseQuestions = useGeneralBase ? averageQuestions : stat.total;
+      const rawSuggestion = baseQuestions * difficultyMultiplier;
+
+      return { ...stat, accuracy, difficultyMultiplier, baseQuestions, rawSuggestion };
     });
 
-    // 4. Distribuir meta de 100 questões proporcionalmente ao erro
-    const TARGET_QUESTIONS = 100; 
+    const targetTotal = weightedStats.reduce((sum, stat) => sum + stat.baseQuestions, 0);
+    const normalized = normalizeAndRoundSuggestions(weightedStats, targetTotal);
 
-    return weightedStats.map(stat => {
-        const share = totalWeightScore > 0 ? (stat.errorScore / totalWeightScore) : 0;
-        const suggested = Math.round(share * TARGET_QUESTIONS);
-        
-        return {
-            ...stat,
-            suggestedCount: suggested,
-            priority: stat.accuracy < 60 ? 'Alta' : (stat.accuracy < 85 ? 'Média' : 'Baixa')
-        };
-    }).sort((a, b) => b.suggestedCount - a.suggestedCount); // Ordena: quem precisa de mais atenção primeiro
+    return normalized
+      .map((stat) => ({
+        ...stat,
+        priority: stat.accuracy < 60 ? 'Alta' : (stat.accuracy < 85 ? 'Média' : 'Baixa')
+      }))
+      .sort((a, b) => b.suggestedCount - a.suggestedCount);
 
-  }, [allSessions]);
+  }, [allSessions, suggestionMode]);
 
   // =================================================================================
   // 📅 CÁLCULO DE PROGRESSO DAS METAS (Reset Automático)
@@ -401,7 +439,7 @@ function Dashboard() {
         {/* ESTATÍSTICAS PRINCIPAIS */}
         <StatsGrid stats={stats} questionsStats={questionsStats} streak={streak} />
 
-        {/* --- 🧠 SUGESTÃO INTELIGENTE (NOVO) --- */}
+        {/* Sugestao inteligente */}
         <div className="bg-surface border border-border rounded-2xl p-6 shadow-lg shadow-purple-500/5 relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Fundo Decorativo */}
             <div className="absolute top-[-20px] right-[-20px] p-4 opacity-5 pointer-events-none">
@@ -418,7 +456,10 @@ function Dashboard() {
                         <span className="text-[10px] bg-purple-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wide font-bold">Beta AI</span>
                     </h3>
                     <p className="text-sm text-text-muted">
-                        Algoritmo de repetição espaçada: Baseado nos seus erros, aqui está seu treino ideal de <strong>100 questões</strong>.
+                        Baseado no seu desempenho, a sugestão redistribui sua carga para reduzir onde você acerta mais e aumentar onde erra mais.
+                    </p>
+                    <p className="text-xs text-text-muted mt-1">
+                        Modo: <strong>{suggestionMode === 'general' ? 'Base geral (média por matéria)' : 'Base por matéria (histórico individual)'}</strong>
                     </p>
                 </div>
             </div>
