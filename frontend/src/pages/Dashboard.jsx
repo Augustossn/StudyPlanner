@@ -18,6 +18,20 @@ import StudyTimeChart from '../components/charts/StudyTimeChart';
 import QuestionsChart from '../components/charts/QuestionsChart';
 import StatsGrid from '../components/cards/StatsGrid'; 
 
+const ROUTINE_WEEK_DAYS = [
+  { key: 'MONDAY', label: 'Segunda-feira' },
+  { key: 'TUESDAY', label: 'Terca-feira' },
+  { key: 'WEDNESDAY', label: 'Quarta-feira' },
+  { key: 'THURSDAY', label: 'Quinta-feira' },
+  { key: 'FRIDAY', label: 'Sexta-feira' },
+  { key: 'SATURDAY', label: 'Sabado' },
+  { key: 'SUNDAY', label: 'Domingo' }
+];
+
+const ROUTINE_DAY_BY_JS_INDEX = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+
+const getRoutineStorageKey = (userId) => `routine_plans_${userId}`;
+
 function Dashboard() {
   const navigate = useNavigate();
   const [user] = useState(() => getAuthUser());
@@ -46,6 +60,7 @@ function Dashboard() {
   const [chartRange, setChartRange] = useState('7days'); 
   const [suggestionMode, setSuggestionMode] = useState('per_subject');
   const [suggestionUseWeeklyGoals, setSuggestionUseWeeklyGoals] = useState(true);
+  const [todayRoutines, setTodayRoutines] = useState([]);
 
   // --- MODAL DELETE ---
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: null, id: null, title: '', message: '' });
@@ -93,10 +108,35 @@ function Dashboard() {
     }
   }, []);
 
+  const todayRoutineKey = useMemo(() => ROUTINE_DAY_BY_JS_INDEX[new Date().getDay()], []);
+
+  const todayRoutineLabel = useMemo(
+    () => ROUTINE_WEEK_DAYS.find((day) => day.key === todayRoutineKey)?.label || 'Hoje',
+    [todayRoutineKey]
+  );
+
+  const loadTodayRoutines = useCallback(() => {
+    if (!user?.userId) {
+      setTodayRoutines([]);
+      return;
+    }
+
+    try {
+      const saved = localStorage.getItem(getRoutineStorageKey(user.userId));
+      const parsed = saved ? JSON.parse(saved) : [];
+      const list = Array.isArray(parsed) ? parsed : [];
+      setTodayRoutines(list.filter((item) => item.day === todayRoutineKey));
+    } catch (error) {
+      console.error(error);
+      setTodayRoutines([]);
+    }
+  }, [user, todayRoutineKey]);
+
   useEffect(() => {
     if (user) loadDashboardData(user.userId);
+    loadTodayRoutines();
     
-    const handleStorageChange = () => {
+    const handleStorageChange = (event) => {
         const savedApp = localStorage.getItem('app_settings');
         if (savedApp) {
             const parsed = JSON.parse(savedApp);
@@ -106,10 +146,17 @@ function Dashboard() {
               setSuggestionUseWeeklyGoals(parsed.suggestionUseWeeklyGoals);
             }
         }
+
+        if (user?.userId) {
+          const routineKey = getRoutineStorageKey(user.userId);
+          if (!event.key || event.key === routineKey) {
+            loadTodayRoutines();
+          }
+        }
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [user, loadDashboardData]);
+  }, [user, loadDashboardData, loadTodayRoutines]);
 
   // --- CÁLCULOS GERAIS ---
   const questionsStats = useMemo(() => {
@@ -137,7 +184,7 @@ function Dashboard() {
         const dateString = `${year}-${month}-${day}`;
         const minutesStudied = dailyMinutes[dateString] || 0;
         if (minutesStudied >= 1) { currentStreak++; } 
-        else if (i === 0 && minutesStudied === 0) { } 
+        else if (i === 0 && minutesStudied === 0) { continue; } 
         else { break; }
         checkDate.setDate(checkDate.getDate() - 1);
     }
@@ -491,6 +538,44 @@ function Dashboard() {
 
         {/* ESTATÍSTICAS PRINCIPAIS */}
         <StatsGrid stats={stats} questionsStats={questionsStats} streak={streak} />
+
+        {/* ROTINA DE HOJE */}
+        <div className="bg-surface border border-border rounded-2xl p-4 transition-colors">
+            <div className="mb-3">
+                <div>
+                    <h3 className="font-bold text-text">Rotina de Hoje</h3>
+                    <p className="text-xs text-text-muted">{todayRoutineLabel}</p>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                {todayRoutines.length > 0 ? (
+                    todayRoutines.map((routine) => (
+                        <div key={routine.id} className="bg-background border border-border rounded-xl p-3 flex items-center justify-between gap-3">
+                            <div>
+                                <p className="font-semibold text-sm text-text">{routine.subject}</p>
+                                <div className="flex items-center gap-2 mt-1 text-xs text-text-muted">
+                                    {routine.hours > 0 && (
+                                        <span className="px-2 py-0.5 rounded-md bg-surface border border-border flex items-center gap-1">
+                                            <Clock className="w-3 h-3" /> {routine.hours}h
+                                        </span>
+                                    )}
+                                    {routine.questions > 0 && (
+                                        <span className="px-2 py-0.5 rounded-md bg-surface border border-border flex items-center gap-1">
+                                            <HelpCircle className="w-3 h-3" /> {routine.questions} questoes
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="border border-dashed border-border rounded-xl p-3 text-sm text-text-muted">
+                        Nenhuma rotina definida para hoje.
+                    </div>
+                )}
+            </div>
+        </div>
 
         {/* Sugestao inteligente */}
         <div className="bg-surface border border-border rounded-2xl p-6 shadow-lg shadow-purple-500/5 relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
