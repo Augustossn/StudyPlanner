@@ -10,6 +10,7 @@ import {
 import { dashboardAPI, studySessionAPI, goalsAPI, subjectAPI } from '../services/api';
 import Layout from '../components/Layout';
 import { getAuthUser } from '../utils/auth';
+import { getRoutineStorageKeys, loadRoutinesFromStorage, resolveUserIdentifier } from '../utils/routineStorage';
 import SessionDetailsModal from '../components/SessionDetailsModal';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -29,8 +30,6 @@ const ROUTINE_WEEK_DAYS = [
 ];
 
 const ROUTINE_DAY_BY_JS_INDEX = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-
-const getRoutineStorageKey = (userId) => `routine_plans_${userId}`;
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -116,15 +115,15 @@ function Dashboard() {
   );
 
   const loadTodayRoutines = useCallback(() => {
-    if (!user?.userId) {
+    const resolvedUserId = resolveUserIdentifier(user);
+    if (!resolvedUserId && !user?.email) {
       setTodayRoutines([]);
       return;
     }
 
     try {
-      const saved = localStorage.getItem(getRoutineStorageKey(user.userId));
-      const parsed = saved ? JSON.parse(saved) : [];
-      const list = Array.isArray(parsed) ? parsed : [];
+      const { routines } = loadRoutinesFromStorage(user);
+      const list = Array.isArray(routines) ? routines : [];
       setTodayRoutines(list.filter((item) => item.day === todayRoutineKey));
     } catch (error) {
       console.error(error);
@@ -147,9 +146,9 @@ function Dashboard() {
             }
         }
 
-        if (user?.userId) {
-          const routineKey = getRoutineStorageKey(user.userId);
-          if (!event.key || event.key === routineKey) {
+        const routineKeys = getRoutineStorageKeys(user);
+        if (routineKeys.length > 0) {
+          if (!event.key || routineKeys.includes(event.key)) {
             loadTodayRoutines();
           }
         }

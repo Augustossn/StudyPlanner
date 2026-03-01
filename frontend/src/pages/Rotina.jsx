@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { CalendarDays, Plus, Pencil, Trash2, Clock3, CircleHelp } from 'lucide-react';
 import Layout from '../components/Layout';
 import { getAuthUser } from '../utils/auth';
+import { loadRoutinesFromStorage, saveRoutinesToStorage, resolveUserIdentifier } from '../utils/routineStorage';
 
 const WEEK_DAYS = [
   { key: 'MONDAY', label: 'Segunda-feira' },
@@ -14,8 +15,6 @@ const WEEK_DAYS = [
   { key: 'SUNDAY', label: 'Domingo' }
 ];
 
-const getStorageKey = (userId) => `routine_plans_${userId}`;
-
 const getEmptyForm = () => ({
   day: 'MONDAY',
   subject: '',
@@ -26,23 +25,16 @@ const getEmptyForm = () => ({
 function Rotina() {
   const [user] = useState(() => getAuthUser());
   const [routines, setRoutines] = useState(() => {
-    if (!user?.userId) return [];
-    try {
-      const saved = localStorage.getItem(getStorageKey(user.userId));
-      if (!saved) return [];
-      const parsed = JSON.parse(saved);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      console.error(error);
-      return [];
-    }
+    const { routines: savedRoutines } = loadRoutinesFromStorage(user);
+    return savedRoutines;
   });
   const [form, setForm] = useState(getEmptyForm());
   const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
-    if (!user?.userId) return;
-    localStorage.setItem(getStorageKey(user.userId), JSON.stringify(routines));
+    const resolvedUserId = resolveUserIdentifier(user);
+    if (!resolvedUserId && !user?.email) return;
+    saveRoutinesToStorage(user, routines);
   }, [routines, user]);
 
   const groupedByDay = useMemo(() => {
