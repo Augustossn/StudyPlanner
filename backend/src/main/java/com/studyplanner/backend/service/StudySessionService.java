@@ -7,6 +7,8 @@ import com.studyplanner.backend.repository.StudySessionRepository;
 import com.studyplanner.backend.repository.SubjectRepository;
 import com.studyplanner.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.ObjectProvider;
+import com.studyplanner.backend.event.StudySessionEventPublisher;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,13 +21,16 @@ public class StudySessionService {
     private final StudySessionRepository studySessionRepository;
     private final UserRepository userRepository;
     private final SubjectRepository subjectRepository;
+    private final ObjectProvider<StudySessionEventPublisher> eventPublisher;
 
     public StudySessionService(StudySessionRepository studySessionRepository, 
                                UserRepository userRepository, 
-                               SubjectRepository subjectRepository) {
+                               SubjectRepository subjectRepository,
+                               ObjectProvider<StudySessionEventPublisher> eventPublisher) {
         this.studySessionRepository = studySessionRepository;
         this.userRepository = userRepository;
         this.subjectRepository = subjectRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public List<StudySession> findAllByUserId(Long userId) {
@@ -62,7 +67,9 @@ public class StudySessionService {
             subject.ifPresent(session::setSubject);
         }
 
-        return studySessionRepository.save(session);
+        StudySession savedSession = studySessionRepository.save(session);
+        eventPublisher.ifAvailable(publisher -> publisher.publishSessionCreated(savedSession));
+        return savedSession;
     }
 
     public Optional<StudySession> updateSession(Long id, StudySession sessionDetails){

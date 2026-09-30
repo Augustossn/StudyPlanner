@@ -18,9 +18,10 @@ services:
     container_name: studyplanner-api
     restart: always
     ports:
-      - "8080:8080"
+      - "8081:8080"
     depends_on:
       - db
+      - discovery
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
@@ -31,6 +32,39 @@ services:
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       JAVA_TOOL_OPTIONS: "-XX:TieredStopAtLevel=1"
+      EUREKA_SERVER_URL: http://discovery:8761/eureka/
+      RABBITMQ_HOST: rabbitmq
+      MESSAGING_ENABLED: "true"
+
+  discovery:
+    build: ./microservices/service-discovery
+    ports:
+      - "8761:8761"
+
+  gateway:
+    build: ./microservices/api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_SERVER_URL: http://discovery:8761/eureka/
+    depends_on:
+      - discovery
+      - api
+
+  notification-service:
+    build: ./microservices/notification-service
+    environment:
+      EUREKA_SERVER_URL: http://discovery:8761/eureka/
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - discovery
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
 
   web:
     build: ./frontend  # <--- AQUI ESTAVA O ERRO (agora aponta para a pasta certa)

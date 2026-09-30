@@ -4,11 +4,13 @@ on:
   push:
     branches: [ "main", "master" ]
     paths:
-      - 'backend/**' # Só roda se mexer na pasta backend
+      - 'backend/**'
+      - 'microservices/**'
   pull_request:
     branches: [ "main", "master" ]
     paths:
       - 'backend/**'
+      - 'microservices/**'
 
 jobs:
   build-and-test:
@@ -37,3 +39,21 @@ jobs:
 
     - name: Build (Opcional - verifica se compila tudo)
       run: ./mvnw clean package -DskipTests # Pula testes aqui pq já rodou em cima
+
+  microservices-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [service-discovery, api-gateway, notification-service]
+    defaults:
+      run:
+        working-directory: ./microservices/${{ matrix.service }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+    - name: Compilar microsserviço
+      run: mvn -B verify

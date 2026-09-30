@@ -8,6 +8,12 @@
 
 A complete, full-stack **study planning application** designed to boost productivity. Built with a **React + Tailwind CSS frontend** and a **Java + Spring Boot backend**, it features a robust Pomodoro timer, detailed analytics, and a fully customizable user experience.
 
+## Arquitetura de microsserviços
+
+Além do backend de domínio, o projeto possui descoberta de serviços (Eureka), API Gateway,
+mensageria assíncrona (RabbitMQ), notificações e observabilidade com Actuator. A arquitetura e
+as instruções de execução estão em [docs/microservices-architecture.md](docs/microservices-architecture.md).
+
 ---
 
 ## 📂 Project Structure
@@ -15,6 +21,7 @@ A complete, full-stack **study planning application** designed to boost producti
 ```text
 study-planner/
 ├── backend/   # REST API in Java + Spring Boot
+├── microservices/ # Discovery, Gateway and Notification Service
 └── frontend/  # Interface in React + Tailwind CSS
 ```
 
