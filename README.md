@@ -1,18 +1,38 @@
 # Study Planner Pro 🚀
 
 [![Frontend](https://img.shields.io/badge/React-19.2-blue?logo=react)](https://reactjs.org/)
-[![Backend](https://img.shields.io/badge/Java-25-orange?logo=java)](https://www.java.com/)
+[![Backend](https://img.shields.io/badge/Java-21-orange?logo=java)](https://www.java.com/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.1-green?logo=spring)](https://spring.io/projects/spring-boot)
+[![Spring Cloud](https://img.shields.io/badge/Spring_Cloud-Eureka_%2B_Gateway-6db33f?logo=spring)](https://spring.io/projects/spring-cloud)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Event_Driven-ff6600?logo=rabbitmq)](https://www.rabbitmq.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-Apache%202-blue)](LICENSE)
 
 A complete, full-stack **study planning application** designed to boost productivity. Built with a **React + Tailwind CSS frontend** and a **Java + Spring Boot backend**, it features a robust Pomodoro timer, detailed analytics, and a fully customizable user experience.
 
-## Arquitetura de microsserviços
+## 🏗️ Arquitetura de microsserviços
 
-Além do backend de domínio, o projeto possui descoberta de serviços (Eureka), API Gateway,
-mensageria assíncrona (RabbitMQ), notificações e observabilidade com Actuator. A arquitetura e
-as instruções de execução estão em [docs/microservices-architecture.md](docs/microservices-architecture.md).
+O projeto evoluiu de forma incremental: o domínio de estudos permanece no serviço central e as
+preocupações transversais foram desacopladas em serviços independentes.
+
+```text
+React → API Gateway :8080 → study-core-service :8081 → PostgreSQL
+                  ↘                 │
+                    Eureka :8761    └─ study.session.created → RabbitMQ → notification-service :8082
+```
+
+| Componente | Responsabilidade | Tecnologia |
+| --- | --- | --- |
+| `api-gateway` | Entrada única, roteamento e balanceamento de carga | Spring Cloud Gateway |
+| `service-discovery` | Registro e descoberta de serviços | Eureka |
+| `study-core-service` | Usuários, matérias, metas, sessões e dashboard | Spring Boot, JPA, PostgreSQL |
+| `notification-service` | Consumo de eventos para notificações futuras | Spring AMQP / RabbitMQ |
+| RabbitMQ | Broker e fila durável de eventos | RabbitMQ Management |
+
+Quando uma sessão é criada, o serviço central a persiste e publica o evento assíncrono
+`study.session.created`. O serviço de notificações consome esse contrato sem receber senha,
+JWT ou outros dados sensíveis. Consulte o detalhamento em
+[docs/microservices-architecture.md](docs/microservices-architecture.md).
 
 ---
 
@@ -20,9 +40,14 @@ as instruções de execução estão em [docs/microservices-architecture.md](doc
 
 ```text
 study-planner/
-├── backend/   # REST API in Java + Spring Boot
-├── microservices/ # Discovery, Gateway and Notification Service
-└── frontend/  # Interface in React + Tailwind CSS
+├── backend/                         # study-core-service
+├── microservices/
+│   ├── api-gateway/                 # Porta 8080
+│   ├── notification-service/         # Consumidor RabbitMQ
+│   └── service-discovery/            # Eureka, porta 8761
+├── frontend/                         # React + Tailwind CSS
+├── docs/                             # Decisões e arquitetura
+└── docker-compose.yml                # Ambiente integrado
 ```
 
 ---
@@ -40,6 +65,15 @@ study-planner/
 * **H2 Database** (Optional for local testing)
 * **Lombok** (Boilerplate reduction)
 * **Maven** (Dependency management)
+* **Spring Boot Actuator** (Health checks e métricas)
+
+### Microsserviços e plataforma
+
+* **Spring Cloud Netflix Eureka** (Service discovery)
+* **Spring Cloud Gateway** (Gateway e roteamento)
+* **RabbitMQ / Spring AMQP** (Mensageria orientada a eventos)
+* **Docker e Docker Compose** (Ambiente reproduzível)
+* **GitHub Actions** (Testes e build de cada serviço)
 
 ### Frontend
 
@@ -57,16 +91,36 @@ study-planner/
 
 ## ⚡ Quick Start
 
-### 1. Backend Setup
+### 1. Ambiente completo com Docker — recomendado
+
+Crie um arquivo `.env` na raiz com as variáveis já usadas pela aplicação (`POSTGRES_USER`,
+`POSTGRES_PASSWORD`, `POSTGRES_DB`, `DB_HOST`, `DB_PORT`, `JWT_SECRET`, `MAIL_USERNAME` e
+`MAIL_PASSWORD`). Para o banco no Docker, defina `DB_HOST=db` e `DB_PORT=5432`.
+
+```bash
+docker compose up --build
+```
+
+Serviços disponíveis:
+
+| Serviço | Endereço |
+| --- | --- |
+| Aplicação web | http://localhost:3000 |
+| API pelo gateway | http://localhost:8080 |
+| Eureka | http://localhost:8761 |
+| RabbitMQ Management | http://localhost:15672 (guest/guest) |
+
+### 2. Desenvolvimento do serviço central
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
-* Server runs at: **[http://localhost:8080](http://localhost:8080)**
+* Server runs at: **[http://localhost:8080](http://localhost:8080)**.
+* Para executar sem a infraestrutura distribuída, mantenha `MESSAGING_ENABLED=false`.
 
-### 2. Frontend Setup
+### 3. Frontend Setup
 
 ```bash
 cd frontend
@@ -75,6 +129,11 @@ pnpm dev
 ```
 
 * App runs at: **[http://localhost:5173](http://localhost:5173)**
+
+### Observabilidade
+
+Todos os serviços expõem `GET /actuator/health`, além de métricas e informações da aplicação.
+No ambiente integrado, a API pública deve ser acessada pelo gateway em `localhost:8080`.
 
 ---
 
@@ -110,6 +169,9 @@ pnpm dev
 ---
 
 ## 🔗 API Endpoints
+
+Em Docker, utilize `http://localhost:8080` como base; o Gateway encaminha as rotas para o
+serviço central. Em desenvolvimento local do backend, use `http://localhost:8080` diretamente.
 
 ### Authentication
 
@@ -287,6 +349,10 @@ Contributions are welcome!
 
 ## 🚀 Future Roadmap
 
+* [ ] Autenticação JWT validada no API Gateway
+* [ ] Retry, DLQ e idempotência para eventos RabbitMQ
+* [ ] Tracing distribuído com OpenTelemetry
+* [ ] Banco de dados isolado por microsserviço
 * [ ] PWA (Progressive Web App) support for mobile installation
 * [ ] Flashcards system for active recall
 * [ ] Social features (study groups)
