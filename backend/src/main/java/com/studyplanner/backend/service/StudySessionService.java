@@ -68,7 +68,10 @@ public class StudySessionService {
         }
 
         StudySession savedSession = studySessionRepository.save(session);
-        eventPublisher.ifAvailable(publisher -> publisher.publishSessionCreated(savedSession));
+        // Mockito unit tests and the local monolith intentionally run without messaging.
+        if (eventPublisher != null) {
+            eventPublisher.ifAvailable(publisher -> publisher.publishSessionCreated(savedSession));
+        }
         return savedSession;
     }
 
